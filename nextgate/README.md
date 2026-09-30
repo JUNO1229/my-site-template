@@ -1,47 +1,54 @@
-# nextgate.kr 상품 수집 — 진행 기록
+# 넥스트에너지(nextgate.kr) 상품 수집·분석
 
-## 2026-09-30 단계 1 (구조 파악) — 중단
+모두의티켓 기관제휴중개 영업 기획용. 넥스트에너지 판매사이트 전체 상품을 수집해 상품 구성·가격 기준선·공략 시설·빈 카테고리를 분석했다.
 
-- 네트워크 허용 후 `robots.txt`는 정상 응답(200, 전체 허용).
-- 메인 `https://nextgate.kr/`(www 포함)는 HTTP 200이지만 본문이 **빈 줄 6바이트**뿐. 쿠키·브라우저 UA를 붙여도 같음.
-- `/index`, `/main`, `/cartList` → 404 에러 페이지. `/cartProduct`(파라미터 없음) → 500.
-- Playwright(Chromium)로는 메인 요청이 프록시에서 502("upstream request failed").
-- 판단: 이 환경(해외 클라우드 IP)에는 사이트가 빈 페이지를 주는 것으로 보임(해외 IP 차단 추정, 미확인).
-  작업지시 원칙에 따라 우회하지 않고 중단.
-- 보낸 요청: 약 14건, 간격 3초. 조회수(`viewCountUp*`)·장바구니(`miniCart`, `cartReset`) 요청 0건.
+## 산출물
 
-원본 응답: `raw/probe/`. 탐색 스크립트: `probe.py`.
+| 파일 | 내용 |
+| --- | --- |
+| `data/nextgate_products.csv` | 상품 1행 (100행, UTF-8-BOM) |
+| `data/nextgate_options.csv` | 옵션 1행 (306행, UTF-8-BOM) |
+| `data/nextgate_products.xlsx` | 시트: 상품목록 / 옵션 / 카테고리요약 / 전북·충남 / 워터파크 / 발권대행사 (요약 시트는 COUNTIFS·AVERAGEIFS·MEDIAN 수식, 열 때 자동 재계산) |
+| `analysis/report.md` | 분석 1~7 |
+| `raw/` | 원본: `list/`(목록 JSON, 전체 + 소분류 15개), `detail/`(상세 HTML 100개), `logs/`(요청 로그), `state.json`(진행 상태), `probe/`(구조 파악 단계 원본) |
+| `samples/` | 파서 검증용 저장본 (샘플 상세 4개, 테마파크 목록) |
+| `collect.py` / `parse.py` / `analyze.py` | 수집 / 변환·교차검증 / 분석 |
 
-## 2026-09-30 단계 1 재개 — 구조 파악 완료
+실행 순서: `python3 collect.py full` → `python3 parse.py full` → `python3 analyze.py`
 
-빈 페이지의 원인은 IP 차단이 아니라 **행사코드(CD) 세션**이었다. 사이트 로고 링크 `/?CD=1707897200`로 들어가면
-세션에 행사코드가 잡히고 정상 페이지가 나온다(사이트 자체 링크 사용, 우회 아님).
+## 수집 방법
 
-| 용도 | 요청 | 응답 |
-| --- | --- | --- |
-| 입장 | GET `/?CD=1707897200` → POST `eventCodeAjax` (CD) | HTML / 빈 응답 |
-| 목록 | POST `cartListAjax` (searchDiv, categoryDiv, categorySubDiv, searchWord) | **JSON 배열, 페이지네이션 없음** |
-| 상세 | POST `cartProduct` (idx_eventProduct) | HTML (목록 JSON과 같은 정보 + 뱃지 표시) |
-| 상세 보조 | POST `eventProductAjax` (idxEventProduct) | 유효기간 표시용 |
+- **수집 일시**: 2026-09-30 04:38~04:43 (KST 표기 아님, 서버 시각 기준)
+- **입장**: 사이트 로고 링크 `/?CD=1707897200`로 세션에 행사코드를 잡은 뒤(`eventCodeAjax`) 조회.
+  행사코드 없이 `/`에 접속하면 빈 페이지가 나온다(이 때문에 처음에는 차단으로 오인).
+- **목록**: POST `cartListAjax` → JSON. 페이지네이션 없이 한 번에 전체가 온다. 전체 1회 + 소분류 15개 각 1회.
+- **상세**: POST `cartProduct` (`idx_eventProduct`) → HTML. 상품 100개.
+- **요청**: 총 118건 (구조 파악 약 20건·샘플 7건 별도), 간격 2~3초, 동시 1개, 재시도 최대 2회. 전부 HTTP 200.
+- **보내지 않은 요청**: `viewCountUp`, `viewCountUpProduct`(조회수), `miniCart`, `cartReset`, `checkStockAjax`, 주문·로그인·문의.
+  `collect.py`의 허용 목록(`ALLOWED`) 밖 요청은 코드에서 막는다.
 
-- 상품 ID: `idx_eventProduct`. 옵션 ID: `idx_eventDetail`.
-- 목록 JSON 한 건에 상품명·지역·한줄소개(sale_exp)·안내문(contents)·환불규정(ref_guide)·시설정보(enter_info)·
-  ticket_type/ticket_div(뱃지)·ticket_limit(구매제한)·옵션 전체(정상가·판매가·할인율·기간·주중/주말·대소)가 들어 있다.
-- 대표가격 = 옵션 목록의 **첫 번째 옵션** (`productMake.js`에서 최고할인 옵션 선택 코드는 주석 처리됨).
-- 전체 조회 1회: 상품 100개, 옵션 306개. 테마파크 소분류 45개(수동 조사와 일치).
-- 원본: `raw/probe/list_all.json`, `raw/probe/detail_329434.html`, `raw/probe/productMake.js`.
+## 변환 규칙 (parse.py)
 
-## 2026-09-30 단계 3 샘플 검증
+- 상세 HTML과 목록 JSON을 교차검증(상품명·대표가격·옵션 수) → 불일치 0건.
+- 대표가격·기준 권종 = 사이트에 표시되는 첫 번째 옵션. 할인율 = 사이트 표기값.
+- 유효기간 = 화면에 최종 표시되는 값(상세 페이지 JS `makeUseDate` 규칙을 옵션 데이터로 재현).
+  HTML 정적 표기는 `validity_static` 열에 참고용으로 남김.
+- issue_type: 안내문 `예약대기` → 예약대기 / 뱃지 `바로 사용가능` → 즉시발송 / `예약필수` / `수령 후 사용 가능` → 수령후사용 / `광고상품`.
+- issue_channel: 안내문 `발송채널 : ○○`. issue_medium: 알림톡 / LMS 문자 / 순차 발송.
+- 지역 → 시도·권역: 상품명 `[지역]` 태그 기준(없으면 시설 주소). 복수 지역 상품은 해당 권역마다 셈.
 
-`python3 collect.py samples` (요청 7건) → `samples/` / `python3 parse.py samples` → `samples/parsed_samples.json`, `samples/테마파크_목록_parsed.csv`
+## 제외·실패
 
-- 샘플 4개(한국민속촌, 볼베어파크, 2호선세입자, 스파도고 캐빈파크): 상세 HTML ↔ 목록 JSON 교차검증 경고 0건
-  (상품명·대표가격·옵션 수·유효기간 모두 일치)
-- 테마파크 목록: 45개, 할인율 평균 27.8% / 중간값 23% / 전북 0개 → 수동 조사와 일치
-- 파싱 규칙
-  - region·name: 상품명 `[지역] 이름` 분리 / 대표가격·basis: 상세 상단(= 첫 번째 옵션)
-  - 유효기간: 상세 정적 표기 `A ~ B` (0 = 구매일, 숫자 = 구매 후 N일 → valid_days)
-  - issue_type: 안내문에 `예약대기` → 예약대기, 그 외 ticket_div(바로 사용가능 → 즉시발송, 예약필수, 수령 후 사용 가능, 광고상품)
-  - issue_channel: 안내문 `발송채널 : ○○` / issue_medium: 알림톡·LMS 문자·순차 발송
-  - usage_method: 키워드 태그 + 안내문 `이용 방법 :` 줄
-  - refund_rule: 기한 / 수수료 / 불가 조건 / 접수 방법 요약 (공통 타행 이체수수료 500원 제외), 원문은 refund_text
+- **수집 실패: 0건.** 상품 100개 모두 목록·상세 확보.
+- **가격 통계 제외 6개** (광고상품·가격 없음, 사이트에서 결제하지 않고 외부 상담으로 연결):
+  삼성미라클안과 라식·라섹, 서울베스트의료의원 건강검진, 레포츠파크, 현대자동차(제네시스), 아라마리나 요트투어, 노량진 충남상회 모듬회.
+  상품 수·지역·발권 집계에는 포함.
+- **소분류 수**: 작업지시서에는 18개로 적혀 있으나 사이트 소분류는 15개(작업지시서의 목록도 합계 15개).
+- 복수 카테고리 상품: 없음(소분류 목록 합계 = 전체 100개).
+
+## 알려진 한계
+
+- 수집 시점 스냅샷이다. 유효기간 종료일이 수집일(9/30)인 상품이 7개 있어 다음 날 목록이 달라질 수 있다.
+- usage_method·refund_rule은 안내문 키워드 기반 요약이다. 원문은 `notice_text`·`refund_text` 열.
+- 과거 워터파크 매출 순위·금액은 작업지시서 제공 정보이며 수집 데이터가 아니다.
+- 엑셀 수식은 LibreOffice를 이 환경에서 실행할 수 없어 pycel로 검증했다(MEDIAN·COUNTA 등 pycel 미지원 함수는 Python 계산값과 대조).

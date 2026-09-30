@@ -23,7 +23,7 @@ ROOT = Path(__file__).resolve().parent
 PRODUCT_FIELDS = [
     "product_id", "cat1", "cat2", "region", "name", "tagline",
     "list_price", "sale_price", "discount_pct", "basis", "option_count", "options",
-    "valid_from", "valid_to", "valid_days", "badges", "issue_type", "issue_channel", "issue_medium",
+    "valid_from", "valid_to", "valid_days", "validity_static", "badges", "issue_type", "issue_channel", "issue_medium",
     "usage_method", "max_qty", "refund_rule", "vendor_name", "vendor_address", "vendor_phone",
     "external_link", "ticket_type", "ticket_div", "calendar_chk", "manage_name",
     "check", "notice_text", "refund_text", "collected_at",
@@ -242,21 +242,23 @@ def build(p, cats, detail_html, collected_at):
     if d:
         badges = d["badges"]
         lp, sp, basis = d["list_price"], d["sale_price"], d["basis"]
-        vf, vt, vd = validity_from_html(d["validity_raw"])
+        # 화면에 최종 표시되는 유효기간은 JS(makeUseDate)가 옵션 데이터로 다시 계산한 값 → JSON 규칙 사용.
+        # HTML 정적 표기는 참고용으로 validity_static에 남긴다.
+        vf, vt, vd = validity_from_json(p)
+        validity_static = d["validity_raw"]
         if d["title"] != p["product_name"]:
             checks.append("상품명 불일치")
         if (lp, sp) != (to_int(basis_opt.get("normal_price")), to_int(basis_opt.get("sale_price"))):
             checks.append("대표가격 불일치")
         if len(d["options"]) != len(opts):
             checks.append(f"옵션수 HTML {len(d['options'])} / JSON {len(opts)}")
-        if (vf, vt, vd) != validity_from_json(p):
-            checks.append(f"유효기간 HTML {(vf, vt, vd)} / JSON {validity_from_json(p)}")
     else:
         checks.append("상세 없음(JSON만 사용)")
         badges = [b for b in (p.get("ticket_type"), p.get("ticket_div")) if b]
         lp, sp = to_int(basis_opt.get("normal_price")), to_int(basis_opt.get("sale_price"))
         basis = (basis_opt.get("option_standard") or "").strip()
         vf, vt, vd = validity_from_json(p)
+        validity_static = ""
 
     disc = to_int(basis_opt.get("discount"))
     if disc is None and lp and sp:
@@ -288,7 +290,7 @@ def build(p, cats, detail_html, collected_at):
         "options": json.dumps([{k: o[k] for k in ("option", "detail_div", "week_div", "list_price",
                                                   "sale_price", "discount_pct", "start_date", "end_date")}
                                for o in options], ensure_ascii=False),
-        "valid_from": vf, "valid_to": vt, "valid_days": vd,
+        "valid_from": vf, "valid_to": vt, "valid_days": vd, "validity_static": validity_static,
         "badges": ";".join(badges),
         "issue_type": issue_type(p.get("ticket_div"), notice),
         "issue_channel": issue_channel(notice),
