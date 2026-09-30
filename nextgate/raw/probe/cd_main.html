@@ -1,0 +1,2442 @@
+
+
+
+
+
+
+
+
+
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=Edge, chrome=1">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="googlebot" content="noindex, nofollow">
+
+	<meta property="og:image" content="https://nextgate.kr/bori/upload/detail/20250608_47498672.jpg">
+
+
+<link rel="stylesheet" href="css/res_style.css">
+<link rel="stylesheet" href="css/style_accordian.css">
+<link rel="stylesheet" href="css/notice.css">
+<link rel="stylesheet" href="css/Layer_Popup.css">
+<link rel="stylesheet" href="css/jquery.bxslider.css">
+<link rel="stylesheet" href="https://www.w3schools.com/lib/w3.css">
+
+<!-- icoLink-->
+
+<link href="https://nextgate.kr/images/favicon.ico" rel="/shortcut icon" type="image/x-icon" />
+
+<link rel="apple-touch-icon" sizes="57x57" 					href="https://nextgate.kr/images/apple-touch-icon.png">
+<link rel="apple-touch-icon-precomposed" sizes="57x57" 		href="https://nextgate.kr/images/apple-touch-icon-precomposed.png">
+<link rel="apple-touch-icon" sizes="120x120" 				href="https://nextgate.kr/images/apple-touch-icon-120x120.png">
+<link rel="apple-touch-icon-precomposed" sizes="120x120" 	href="https://nextgate.kr/images/apple-touch-icon-120x120-precomposed.png">
+
+
+<style>
+.bx-wrapper .bx-pager {
+    padding-top: 0px !important;
+}
+</style>
+<script src="js/jquery-3.2.1.js"></script>
+<script src="js/jquery.bxslider.min.js"></script>
+<script src="js/productMake.js"></script>
+<script src="js/productBestMake.js"></script>
+<script src="js/checkStockAjax.js"></script>
+
+<title>넥스트에너지:::2026년 넥스트에너지 특별할인행사</title>
+
+<script>
+	$(document).ready(function()
+	{
+		var pageUrl = window.location.href;
+		if(pageUrl.indexOf('http:') == 0 && pageUrl.indexOf('localhost') < 0)
+		{
+			pageUrl = pageUrl.replace("http:", "https:");
+			//window.location.replace(pageUrl);//"http://59.14.14.187:27099/?CD=test03"
+		}
+	}); 
+</script>
+	<script>
+		// 팝업 열기
+		function openNoticePopup() {
+			var overlay = document.getElementById('noticePopupOverlay');
+			overlay.style.display = 'flex';
+		}
+
+		// 팝업 닫기 + 오늘 하루 보지 않기 처리
+		function closeNoticePopup() {
+			var hideToday = document.getElementById('noticePopupHideToday').checked;
+
+			if (hideToday) {
+				// 오늘 자정까지의 timestamp 저장
+				var now = new Date();
+				var midnight = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1).getTime();
+				localStorage.setItem('noticePopupHideUntil', midnight);
+			}
+
+			document.getElementById('noticePopupOverlay').style.display = 'none';
+		}
+
+		// document.ready
+		$(document).ready(function () {
+
+			// 오늘 하루 보지 않기 체크 여부 확인
+			var hideUntil = localStorage.getItem('noticePopupHideUntil');
+			var now = new Date().getTime();
+			var shouldHide = hideUntil && now < parseInt(hideUntil);
+
+			if ('Y' === 'Y' && !shouldHide) {
+				setTimeout(function () {
+					openNoticePopup();
+				}, 1500);
+			}
+
+		});
+	</script>
+<script>
+    // 카카오 로그인 이후 리다이렉트 된 경우라면 알림 메세지를 띄워야한다.
+    window.onload = function() {
+        var queryString = window.location.search;
+        if (queryString !== "") {
+            var params = new URLSearchParams(queryString);
+            // kakaoRedirect
+            if (params.has('from') && params.get('from') === 'kakaoRedirect') {
+                alert("카카오 로그인에 성공했습니다. 다시 상품을 선택해주세요.")
+                params.delete('from');// 'from' 파라미터를 제거
+                window.history.pushState(null,null,"/")
+            }
+        }
+    };
+</script>
+
+<script>
+    $(document).ready(function() {
+        // 카카오 로그인이 필요한 행사일때 카카오 로그인 및 로그인 이후 채널가입유무까지 확인될때만 이벤트버블링 허용
+        // 나머지 경우에는 이벤트 버블링 막아서 부모 DOM에 걸려있는 클릭 이벤트 발생 시키지 않는다.
+        $(document).on("click", ".click_cart", function(event) {
+            $this = $(this);
+            // 카카오 로그인 필요한 구매사이트라면
+            const isKakaoLoginEvent = 'false';
+            if(isKakaoLoginEvent == "true"){
+
+                const isKakaoLogined = 'false';
+                const kakaoClientId = "52f607afd0c227a982956d27b1511a76";
+                const kakaoRedirectUri = "https://nextgate.kr/oauth2/callback/kakao";
+
+                // 세션에 카카오 로그인 되어 있는지 확인
+                if(isKakaoLogined === "false") {
+                    event.stopPropagation(); // 부모 DOM 의 클릭 이벤트 버블링 막기
+                    // 카카오 로그인 페이지로 이동
+                    window.location.href = 'https://kauth.kakao.com/oauth/authorize' +
+                        '?client_id=' + kakaoClientId +
+                        '&redirect_uri=' + kakaoRedirectUri +
+                        '&response_type=code';
+                    return;
+                }
+                event.stopPropagation(); // 반드시 AJAX 호출전에 이벤트 버블링 막아야한다.
+
+                // 카카오 로그인이 되어 있다면 카카오채널 가입여부 확인하기
+                $.ajax({
+                    url : "oauth2/kakao/checkIfSubscribeChannel",
+                    type : 'GET',
+                    success : function ({isUserSubscribeChannel}) {
+                        if (isUserSubscribeChannel){
+                            // 카카오 채널 가입이 되어 있다면 구매하기 허용
+                            $this.parent().trigger("click");
+                        } else {
+                            // 카카오 채널 가입이 안되어 있다면 채널 가입 알림
+                            alert("구매를 위해서 카카오 채널 가입을 해주시기를 바랍니다.");
+                            window.open("https://pf.kakao.com/_xoBxdxbM","_blank");
+                        }
+                    },
+                    error: function(request)
+                    {
+                        alert("카카오 채널 가입 유무 확인 에러")
+                    }
+                });
+            }
+        });
+
+    });
+</script>
+
+<script>
+	
+	$(document).ready(function(){
+
+		var pageUrl = window.location.href;
+		var rastCD;
+		
+		//상품화면 카테고리연결
+		var sessionSearchWord = sessionStorage.getItem("searchWord");
+		var categoryDiv = sessionStorage.getItem("categoryDiv");
+		var categorySubDiv = sessionStorage.getItem("categorySubDiv");
+		
+		if(printIfNotNull(getParameters("productCategoryDiv")) == false) categoryDiv = getParameters("productCategoryDiv");
+		if(printIfNotNull(getParameters("productCategorySubDiv")) == false) categorySubDiv = getParameters("productCategorySubDiv");
+		if(printIfNotNull(categoryDiv) == true) categoryDiv = "";
+		if(printIfNotNull(categorySubDiv) == true) categorySubDiv = "";
+		
+		if(pageUrl.indexOf('mkey')<1) rastCD = pageUrl.length;
+		else rastCD = pageUrl.indexOf('mkey')-1;
+		
+		var CD = pageUrl.substring((pageUrl.indexOf('CD=')+3), rastCD-0);
+		
+		if(printIfNotNull(getParameters("productCategoryDiv"))==false)
+        {
+			CD = pageUrl.substring((pageUrl.indexOf('CD=')+3), pageUrl.indexOf('&productCategoryDiv')-0);
+        }
+		
+		if(pageUrl.indexOf("CD")>0) 
+		{
+			setCode(CD);
+			/* if(pageUrl.indexOf('https:') == 0)  */history.replaceState({}, null, location.pathname);
+		}
+		
+		if(printIfNotNull(sessionSearchWord) == false)
+		{
+			$("#searchWord").val(sessionSearchWord);
+			searchWord();	
+			
+		}
+		else if(printIfNotNull(categoryDiv) == false)
+        {
+        	categoryDiv = categoryDiv.replace("¿", "\&");
+        	categorySubDiv = categorySubDiv.replace("¿", "\&");
+        	categorySubSearch(categoryDiv, categorySubDiv);
+        	
+        	$(".accordion:contains('" + categoryDiv + "')").next().slideDown();
+    		$(".accordion:contains('" + categoryDiv + "')").css("background-color", "#333"); //선택된 카테고리의 배경색
+    		$(".accordion:contains('" + categoryDiv + "')").css("color", "#eeeeee"); //선택된 카테고리의 글씨색
+    		$("#accordion ul li a").css("background-color", "#fff"); //클릭전 하위항목 배경색
+    		$("#accordion ul li a").css("color", "#767676");  //클릭전 하위항목 색
+    		$(".accordion_sub:contains('" + categorySubDiv + "')").css("background-color", "#fff");//클릭시 항위항목  배경
+    		$(".accordion_sub:contains('" + categorySubDiv + "')").css("color", "#fe0000"); //클릭시 하위항목 글씨색
+        }
+        else
+        { 
+        	//추천상품(변경?)
+    	    makeBestProduct();
+        	//일반상품 
+    	    makeProduct();
+        }
+	    
+	    //검색창 엔터 이벤트
+	    $("#searchWord").keypress(function (e) {
+	        if (e.which == 13){
+	        	searchWord();  // 실행할 이벤트
+	        }
+	    });
+	});
+	
+	// url 파라미터 호출
+    var getParameters = function (paramName) {
+        // 리턴값을 위한 변수 선언
+        var returnValue;
+
+        // 현재 URL 가져오기
+        var url = location.href;
+
+        // get 파라미터 값을 가져올 수 있는 ? 를 기점으로 slice 한 후 split 으로 나눔
+        var parameters = (url.slice(url.indexOf('?') + 1, url.length)).split('&');
+
+        // 나누어진 값의 비교를 통해 paramName 으로 요청된 데이터의 값만 return
+        for (var i = 0; i < parameters.length; i++) {
+            var varName = parameters[i].split('=')[0];
+            if (varName.toUpperCase() == paramName.toUpperCase()) {
+                returnValue = parameters[i].split('=')[1];
+                return decodeURIComponent(returnValue);
+            }
+        }
+    };
+	
+	function printIfNotNull(input) 
+    {
+		if (input !== null && input !== undefined && input != "" && input != "undefined" && input != "null") 
+		{
+			return false ;
+		}
+		else return true;
+	}	
+	
+	function setCode(CD) 
+    {
+		//ajax
+		$.ajax({
+	        url : "eventCodeAjax",
+	        type : 'post',
+	        data : {'CD':CD},
+	        success : function (data) {}, //alert("ajax " +CD); 
+	        error: function() {alert("code:"+request.status);}
+	    });
+    }
+
+	// top 까지 부드럽게
+	function gt() {
+	
+	    scrollBy(0, scrollY / -15);
+	}
+	function gotop() {
+	    letsgo = setInterval("if(scrollY>10){gt();}else{clearInterval(letsgo);}", 20);
+	}
+</script>
+
+<script>
+		//뒤로가기 메인으로 연결
+		history.pushState(null, document.title, location.href); 
+		window.addEventListener('popstate', function(event) 
+		{ 	
+			if(location.href.indexOf("#details") !=-1){}				
+			else if(document.referrer.indexOf("?CD=") !=-1)
+			{
+				location.href="/?CD=1707897200";
+			}
+			else if(document.referrer.indexOf("cartProduct") !=-1)
+			{
+				location.href="cartProduct";
+			}
+			else
+			{
+				history.back()
+			}
+		});
+
+		var p_data;  //일반상품 데이터
+		var p_best_data; // 베스트상품 데이터
+		var pro_num;
+		var svrLoc = 'https://nextgate.kr/bori'; //업로드 url 추가
+		var div_event = "행사";
+		
+		$(function () 
+        {   		 	
+        	var checked_list= new Array(); //중복 선택을 막기위해서 사용
+        	pro_num;//선택된 상품의 수
+        	$('.detail_line_top').hide()
+            $('.detail_line_bottom').hide() 
+            var t_count = 0;
+        	
+            // 공지사항으로..
+            $('#notice_form ul li a').on('click', function() {
+                var n_name = $(this).attr('data-name');
+                localStorage.setItem('notice_name',n_name)
+            })
+
+            // 장바구니로..
+
+			
+            // 슬라이더 구현
+            var slider = $('.bxslider').bxSlider({
+                auto: true,
+                mode: 'fade',
+                controls: false,
+                autoHover: true,
+            });
+
+            // 클릭시 멈춤 현상 해결 //
+            $(document).on('click', '.bx-next, .bx-prev', function () {
+                slider.stopAuto();
+                slider.startAuto();
+            });
+
+            // 테마별 기획상품 
+            $('.tab_box').click(function () {
+                $('.tab_box').removeClass('tab_box_click');
+                $(this).addClass('tab_box_click');
+            })
+
+            // 사이드메뉴 스크롤 이동 
+            var currentPosition = 100;
+            var offset_top;
+
+      
+            $(window).scroll(function () {
+            	var bn_height=$("#mainbn").innerHeight();  //배너 height
+                var position = $(window).scrollTop(); // 현재 스크롤바의 위치값
+                if( $(".best_tit").is(':visible')) { // offset 
+    	    	    offset_top=$(".best_tit").offset().top;
+    	    	} else {
+    	    		offset_top=$(".category_tit").offset().top;
+    	    	}
+                
+               	if(position >= 500) {
+                    $(".slidemenu").stop().animate({ "top": position + currentPosition -260 -bn_height + "px" }, 400);
+                }
+                if(position < 500) {
+                    $(".slidemenu").stop().animate({ "top": 50 + "px" }, 500);
+                }
+            });
+            
+          //카테고리 스크립트  	    	   	    	
+   	    	$("#accordion .accordion").click(function(){//카테고리 클릭시
+   	    		$("#accordion ul").slideUp();
+   	    		$("#accordion .accordion").css("background-color", "#eeeeee");
+   	    		$("#accordion .accordion").css("color","black");
+   	    		$("#accordion ul li a").css("background-color", "#f9f9f9");//클릭전
+   	    		$("#accordion ul li a").css("color", "#767676"); //클릭전
+   	    		if(!$(this).next().is(":visible"))
+   	    		{
+   	    			$(this).next().slideDown();
+   	    			$(this).css("background-color", "#333"); //선택된 카테고리의 배경색
+   	    			$(this).css("color", "#eeeeee"); //선택된 카테고리의 글씨색
+   	    		}
+   	    		$( 'html, body' ).stop().animate( { scrollTop : offset_top } );
+   	    		
+   	    	})
+   	    	$("#accordion ul li a").click(function(){  //카테고리의 하위항목 클릭시
+   	    		$("#accordion ul li a").css("background-color", "#fff"); //클릭전 하위항목 배경색
+   	    		$("#accordion ul li a").css("color", "#767676");  //클릭전 하위항목 색
+   	    		$(this).css("background-color", "#fff");//클릭시 항위항목  배경
+   	    		$(this).css("color", "#fe0000"); //클릭시 하위항목 글씨색
+   		    	$( 'html, body' ).stop().animate( { scrollTop : offset_top } );
+   	    	})
+   	    	$(".top_accordion").click(function(){  //전체카테고리 클릭시 
+   	    		$("#accordion ul").slideUp();
+   	    		$("#accordion .accordion").css("background-color", "#eeeeee");
+   	    		$("#accordion .accordion").css("color","black");
+   		    	$( 'html, body' ).stop().animate( { scrollTop : offset_top } );
+   	    	})
+
+            // 테마별 기획상품
+            var tab_id;
+            var tap_name = '테마파크';
+            $('div[data-tap="tab-1"]').hide();
+            $('div[data-tap="tab-2"]').hide();
+            $('div[data-tap="tab-3"]').hide();
+
+            $('.dropdown-menu_wrap li a').click(function () {
+                tab_id = $(this).attr('data-tab');
+
+                $('div.tabs a').removeClass('current');
+                $('.tab-content').removeClass('current');
+
+                $(this).addClass('current');
+                $("#" + tab_id).addClass('current');
+            });
+
+            $('.thematap').click(function () {
+                tap_name = $(this).find('.tabname_01').html();
+                $('.more_txt').html(tap_name + " 상품 더보기 >")
+                var data_tab = $(this).attr('data-tab');
+                $('.more_txt').attr('data-tab',data_tab);
+                $('div[data-tap="tab-1"]').hide();
+                $('div[data-tap="tab-2"]').hide();
+                $('div[data-tap="tab-3"]').hide();
+            })
+
+            $('.more_txt').click(function () {
+                var tap_number = $(this).attr('data-tab');
+                $('div[data-tap="'+tap_number+'"]').show();   
+            })
+            
+            //우측 퀵메뉴_top버튼
+            $(document).ready(function(){
+	            var $_body = $( 'html, body' ); //자주 사용하는 거라서 변수에 넣어준다
+		        var $_top = $(".top_btn");	
+		        $_top.click(function(){  // 클릭이 이벤트 할당
+		       		$_body.stop().animate( { scrollTop : '0' } );
+			     })
+            });
+            
+  			//product list sort
+            $('.tab_lis ul li').click(function () {
+                $('.tab_lis ul li').removeClass('tab_check');
+                $(this).addClass('tab_check');
+                
+            	if($('.tab_check a').html() == "할인율순")
+                {
+                	$("#searchDiv").val("discount");
+                }
+                else if($('.tab_check a').html() == "가격높은순")
+                {
+                	$("#searchDiv").val("maxPrice");
+                }
+                else if($('.tab_check a').html() == "가격낮은순")
+                {
+                	$("#searchDiv").val("minPrice");
+                }
+                else 
+                {
+                	$("#searchDiv").val("");
+                }
+            	makeProduct();
+            })
+            		
+  			// 팝업 
+            //-------------------------------------------------------------------------------------------// 
+            var select_total_price = 0;
+            var find_data;
+                $(document).on("click",".layerpopup, .layerpopup_best", function(){
+                    var $href = $(this).attr('id');
+					var $ob = $(this).parent().parent().parent();
+					var p_cnt = $(this).attr('data-cnt'); 
+					var product_title = $(this).attr('data-product_name'); 
+					var product_img = $(this).attr('data-img');                           
+					var product_content = $(this).attr('data-contents');
+					var ticket_div = $(this).data("ticket_type");
+					var idx_eventProduct = $(this).data("idx_eventproduct");
+                    var _class=$(this).data("class");   
+                    
+                    if($(this).hasClass('layerpopup')) find_data = p_data;
+                    else find_data = p_best_data;
+                	
+					layer_popup($href);
+					
+                    function layer_popup(el)
+	                {
+	                    var $el = $(el);        //레이어의 id를 $el 변수에 저장
+	                    var isDim = $el.prev().hasClass('dimBg');   //dimmed 레이어를 감지하기 위한 boolean 변수
+	
+	                    isDim ? $('.dim-layer').fadeIn() : $el.fadeIn();
+
+	                    var $elWidth = ~~($el.outerWidth()),
+	                        $elHeight = ~~($el.outerHeight()),
+	                        docWidth = $(document).width(),
+	                        docHeight = $(document).height();
+
+	                    // 화면의 중앙에 레이어를 띄운다.
+	                    if ($elHeight < docHeight || $elWidth < docWidth) {
+	                        $el.css({
+	                            marginTop: -$elHeight /2,
+	                            marginLeft: -$elWidth/2
+	                        })
+	                    } 
+	                    else 
+	                    {
+	                    	$el.css({top: 0, left: 0});
+	                    }                   
+
+	                    $el.find('a.btn-layerClose').click(function(){
+	                        isDim ? $('.dim-layer').fadeOut() : $el.fadeOut(); // 닫기 버튼을 클릭하면 레이어가 닫힌다.
+	                        
+	                        t_count = 0;
+	                    	if (t_count == 0) {
+	                    		$('#option_table').removeClass("option_table_border");
+	                        }
+	                    	// 팝업 초기화
+	                    	checked_list = new Array();
+	                    	$('#total_price').html(0);
+	                    	$('#option_table').html('');
+	                    	                 
+	                        return false;
+	                    });
+	                    $('.layer .dimBg').click(function(){
+	                        $('.dim-layer').fadeOut();
+	                        return false;
+                    	});
+                	}
+                	
+	                // 팝업 데이터 삽입
+	                product_img = "images/non-img.jpg/"+product_img;
+	                $('#title').html(product_title);
+                    var tmp = product_content;
+                    tmp = tmp.replace(/<[^>]*>?/g, '');
+	                $('.memo').text(tmp);
+	                $('.p_img').attr('src', "images/none-img.jpg");  //오류보고 67501 장대은 수정 else로 내림    
+	                $('#select_box').html('');
+	                $('#list_idx_eventProduct').val(idx_eventProduct);
+	                if(_class==".normal-img")
+	                {	
+		                $('.p_img').attr('src', $ob.find(_class).attr('src'));               		                	
+	                }
+	                else if(_class==".best_img")
+                	{
+	                	$('.p_img').attr('src', $ob.parent().find(_class).attr('src'));
+                	}
+	                /* else //  오류보고 67501 장대은 추가
+	                {
+	                	$('.p_img').attr('src', "images/none-img.jpg");
+	                } */
+	                //장바구니 담기 데이터입력 
+	                $('.popup ').data("product_name", product_title);
+	                $('.popup').data("idx_eventproduct", idx_eventProduct);
+	                $('.popup').data("ticket_type", ticket_div);
+	                
+	               	for(var i = 0; i < find_data.length; i++) {
+	            	   if(p_cnt == i) {
+	            		   var choose_option = $('<option>옵션을 선택해주세요.</option>');
+	            		   $('#select_box').append(choose_option);
+	            		   for(var j = 0; j < find_data[i].eventDetailList.length; j++) {
+	            			   var data_obj = find_data[i].eventDetailList[j];
+	            			   var option_name = data_obj.option;
+	            			   var newoption_name = 
+	            				   $('<option data-id="' + data_obj.idx_eventDetail +
+	            						   '" data-idx_productDetail="' + data_obj.idx_productDetail +
+	            						   '" data-min_ticket_unit="' + data_obj.min_ticket_unit +
+	            						   '" value="'+data_obj.sale_price+'">' + option_name +
+	            						'</option>');
+	            			   $('#select_box').append(newoption_name);           			   
+	            		   }
+		               }
+		            }
+                });
+                
+                // 팝업 셀렉트박스
+                //권종변경시
+                $('#select_box').on('change', function () 
+                {
+                	var minTicketUnit= 1*$('#select_box option:selected').data("min_ticket_unit"); //구매단위
+					//재고체크
+					if(div_event == "행사") {
+		               	if(!checkStockAjax($('#select_box option:selected').data("idx_productdetail") , minTicketUnit))
+		              	{	               		
+		              		return false;
+		              	}
+					}
+                	$('#option_table').addClass("option_table_border");
+					var list_name = $('#select_box option:selected').text();
+                	var idx_productDetail = $('#select_box option:selected').data("idx_productdetail");
+                	var list_price = minTicketUnit * $(this).val();
+                	var total_price = $("span#total_price").html().replace(/,/gi,"");
+                	var id=$('#select_box option:selected').data("id");
+                	var flag=true;               
+                    var new_tr;
+                    
+                    total_price=total_price-0+eval(list_price);
+                    list_price = eval(list_price).toLocaleString('en');
+
+                    new_tr = $('<tr>'+ 
+			                		'<input data-id='+id+' class="unit_price" type="hidden" value="'+list_price+'">'+
+			                		'<input name="idx_eventDetail" id="list_idx_eventDetail" class="idx_eventDetail" type="hidden" value="'+id+'">'+
+			                		'<input name="idx_productDetail" class="idx_productDetail" type="hidden" value="'+idx_productDetail+'">'+
+			                		'<input name="list_price" class="list_price" type="hidden" value="'+list_price +'">'+
+			                		'<input name="min_ticket_unit" class="min_ticket_unit" type="hidden" value="' + minTicketUnit + '">'+
+			                		'<th class="detail_name">'+list_name+'</th>'+
+			                		'<td class="t_number">'+
+			                			'<img class="minus_btn" src="images/btn_-.png" style="cursor: pointer;">'+
+			                			'<input class="cnt_val" name="count" value="' + minTicketUnit + '"/>'+
+			                			'<img class="plus_btn" src="images/btn_+.png" style="cursor: pointer;"></td>'+
+			                		'<td class="t_price"><strong><span class="sum_price">'+list_price+'</span></strong></td> <td class="t_won"><strong><span>원</span></strong></td>'+
+			                		'<td class="t_cancle"><a data-id='+id+' class="c_btn"><img src="images/x_ico.png" style="cursor: pointer;"></a></td>'+
+		                		'</tr>')
+                		
+                		if(checked_list.indexOf(id) == -1)   //id가 없는 경우 -1, 있다면 해당 위치를 반환
+               			{
+	                		new_tr.appendTo('#option_table')         
+		                	t_count = t_count + 1;
+		                	checked_list.push(id);		                	
+		               	 	$("span#total_price").html(total_price.toLocaleString('en'));
+               			}
+		                else alert("이미 선택하신 상품입니다.");
+		                $('#select_box').prop('selectedIndex',0); //상품을 선택하면 첫번째 인덱스로 변경             
+				});
+                
+                // 팝업 삭제
+                $(document).on('click', '.c_btn', function rm() {
+                	var total_price = $("span#total_price").html().replace(/,/gi,"");
+                	var sum_price=$(this).parent().siblings('.t_price').find(".sum_price").html().replace(/,/gi,"");
+                	 
+                	t_count = t_count - 1;
+                	if (t_count == 0) {
+                		$('#option_table').removeClass("option_table_border");
+                    }
+                	checked_list.pop($(this).data("id"));//중복처리 배열에서 해당 상품idx삭제
+                    //총금액--
+                	total_price=total_price-0-eval(sum_price);
+                	$("span#total_price").html(total_price.toLocaleString('en'));
+                    $(this).parent().parent().remove();
+                });
+                
+              	//팝업 상품 수량의 증가하는 경우 처리
+                $(document).on('click','.plus_btn', function min()
+                {
+                	var minTicketUnit= 1 * $(this).parent().siblings('.min_ticket_unit').val(); //구매단위
+                	pro_num = 1 * $(this).siblings('input').val();
+                	
+                	if(pro_num >= 100) 
+                	{
+    					return;
+                    } 
+                	else 
+                	{
+                		//재고수량 체크
+                		var idx_productDetail =  $(this).parent().siblings('.idx_productDetail').val();
+                		var idx_eventDetail =  $(this).parent().siblings('.idx_eventDetail').val();
+                    	
+                    	//장바구니 권종수량 체크
+                    	var cartCount = 0;
+        	        	$('[name="idx_eventDetail"]').each(function()
+                       	{
+                       		if($(this).val() == idx_eventDetail)
+                       		{
+                       			cartCount = 1*$(this).parent().find('span.numbering').html();
+                       		}
+                   		})
+              			if(cartCount==null || isNaN(cartCount)) {cartCount=0;}
+        	        	
+        	        	//재고 체크
+						if(div_event == "행사") {
+	                    	if(!checkStockAjax($(this).parent().siblings('.idx_productDetail').val() , minTicketUnit + pro_num + cartCount))
+	                   		{	
+	                   			return false;
+	                   		}
+						}
+                    	var unit_price = $(this).parent().siblings('.unit_price').val().replace(/,/gi,"");
+    					var total_price = $("span#total_price").html().replace(/,/gi,"");
+    					var sum_price=$(this).parent().siblings('.t_price').find(".sum_price").html().replace(/,/gi,"");
+                		
+    					pro_num = Number(pro_num) + minTicketUnit;
+    					$(this).siblings('input').val(pro_num);
+    					//상품 수량에 따른 금액++
+    					sum_price=sum_price-0+eval(unit_price);   // -0  하는 이유: int형태로 인식 , 지우면 문자 결과바뀜.              
+    					$(this).parent().siblings('.t_price').find(".sum_price").html(sum_price.toLocaleString('en'));
+                        
+                		//총 금액 ++
+                		total_price=total_price-0+eval(unit_price);
+                		$("span#total_price").html(total_price.toLocaleString('en'));               	
+                	}                	
+                });
+              	
+              	//팝업 상품 수량의 감소하는 경우 처리
+                $(document).on('click','.minus_btn', function min() 
+                {
+                	var minTicketUnit= 1*$(this).parent().siblings('.min_ticket_unit').val(); //구매단위
+                    var pro_num = $(this).siblings('input').val();
+                    
+                	if(pro_num-minTicketUnit <= 0) 
+                	{
+    					return;
+                    }
+                	else 
+                	{
+                    	var unit_price = $(this).parent().siblings('.unit_price').val().replace(/,/gi,"");
+    					var total_price = $("span#total_price").html().replace(/,/gi,"");
+    					var sum_price=$(this).parent().siblings('.t_price').find(".sum_price").html().replace(/,/gi,"");  
+    					 
+    					pro_num = Number(pro_num) - minTicketUnit;
+    					$(this).siblings('input').val(pro_num);
+    					//상품 수량에 따른 금액--
+    					sum_price=sum_price-0-eval(unit_price);   // -0  하는 이유: int형태로 인식 , 지우면 문자 결과바뀜.              
+    					$(this).parent().siblings('.t_price').find(".sum_price").html(sum_price.toLocaleString('en'));
+                                  
+                		//총 금액 --
+                		total_price=total_price-0-eval(unit_price);       
+                		$("span#total_price").html(total_price.toLocaleString('en'));
+                    }
+ 				})
+         
+            // 수량감소, 증가버튼
+        });
+        
+      	//popup open
+        $(document).on("click",".go_popup",function(){
+        	
+        });
+      	
+      	//전체 카테고리 클릭
+        function categoryAllSearch() 
+		{
+        	$("#searchWord").val("");
+        	$("#categoryDiv").val("");
+			$("#categorySubDiv").val("");
+			
+			sessionStorage.setItem( "searchWord", "" );
+			sessionStorage.setItem( "categoryDiv", "" );
+			sessionStorage.setItem( "categorySubDiv", "" );
+			
+			makeProduct();
+		} 
+		//카테고리 클릭
+		function categorySearch(category) 
+		{
+			$("#searchWord").val("");
+			$("#categoryDiv").val(category);
+			$("#categorySubDiv").val("");
+			
+			sessionStorage.setItem( "searchWord", "" );
+			sessionStorage.setItem( "categoryDiv", category );
+			sessionStorage.setItem( "categorySubDiv", "" );
+			
+			makeProduct();
+		} 
+		//카테고리 서브 클릭
+		function categorySubSearch(category, categorySub) 
+		{
+			$("#searchWord").val("");
+			$("#categoryDiv").val(category);
+			$("#categorySubDiv").val(categorySub);
+			
+			sessionStorage.setItem( "searchWord", "" );
+			sessionStorage.setItem( "categoryDiv", category );
+			sessionStorage.setItem( "categorySubDiv", categorySub );
+			
+			makeProduct();
+		} 
+		
+		//검색 단어로 검색
+		function searchWord()
+		{
+			$("#categoryDiv").val("");
+			$("#categorySubDiv").val("");
+			makeProduct();
+		}
+        
+        //product list ajax
+        function makeProduct() 
+        {
+        	var div_event = "행사";
+        	//ajax
+        	$.ajax({
+		        url : "cartListAjax",
+		        type : 'post',
+		        data : 
+		        {
+		        	searchDiv:$("#searchDiv").val(),
+        			categoryDiv:$('#categoryDiv').val(),
+        			categorySubDiv:$('#categorySubDiv').val(),
+        			searchWord:$("#searchWord").val()
+        			
+		        },
+		        success : function (data) { 
+		        	makeEventProductList(data, div_event);
+		        	p_data = data;  
+		        	return true;
+		        },
+		        error: function()
+		        { 
+		        	alert("code:"+request.status);
+		   	 	}
+		    });
+		}
+        //best product list 
+        function makeBestProduct()
+        {
+        	var listSize = "0";
+        	var div_event = "행사";
+        	if(listSize > 0)
+        	{
+        		//ajax
+            	$.ajax({
+    		        url : "cartBestListAjax",
+    		        type : 'post',
+    		        data : 
+    		        {
+    		        	searchDiv:$("#searchDiv").val(),
+            			categoryDiv:$('#categoryDiv').val(),
+            			categorySubDiv:$('#categorySubDiv').val()
+    		        },
+    		        success : function (data) { 
+    		        	makeEventBestProductList(data, div_event);
+    		        	p_best_data = data;
+    		        	return true;
+    		        },
+    		        error: function()
+    		        { 
+    		        	alert("code:"+request.status);
+    		   	 	}
+    		    });
+        		
+        	}
+        	//
+        }
+        
+    </script>
+
+	<script>     
+	    function orderDirectSubmit() {
+	    	if($('#list_idx_eventDetail').val()==null)
+	    	{
+	    		alert("구매 할 상품을 선택해주세요.");
+	    		return false;
+	    	}
+	    	$("#orderDirect").submit();
+		}
+	
+        // 상품상세화면 이동
+        function productSubmit(idx_eventProduct) 
+        {
+        	const isKakaoLoginEvent = 'false';
+            if(isKakaoLoginEvent == "true"){
+
+                const isKakaoLogined = 'false';
+                const kakaoClientId = "52f607afd0c227a982956d27b1511a76";
+                const kakaoRedirectUri = "https://nextgate.kr/oauth2/callback/kakao";
+
+                // 세션에 카카오 로그인 되어 있는지 확인
+                if(isKakaoLogined === "false") {
+                    // 카카오 로그인 페이지로 이동
+                    window.location.href = 'https://kauth.kakao.com/oauth/authorize' +
+                        '?client_id=' + encodeURIComponent(kakaoClientId) +
+                        '&redirect_uri=' + encodeURIComponent(kakaoRedirectUri) +
+                        '&response_type=code';
+                    return;
+                }
+
+                // 카카오 로그인이 되어 있다면 카카오채널 가입여부 확인하기
+                $.ajax({
+                    url : "oauth2/kakao/checkIfSubscribeChannel",
+                    type : 'GET',
+                    success : function ({isUserSubscribeChannel}) {
+                        if (isUserSubscribeChannel){
+                            submit();
+                        } else {
+                            // 카카오 채널 가입이 안되어 있다면 채널 가입 알림
+                            alert("구매를 위해서 카카오 채널 가입을 해주시기를 바랍니다.");
+                            window.open("https://pf.kakao.com/_xoBxdxbM","_blank");
+                        }
+                    },
+                    error: function(request)
+                    {
+                        alert("카카오 채널 가입 유무 확인 에러")
+                    }
+                });
+            } else{
+                submit();
+            }
+
+            function submit () {
+                // 카카오 채널 가입이 되어 있다면 구매하기 허용
+                //조회수 증가
+                $.ajax({
+                    url : "viewCountUpProduct",
+                    type : 'post',
+                    data : {'idx_eventProduct':idx_eventProduct},
+                    success : function (data) {}, //alert("ajax " +CD);
+                    error: function() {alert("code:"+request.status);}
+                });
+
+                $('#idx_eventProduct').val(idx_eventProduct);
+                $("#product").submit();
+            }
+		}
+        
+        function submitCart()
+        {
+        	$("#product").submit();
+        }
+        
+        function goodsSubmit()
+        {
+        	var width=$(window).width();
+        	if(width < 1000 )
+    	    {
+        		$("#goods").attr("action", "mobile/goods");
+    	    } 
+    	    else if(width > 999 )
+    	    {
+    	    	$("#goods").attr("action", "goods");
+    	    } 
+        	$("#goods").submit();
+        }
+        
+        
+    </script>
+    
+    <script>
+    	if ("onhashchange" in window) {
+		}
+
+		function locationHashChanged() {
+		    if (location.hash === "#somecoolfeature") {
+		        somecoolfeature();
+		    }
+		}
+
+    </script>
+    <!-- width에 따른 form태그 action attr 변경, -->
+    <script type="text/javascript">
+    	var openWidth;
+    	var aw = screen.availWidth;
+//     	var ah = screen.availHeight;
+		console.log(aw);
+		
+    	$(function(){
+    		ckPosition()		
+    	});
+    	$(window).one("load", ckOnce);
+    	$(window).on("resize", ckPosition);
+    	
+    	function ckOnce()
+    	{
+    		openWidth=$(window).width();
+    		if(openWidth>1000)
+    			$("#ck_mobile").addClass("mod_desktop");
+    		else
+    			$("#ck_mobile").addClass("mod_mobile");
+    		
+    		ckPosition()
+    		
+    		//resolution 1366
+    		if(aw>1350 && aw<1400)
+			{
+				$("#body_contents").addClass("mod_w1366");
+			}
+    	}
+    	
+    	function ckPosition()
+    	{
+    	    var $moblie=$("#ck_mobile"); 	    
+    	    var width=$(window).width();
+    	    var $order=$("#orderDirect");
+    	    var $close_box=$(".close_box");
+    	    var $header_global=$(".header_global");
+    	    
+    	    if(width < 1000 && $moblie.hasClass("mod_mobile"))
+    	    {	
+    	    	$moblie.addClass("mod_desktop");
+    	    	$moblie.removeClass("mod_mobile");
+    	    	$order.attr("action", "mobile/cartOrder");
+    	    	$close_box.css({position: 'fixed'});
+    	    	$header_global.css({position: 'fixed'});
+    	    	
+    	    } 
+    	    else if(width > 999 && $moblie.hasClass("mod_desktop"))
+    	    {	
+    	    	$moblie.addClass("mod_mobile");
+    	    	$moblie.removeClass("mod_desktop");
+    	    	$order.attr("action", "cartOrder");
+    	    	$close_box.css({position: 'absolute'});
+    	    	$header_global.css({position: 'relative'});
+    	    } 
+    	}
+    </script>
+    <!-- 모바일 가로형 카테고리 -->
+    <script>
+    $(function () 
+    {
+    	var list_size = 100 * $("#ul > li").size();
+        $('#ul').css('width', list_size + 'px');
+
+        var sizeModify = 0;
+        var size = $("#ul > li").size();
+    	for(var n=0; n<1*size; n++)
+    	{
+    		sizeModify = sizeModify + $('#ul li:nth-child(' + (1+n) + ')').outerWidth(true) + 5; 	
+    	}
+    	if(sizeModify < 400) sizeModify  =  400;
+    	$('#ul').css('width', sizeModify + 'px');
+        
+        //var left = 120;'
+        var li_items = $('.li_item');
+        var liWidth = 0;
+        for(var idx=0;idx<li_items.length;idx++){
+            var li_item = li_items[idx];
+            var left = $(li_item).position().left;
+            $(li_item).css('left',left);
+        }
+        
+        $('.li_item').on('click',function(){
+        	$('.li_item').removeClass('on');
+            $(this).addClass('on');
+
+            //var positionLeft = $(this).position().left;
+            var positionLeft = $(this).css('left');
+            var offsetLeft = $(this).offset().left;
+            console.log('positionLeft :',positionLeft)
+            //alert("positionLeft : "+positionLeft+"\noffsetLeft : "+offsetLeft);
+            $('#div').animate({scrollLeft : positionLeft}, 300);
+        });
+    });
+    </script>
+    
+    <!-- viewCountUp 조회수 증가 -->
+    <script type="text/javascript">
+	    function viewCountUp(idx_eventBanner) 
+	    {
+			$.ajax({
+		        url : "viewCountUp",
+		        type : 'post',
+		        data : {'idx_eventBanner':idx_eventBanner},
+		        success : function (data) {}, //alert("ajax " +CD); 
+		        error: function() {alert("code:"+request.status);}
+		    });
+		}
+	    
+	    function cartCheck(banner_Link, cart_check_flg) {
+			if(cart_check_flg == 'Y') {
+				var cartListSize = $('#gogo_cart').children().length;
+				if(cartListSize > 0){
+					alert("장바구니에 담긴 상품을 결제 하셔야 합니다.");
+					$("#order").submit();
+				}
+				else{
+					location.replace(banner_Link);
+				}
+			}
+			else {
+				$.ajax({
+			        url : "cartReset",
+			        type : 'post',
+			        data : {},
+			        success : function (data) {
+			        	location.replace(banner_Link);
+			        }, //alert("ajax " +CD); 
+			        error: function() {
+			        	alert("code:"+request.status);
+			        }
+			    });
+			}
+		}
+    </script>
+</head>
+<!-- 여기 -->
+<body onhashchange="funcRef();" class="cart_list">
+
+
+
+
+<div class="footer_wrap footer_top_hide">
+	<!-- 헤더 시작 -->
+	
+
+
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+<title>Insert title here</title>
+<link rel="stylesheet" href="https://nextgate.kr/css/res_style.css" rel="stylesheet" type="text/css">
+<link rel="stylesheet" href="https://nextgate.kr/css/notice.css">
+<link rel="stylesheet" href="https://nextgate.kr/css/Layer_Popup.css">
+<link rel="stylesheet" href="https://nextgate.kr/css/jquery.bxslider.css">
+<script src="https://nextgate.kr/js/jquery-3.2.1.js"></script>
+<script type="text/javascript"	src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+<script src="https://nextgate.kr/js/jquery.bxslider.min.js"></script>
+
+<!-- 사이드 네비 스크립트 -->
+<script>
+    function btn_open() {
+     $("#mySidebar").show();
+     $(".canvasNav").show();
+    }
+    function btn_close() {
+    	$("#mySidebar").hide();
+     $(".canvasNav").hide();
+    }
+//공지사항 롤링
+function scrolling(objId, sec1, sec2, speed, height) {
+    this.objId = objId;
+    this.sec1 = sec1;
+    this.sec2 = sec2;
+    this.speed = speed;
+    this.height = height;
+    this.h = 0;
+    this.div = document.getElementById(this.objId);
+    this.htmltxt = this.div.innerHTML;
+    this.div.innerHTML = this.htmltxt + this.htmltxt;
+    this.div.isover = false;
+    this.div.onmouseover = function () { this.isover = true; }
+    this.div.onmouseout = function () { this.isover = false; }
+    var self = this;
+    this.div.scrollTop = 0;
+    window.setTimeout(function () { self.play() }, this.sec1);
+}
+scrolling.prototype = {
+    play: function () {
+        var self = this;
+        if (!this.div.isover) {
+            this.div.scrollTop += this.speed;
+            if (this.div.scrollTop > this.div.scrollHeight / 2) {
+                this.div.scrollTop = 0;
+            } else {
+                this.h += this.speed;
+                if (this.h >= this.height) {
+                    if (this.h > this.height || this.div.scrollTop % this.height != 0) {
+                        this.div.scrollTop -= this.h % this.height;
+                    }
+                    this.h = 0;
+                    window.setTimeout(function () { self.play() }, this.sec1);
+                    return;
+                }
+            }
+        }
+        window.setTimeout(function () { self.play() }, this.sec2);
+    },
+    prev: function () {
+        if (this.div.scrollTop == 0)
+            this.div.scrollTop = this.div.scrollHeight / 2;
+        this.div.scrollTop -= this.height;
+    },
+    next: function () {
+        if (this.div.scrollTop == this.div.scrollHeight / 2)
+            this.div.scrollTop = 0;
+        this.div.scrollTop += this.height;
+    }
+};
+//top으로 이동 하는 버튼
+$(document).ready(function(){
+    var $body = $( 'html, body' ); //자주 사용하는 거라서 변수에 넣어준다
+    var $top = $(".btn_top");
+    $top.hide();
+    $top.click(function(){  // 클릭이 이벤트 할당
+       	$body.stop().animate( { scrollTop : '0' } );
+     })
+
+    //윈도우의 스크롤위치로 위로가기 버튼을 보여줘야하기 때문에 핸들러 작성
+    $(window).scroll(function(){
+
+        var y = $(this).scrollTop();
+
+        if(y >= 150){
+            $top.fadeIn();
+        }
+        else {
+            $top.fadeOut();
+        }
+    });
+});
+function submitNotice(count) 
+{
+	$("#selectNotice").val(count);
+	$("#notice_form").submit();
+}
+// 공지사항 롤링
+</script>
+</head>
+<body>
+	<!-- 사이드 네비 -->
+    <div id="mySidebar" class="open_box sidebar animate-left">
+        <button class="side-button x-btn" onclick="btn_close()">
+            <span>&times;</span>
+        </button>
+        <div class="bar-list-box clearfix">
+
+            <a href="https://nextgate.kr/cart" class="bar-list side-button">
+            	  
+					장바구니
+				
+				
+            </a>
+            
+          		<a href="https://nextgate.kr/purchaseSearch" class="bar-list side-button">구매내역확인</a>
+            
+            <a href="https://nextgate.kr/notice" class="bar-list side-button">공지사항</a>
+            
+            	<a href="https://nextgate.kr/qna" class="bar-list side-button">문의하기</a>
+            
+            
+           		<a href="https://nextgate.kr/faq" class="bar-list side-button">FAQ</a>
+           	
+            
+        </div>    
+    </div>
+    <div class="canvasNav" onclick="btn_close()"></div>
+    <div class="close_box">
+    	
+			
+			
+       			<button class="side-button bar-btn" onclick="btn_open()">&#9776;</button>
+       		
+       	
+    </div>
+    
+    <!--- 헤더 시작 -->
+    <header class="header_global" >
+    	<div class="nav_top_wrap" style="margin-top:0;">
+            <div class="nav_top_center wrap">
+            	<div class="shopping_cart_box">
+            		
+						
+						
+		            		<a href="https://nextgate.kr/cart" class="lis">
+		            			<!-- 모바일상단숫자 -->
+		            			<input class="nav_top_header_count" type ="text" id="header_count" value="0" onfocus="this.blur()" readonly="readonly">
+		                		<img src="https://nextgate.kr/images/shopping_cart_m_3.jpg" class="shopping_cart">
+		                	</a>
+		                
+					
+            	</div>
+				
+					
+
+					
+						
+						
+							<div >
+								<img class="logo_user cursor_pointer" onclick="location.href='/?CD=1707897200'" src='https://nextgate.kr/bori/upload/detail/20251222_58111132.jpg' />
+                                
+							</div>
+						
+						
+					
+				
+			</div>
+        </div>
+        
+        
+			
+			
+		        <div class="nav_bottom_wrap">
+		            <div class="nav_bottom_center wrap clearfix">
+		                <ul class="nav_main">
+		                    <li>
+		                        <a href="https://nextgate.kr/cart" class="lis">
+		                        	  
+										장바구니
+									
+									
+		                        </a>
+		                    </li>
+		                    
+			                    <li>
+			                        <a href="https://nextgate.kr/purchaseSearch" class="lis">구매내역확인</a>
+			                    </li>
+		                    
+		                    
+			                    <li>
+			                        <a href="https://nextgate.kr/notice" class="lis">공지사항</a>
+			                    </li>
+		                    
+		                    
+			                    <li>
+			                        <a href="https://nextgate.kr/qna" class="lis">문의하기</a>
+			                    </li>
+		                    
+		                    
+			                    <li>
+			                        <a href="https://nextgate.kr/faq" class="lis">FAQ</a>
+			                    </li>
+		                    
+		                </ul> 
+		                
+		                
+		               		<div class="notice_box_wrap">
+		                		<div class="notice_txt_wrap">
+									<img src="https://nextgate.kr/images/ico_notice.png" class="notice_ico">
+									<div class="notice_txt">
+										<!-- 공지 텍스트 -->
+										<div id="bKey">
+											<div id="jFavList" class="keyBg">
+												<form action="https://nextgate.kr/notice" method="get"	id="notice_form" style="height:100%;">
+													<input type="hidden" name="selectNotice" id="selectNotice" value="0">
+													<div>
+														
+															<span class="x" onclick="submitNotice(1)">
+																<input type="hidden" value="1">
+																<a href="javascript:void(0)" data-name="n1" >장암 아일랜드 워터파크 재 판매 안내</a>
+															</span>
+														
+															<span class="x" onclick="submitNotice(2)">
+																<input type="hidden" value="2">
+																<a href="javascript:void(0)" data-name="n1" >※※※※ 넥스트에너지 운영시간 [2/28 토 부터  ~ 3/28 월 까지]</a>
+															</span>
+														
+															<span class="x" onclick="submitNotice(3)">
+																<input type="hidden" value="3">
+																<a href="javascript:void(0)" data-name="n1" >※※※※구정 연휴 기간 넥스트에너지 운영시간 [2/14 토 부터  ~ 2/18 수 까지]</a>
+															</span>
+														
+															<span class="x" onclick="submitNotice(4)">
+																<input type="hidden" value="4">
+																<a href="javascript:void(0)" data-name="n1" >※※※※추석연휴기간 넥스트에너지 운영시간</a>
+															</span>
+														
+															<span class="x" onclick="submitNotice(5)">
+																<input type="hidden" value="5">
+																<a href="javascript:void(0)" data-name="n1" >※ 파라다이스 스파도고 모바일티켓  판매 개시</a>
+															</span>
+														
+													</div>
+													<input type="hidden" id="notice_name" name="notice_name" value="1" />
+												</form>
+											</div>
+											<script type="text/javascript"> var hotKeyword = new scrolling("jFavList", 3000, 1, 1, 18); </script>
+										</div>
+									</div>
+								</div>
+							
+								<ul class="notice_btn_box">
+									<div class="rollBtn" onmouseover="hotKeyword.div.isover=true;" onmouseout="hotKeyword.div.isover=false;"></div>
+									<li>
+										<a href="javascript:void(0)" class="previous" onclick="hotKeyword.prev();">
+										<img src="https://nextgate.kr/images/arrow_up_bg.png">
+										</a>
+									</li>
+									<li>
+										<a href="javascript:void(0)" class="next" onclick="hotKeyword.next();">
+										<img src="https://nextgate.kr/images/arrow_down_bg.png">
+									</a>
+									</li>
+								</ul>
+							</div>
+						
+		            </div>
+		        </div>
+        	
+		
+		    
+    	<!-- 모바일 가로형 카테고리 -->
+		<div style="overflow-x: hidden" class="hor_container">
+			
+				
+				
+					<div id="div" style="overflow-x: auto">
+				        <ul id="ul" class="hor_ul" style="font-size:16px;display: flex;overflow-x: auto;font-family: 'Noto Sans CJK KR';letter-spacing: -0.020em;">
+				            <li class="li_item on" onclick="categoryAllSearch()">홈</li>
+				            
+								<li class="li_item" onclick="categorySearch('삼성미라클안과')" >삼성미라클안과</li>
+							
+								<li class="li_item" onclick="categorySearch('테마파크')" >테마파크</li>
+							
+								<li class="li_item" onclick="categorySearch('공연')" >공연</li>
+							
+								<li class="li_item" onclick="categorySearch('숙박')" >숙박</li>
+							
+								<li class="li_item" onclick="categorySearch('워터파크')" >워터파크</li>
+							
+								<li class="li_item" onclick="categorySearch('서울베스트의료의원')" >서울베스트의료의원</li>
+							
+								<li class="li_item" onclick="categorySearch('레져')" >레져</li>
+							
+								<li class="li_item" onclick="categorySearch('자동차 구매')" >자동차 구매</li>
+							
+								<li class="li_item" onclick="categorySearch('전시')" >전시</li>
+							
+								<li class="li_item" onclick="categorySearch('헬스&푸드')" >헬스&푸드</li>
+							
+				        </ul>
+				    </div>
+			    
+			
+	    </div>
+    </header>
+    <button class="btn_top"></button>
+</body>
+</html>
+		
+		<!-- 상단 배너 -->
+		
+			
+			
+				<div id="mainbn" style="display: block;" class="mainbnr_box" >
+					<ul class="bxslider">
+						
+							
+								<li class="banner_01" style="">
+							
+							
+								
+								
+									<a >
+										<img src="https://nextgate.kr/bori/upload/banner/20250831_50786335.jpg">
+									</a>
+								
+								
+							
+							
+								</li>
+							
+						
+							
+							
+								
+								
+								
+									<a target="_blank" href="https://network.samsungmiracle.co.kr/" onclick="viewCountUp(999)">
+										<img src="https://nextgate.kr/bori/upload/banner/20260210_58814513.jpg">
+									</a>
+								
+							
+							
+						
+							
+							
+								
+								
+								
+									<a target="_blank" href="http://sbestmc.com/" onclick="viewCountUp(1256)">
+										<img src="https://nextgate.kr/bori/upload/banner/20260514_38529536.jpg">
+									</a>
+								
+							
+							
+						
+					</ul>
+				</div>
+			
+		
+		<!-- //상단 배너 끝// -->
+		
+		<div id="body_contents" class="contents_container wrap clearfix">
+						
+			<div id="res_notice">
+				
+					
+					
+					
+						
+							<div class="notice_box_wrap">
+								<div class="notice_txt_wrap">
+									<img src="images/ico_notice.png" class="notice_ico">
+									<div class="notice_txt">
+										<!-- 공지 텍스트 -->
+										<div id="bKey">
+											<div id="jFavList2" class="keyBg">
+												<form action="notice" method="get"	id="notice_form">
+													<input type="hidden" name="selectNotice" id="selectNotice" value="0">
+													<div>
+														
+															<span class="x" onclick="submitNotice(1)">
+																<input type="hidden" id="1" value="1">
+																<a href="javascript:void(0)" data-name="n1" >장암 아일랜드 워터파크 재 판매 안내</a>
+															</span>
+														
+															<span class="x" onclick="submitNotice(2)">
+																<input type="hidden" id="2" value="2">
+																<a href="javascript:void(0)" data-name="n1" >※※※※ 넥스트에너지 운영시간 [2/28 토 부터  ~ 3/28 월 까지]</a>
+															</span>
+														
+															<span class="x" onclick="submitNotice(3)">
+																<input type="hidden" id="3" value="3">
+																<a href="javascript:void(0)" data-name="n1" >※※※※구정 연휴 기간 넥스트에너지 운영시간 [2/14 토 부터  ~ 2/18 수 까지]</a>
+															</span>
+														
+															<span class="x" onclick="submitNotice(4)">
+																<input type="hidden" id="4" value="4">
+																<a href="javascript:void(0)" data-name="n1" >※※※※추석연휴기간 넥스트에너지 운영시간</a>
+															</span>
+														
+															<span class="x" onclick="submitNotice(5)">
+																<input type="hidden" id="5" value="5">
+																<a href="javascript:void(0)" data-name="n1" >※ 파라다이스 스파도고 모바일티켓  판매 개시</a>
+															</span>
+														
+													</div>
+													<input type="hidden" id="notice_name" name="notice_name" value="1" />
+												</form>
+											</div>
+											<script type="text/javascript"> var hotKeyword2 = new scrolling("jFavList2", 3000, 1, 1, 18); </script>
+										</div>
+									</div>
+								</div>
+								<ul class="notice_btn_box">
+									<div class="rollBtn" onmouseover="hotKeyword2.div.isover=true;" onmouseout="hotKeyword2.div.isover=false;"></div>
+									<li>
+										<img src="images/arrow_up_bg.png" class="previous" onclick="hotKeyword2.prev();">
+									</li>
+									<li>
+										<img src="images/arrow_down_bg.png" class="next" onclick="hotKeyword2.next();">
+									</li>
+								</ul>
+							</div>
+						
+					
+				
+			</div>
+			
+			<!-- 인기 상품 -->
+			
+			
+			
+			<!-- 일반상품 정렬 -->
+			<form action="" id="searchSubmit" method="post">
+				<input type="hidden" name="searchDiv" id="searchDiv">
+				<input type="hidden" name="categoryDiv" id="categoryDiv">
+				<input type="hidden" name="categorySubDiv" id="categorySubDiv">
+			</form>
+	
+			<!-- category 테마별 기획상품 -->
+			<div class="category_container">
+				<div class="category_tit_box tbl clearfix">
+					  
+						<h2 class="category_tit" style="float: left;">
+							<span class="category-tit">PRODUCTION</span>
+							<p class="accent">일반 상품</p>
+						</h2>	
+						
+						<!--  검색 -->
+						<div class="tab_search" style="float: right;">
+							<input type="text" id="searchWord" placeholder="상품검색">	
+							<img src='images/search_btn.jpg' class="img_search_button" onclick="searchWord()" >			
+						</div>
+					
+				</div>
+				<div class="category_box">
+					  
+						<!-- 정렬탭 -->
+						<div class="tab_lis">
+							<ul class="tab_check_wrap clearfix">						
+								<li class="tab_check">
+									<a href="javascript:void(0)" onclick="return false"	style="text-decoration: none;">최신순</a>
+								</li>
+								<li>
+									<a href="javascript:void(0)" onclick="return false"	style="text-decoration: none;">할인율순</a>
+								</li>
+								<li>
+									<a href="javascript:void(0)" onclick="return false"	style="text-decoration: none;">가격높은순</a>
+								</li>
+								<li>
+									<a href="javascript:void(0)" onclick="return false"  style="text-decoration: none;">가격낮은순</a>
+								</li>
+							</ul>
+						</div>
+					
+					
+					<form action="cartProduct" id="product" method="post">
+						<input type="hidden" name="idx_eventProduct" id="idx_eventProduct">
+					</form>
+					
+					<form action="goods" id="goods" method="post"></form>
+
+					<div id="tab-1" class="contents_section category_lis clearfix tab-content current">
+					
+						<div class="wrap" id="productListBox">
+							
+						</div>
+					</div>
+				</div>						
+			</div>
+		
+			<!-- 왼쪽 카테고리 메뉴 -->
+			<div class="quick_left quick_dropdown-menu clearfix slidemenu" id="leftslider"  >
+				
+					
+					
+						<div id="accordion">	
+							<div class="top_accordion" onclick="categoryAllSearch()"><b>전체카테고리</b></div>
+							
+								<div class="accordion" onclick="categorySearch('삼성미라클안과')" >삼성미라클안과</div>
+								<ul>	
+									
+										<li><a href="javascript:categorySubSearch('삼성미라클안과', '라식·라섹')" >라식·라섹</a></li>
+									
+								</ul>
+							
+								<div class="accordion" onclick="categorySearch('테마파크')" >테마파크</div>
+								<ul>	
+									
+										<li><a href="javascript:categorySubSearch('테마파크', '테마파크')" >테마파크</a></li>
+									
+										<li><a href="javascript:categorySubSearch('테마파크', '놀이공원')" >놀이공원</a></li>
+									
+										<li><a href="javascript:categorySubSearch('테마파크', '아쿠아리움')" >아쿠아리움</a></li>
+									
+								</ul>
+							
+								<div class="accordion" onclick="categorySearch('공연')" >공연</div>
+								<ul>	
+									
+										<li><a href="javascript:categorySubSearch('공연', '연극')" >연극</a></li>
+									
+										<li><a href="javascript:categorySubSearch('공연', '콘서트')" >콘서트</a></li>
+									
+										<li><a href="javascript:categorySubSearch('공연', '뮤지컬')" >뮤지컬</a></li>
+									
+								</ul>
+							
+								<div class="accordion" onclick="categorySearch('숙박')" >숙박</div>
+								<ul>	
+									
+										<li><a href="javascript:categorySubSearch('숙박', '숙박')" >숙박</a></li>
+									
+								</ul>
+							
+								<div class="accordion" onclick="categorySearch('워터파크')" >워터파크</div>
+								<ul>	
+									
+										<li><a href="javascript:categorySubSearch('워터파크', '워터파크')" >워터파크</a></li>
+									
+								</ul>
+							
+								<div class="accordion" onclick="categorySearch('서울베스트의료의원')" >서울베스트의료의원</div>
+								<ul>	
+									
+										<li><a href="javascript:categorySubSearch('서울베스트의료의원', '건강검진')" >건강검진</a></li>
+									
+								</ul>
+							
+								<div class="accordion" onclick="categorySearch('레져')" >레져</div>
+								<ul>	
+									
+										<li><a href="javascript:categorySubSearch('레져', '액티비티')" >액티비티</a></li>
+									
+										<li><a href="javascript:categorySubSearch('레져', '크루즈')" >크루즈</a></li>
+									
+								</ul>
+							
+								<div class="accordion" onclick="categorySearch('자동차 구매')" >자동차 구매</div>
+								<ul>	
+									
+										<li><a href="javascript:categorySubSearch('자동차 구매', '제네시스')" >제네시스</a></li>
+									
+								</ul>
+							
+								<div class="accordion" onclick="categorySearch('전시')" >전시</div>
+								<ul>	
+									
+										<li><a href="javascript:categorySubSearch('전시', '박물관')" >박물관</a></li>
+									
+								</ul>
+							
+								<div class="accordion" onclick="categorySearch('헬스&푸드')" >헬스&푸드</div>
+								<ul>	
+									
+										<li><a href="javascript:categorySubSearch('헬스&푸드', '푸드')" >푸드</a></li>
+									
+								</ul>
+							
+						</div>
+					
+					
+
+				<ul>
+					<li class="right_lis">
+						
+							<div class="quick_call" style = "height:240px;background-image: url('https://nextgate.kr/bori/upload/detail/20250612_37573288.jpg');  "></div>
+						
+						
+					</li>
+					
+						<li id="addImage">
+							<a href ="">
+								<img width="160" height="222" src="https://nextgate.kr/bori/upload/detail/20250612_61727846.jpg">
+							</a>
+						</li>
+					
+				</ul>
+				
+			</div>
+			<!-- 오른쪽 카테고리 메뉴 -->
+			<div class="quick_right quick_lis-menu slidemenu" id="rightslider" >
+				<ul class="quick_right_lis">
+				<!-- 미니장바구니 -->
+			</div>
+			<!-- 오른쪽 카테고리 메뉴 -->
+			<div class="quick_right quick_lis-menu slidemenu" id="rightslider" >
+				<ul class="quick_right_lis">
+				<form action="cartOrder" id="order" method="post">
+					<input name="directFlag" type="hidden" value="N">
+					<!-- 미니장바구니 -->
+				    
+
+
+
+
+
+<script>
+
+	$(function(){
+		//@
+		var total_proprice = 0;
+		var total_price = 0;
+		var total_pay=0;
+		var cart_count = 0;
+		var rowPerPage = $('[name="rowPerPage"]').val() -0;// 0빼기로  문자열을 숫자형로 변환 //페이지당 몇개를 보여줄지
+		var rowTotals = $("#products").find('tbody tr').length;
+		var i = 0;
+		var cnt_ticket=0;
+		var idx_event = 491;
+		var div_event = "행사";
+
+		//!!!페이지로딩시 미니장바구니에 상품여부에 따른 처리
+		$(".delivery_cost").hide();
+		cart_count=$("div.new_mini_cart").length;
+		tagToggle(cart_count);//상품 갯수에 따른  tag show/hide
+		if(cart_count>0) paging(1, rowPerPage);// 페이징 / param1> CurrentPageNum
+
+		
+		$('.cost_l strong').html(total_price.toLocaleString('en'));
+		diliveryToggle(0,cnt_ticket); //배송비처리, /param: 종이티켓수량
+
+		//장바구니 추가 INSERT
+		$(document).on("click",".go_cart",function()
+		{
+			var minTicketUnit;
+			var product_name ;
+			var product_price ;
+			var count;
+			var product_count;
+			var before_cnt;
+			var change_price
+			var currPage;
+			var page_flag;
+			var idx_event_Produc;
+			var idx_event_Detail;
+			var idx_product_Detail;
+			var productName;
+			var option ;
+			var ticket_type;
+			var flag_exist;
+			var cartItem;
+			var div_product;//normal , best 구분
+			var reservation_date; //예약일
+			var message='https://nextgate.kr/';
+			var pageUrl=window.location.href;
+			$this=$(this);
+			product_name = $(this).data("product_name");
+			productName = $(this).data("product_name");
+			idx_event_Product = $(this).data("idx_eventproduct");
+			ticket_type = $(this).data("ticket_type");
+			div_product = $(this).data("class");
+			page_flag=false;
+
+			var i = 0;
+			//다권종 처리
+			if($('.detail_name').size()>0)
+			{
+				var cartStatus = 0 ;
+				$('.detail_name').each(function()
+				{
+					$this=$(this);
+					idx_product_Detail = $(this).siblings('[name="idx_productDetail"]').val();
+					idx_event_Detail = $(this).siblings('[name="idx_eventDetail"]').val();
+					product_price = $(this).siblings('.list_price').val();
+					minTicketUnit = $(this).siblings('.min_ticket_unit').val();
+					count = 1*$(this).siblings('.t_number').find( '.cnt_val').val();
+					change_price = product_price.replace(/,/gi,'');
+					currPage = $("#nav .active").html()-0;
+					page_flag = true;
+					option = $(this).text();
+					flag_exist=false;
+					reservation_date = $(this).siblings('[name="reservation_date"]').val(); //예약일
+
+					//장바구니(cartCount) + 선택권종(count) 재고체크
+					var cartCount = 0;
+					$('[name="idx_eventDetail"]').each(function()
+					{
+						if($(this).val() == idx_event_Detail)
+						{
+							if(!isNaN($(this).parent().find('span.numbering').html()))
+							{
+								cartCount = 1*$(this).parent().find('span.numbering').html();
+							}
+						}
+					})
+					if(cartCount==null || isNaN(cartCount)) {cartCount=0;}
+					if(div_event == "행사") {
+						if(!checkStockAjax(idx_product_Detail, cartCount + count ))
+						{
+							return false;
+						}
+					}
+					//장바구니 추가
+					cartStatus+=1;
+					createCart();
+				})
+				alert( cartStatus + '개 상품을 장바구니에 담았습니다.');
+			}
+			//다권종 아닐경우
+			else if(idx_event_Product != null)
+			{
+				$this=$(this);
+				idx_product_Detail = $(this).data("idx_productdetail");
+				idx_event_Detail = $(this).data("idx_eventdetail");
+				minTicketUnit = $(this).data('min_ticket_unit');
+
+				//권종 미선택시 중지
+				if(idx_event_Detail == null)
+				{
+					alert("장바구니에 담을 상품을 선택해주세요.");
+					return false;
+				}
+
+				product_price = $(this).parent().parent().find("span.price").html();
+				if(div_product==".best_img")
+				{
+					count = $("#b_opt_cnt_"+idx_event_Detail).val()-0;
+				}
+				else
+				{
+					count = $("#opt_cnt_"+idx_event_Detail).val()-0;
+				}
+
+				before_cnt = 0;
+				change_price =  product_price.replace(/원|,/gi,'') ;
+				change_price = "" + (1*change_price*minTicketUnit);
+				currPage = $("#nav .active").html()-0;
+				page_flag = true;
+				option = $(this).data("option");
+				flag_exist=false;
+				reservation_date = $(this).siblings('[name="reservation_date"]').val(); //예약일
+
+				//장바구니 + 선택권종 재고체크
+				var cartCount = 0;
+				$('[name="idx_eventDetail"]').each(function()
+				{
+					if($(this).val() == idx_event_Detail)
+					{
+						cartCount = 1*$(this).parent().find('span.numbering').html();
+					}
+				})
+				if(cartCount==null || isNaN(cartCount)) {cartCount=0;}
+				if(div_event == "행사") {
+					if(!checkStockAjax(idx_product_Detail, cartCount + count ))
+					{
+						return false;
+					}
+				}
+				//장바구니 추가
+				createCart();
+				alert('선택하신 상품을 장바구니에 담았습니다.');
+			}
+
+			//장바구니 추가
+			function createCart()
+			{
+				//장바구니에 담은 티켓을 object에 넣음.
+				cartItem={
+					product_name:product_name,
+					idx_event:idx_event,
+					idx_eventProduct:idx_event_Product,
+					idx_eventDetail:idx_event_Detail,
+					count:count,
+					ticket_type:ticket_type,
+					process:"add",
+					reservation_date:reservation_date
+				};
+
+				$.ajax(
+						{
+							type : 'POST', // Http Request Method로 POST로 지정
+							url :"miniCart",
+							//dataType : 'text', // 서버로부터 응답받을 데이터가 JSON 객체임을 명시하여 수작업 없이 응답 데이터를 JavaScript
+							data : cartItem,
+							success : function(data)
+							{
+								if(data.msg != "success"){
+									alert(data.msg);
+									location.reload(true);
+									return false;
+								}
+								else{
+									//모바일 상단
+									$("#header_count").val(data.cartListSize)
+								}
+							},
+							error: function(jqXHR, textStatus, errorThrown)
+							{
+
+							},
+							complete: function(jqXHR, textStatus)
+							{
+
+							}
+						});
+
+				//중복처리
+				$("div.options").each(function()
+				{
+					if($(this).data("idx_eventdetail")==idx_event_Detail)
+					{
+						flag_exist=true;
+						var counted=$(this).parent().find('span.numbering').html()-0;  //기존 장바구니에 있는 권종의 수량
+						count=count-0+counted;
+
+						$(this).parent().parent().find('input[name="count"]').val(count);
+						total_pay=$(".cost_l > strong").html().replace(/원|,/gi,'')-0; //기존 결제금액
+
+						change_price = change_price.replace(/원|,/gi,'')-0;
+						total_price = change_price*count/minTicketUnit;
+						total_proprice = total_pay + change_price*(count-counted)/minTicketUnit;
+						$(this).parent().find('span.numbering').html(count);
+						$(this).parent().find('span.select_price_div').html(total_price.toLocaleString('en'));
+						$('.cost_l strong').html(total_proprice.toLocaleString('en'));
+
+						count=count-0-counted;
+					}
+				});
+
+				//중복되지않은 상품 추가.
+				if(!flag_exist)
+				{
+					cart_count = cart_count + 1;
+
+					total_pay=$(".cost_l > strong").html().replace(/,/gi,'')-0; //기존 결제금액
+
+					change_price = change_price.replace(/원/gi,'');
+					total_price = change_price*count/minTicketUnit;
+					total_proprice = total_price + total_pay;
+
+					$('.cost_l strong').html(total_proprice.toLocaleString('en'));
+
+					var newdiv=
+							$('<tr>\
+		            		<td>\
+			            		<input type="hidden" name="idx_product_Detail" value="' + idx_product_Detail + '">\
+		            			<input type="hidden" name="idx_eventProduct" value="' + idx_event_Product + '">\
+			         			<input type="hidden" name="idx_eventDetail" value="'+idx_event_Detail+'">\
+			         			<input type="hidden" name="count" value="'+count+'">\
+			            		<div class="new_mini_cart">\
+				            		<div class="product_name"> <strong>'+product_name+'</strong> </div>\
+				            		<div class="options" data-idx_eventDetail="'+idx_event_Detail+'">'+option+'</div>\
+				            		<div class="selecting">\
+				            			<div class="price_div"><span class="select_price_div">'+total_price.toLocaleString('en')+'</span><span>원</span></div>\
+				                		<div class="select_number_div">(수량:<span class="numbering">'+count+'</span>)</div>\
+				                		<div data-idx_eventDetail="'+idx_event_Detail+'" data-ticket_type="'+ticket_type+'" >\
+				                			<img src="images/cancle_btn.png" class="cancle_btn"/>\
+				                		</div>\
+			                		</div> \
+				            	</div>\
+			            	</td>\
+			            </tr>');
+					newdiv.appendTo($('#gogo_cart'));
+				}
+
+				before_cnt=cnt_ticket;
+
+				if(ticket_type=="종이티켓")	cnt_ticket=cnt_ticket+count;
+
+
+				diliveryToggle(before_cnt,cnt_ticket);//종이티켓의 수량에 따른  배송비 show/hide
+				tagToggle(cart_count);//상품 갯수에 따른  tag show/hide
+				paging(currPage, rowPerPage);//페이징
+
+				if(pageUrl.indexOf("cartProduct")>0)
+				{
+					window.location.href=message;
+				}
+			}
+			$(".btn-layerClose").trigger("click");//삭제
+		})
+
+
+		//장바구니 상품    DELETE
+		$(document).on('click', '.cancle_btn', function rm()
+		{
+			var $this=$(this);
+			var idx_event_Detail=$(this).parent().data("idx_eventdetail");
+			var currPage=$("#nav .active").html();
+			var count=$this.parent().parent().find(".numbering").html()-0;
+			var before_cnt=0;
+			var ticket_type=$(this).parent().data("ticket_type");
+			var cartItem={
+				idx_eventDetail:idx_event_Detail,
+				idx_event:idx_event,
+				process:"delete"
+			};
+			$.ajax(
+					{
+						type : 'POST', // Http Request Method로 POST로 지정
+						url :"miniCart",
+						//dataType : 'text', // 서버로부터 응답받을 데이터가 JSON 객체임을 명시하여 수작업 없이 응답 데이터를 JavaScript
+						data : cartItem,
+						success : function(data)
+						{
+							//모바일 상단
+							$("#header_count").val(data.cartListSize)
+						},
+						error: function(jqXHR, textStatus, errorThrown) {},
+						complete: function(jqXHR, textStatus) {}
+					});
+			total_price =$this.parent().parent().find('span.select_price_div').html().replace(/원|,/gi,'')-0; //삭제될 물품의 가격의합
+			total_proprice=$('.cost_l strong').html().replace(/,/gi,'')-0  // 총 결제금액
+			total_proprice -= total_price ;//삭제시 결제금액 --
+
+			$('.cost_l strong').html(total_proprice.toLocaleString('en'));//선택된 물품가격을 뺀 결재금액
+
+			cart_count = cart_count - 1;
+			//ceil(총상품의 수/페이지당 보여주는 물품 수) => 페이지 개수 != 마지막 페이지 번호
+			if(Math.ceil(cart_count/rowPerPage)!=$("#nav a").length) $("#nav a:last-child").remove();
+
+			$(this).parent().parent().parent().parent().parent().remove();//선택된 물품 삭제
+			before_cnt=cnt_ticket;
+			if(ticket_type=="종이티켓")	cnt_ticket-=count;
+			diliveryToggle(before_cnt,cnt_ticket);//종이티켓의 수량에 따른  배송비 show/hide
+			tagToggle(cart_count); //상품의 수에 따른 tag show/hide
+			paging(currPage, rowPerPage)//페이징;
+		});
+
+		//-------------------------------------------------------------------------------------------//
+		/*미니장바구니 기능 시작*/
+		//@cart_function create
+		function paging(currPage, rowPerPage) {
+//         	alert("page 호출");
+			var startItem;
+			var endItem;
+			var $products=$('#products');
+			var $tr = $($products).find('tbody tr');
+			var rowTotals = $tr.length;
+			var pageTotal = Math.ceil(rowTotals / rowPerPage);
+
+			//예외처리..
+			if(isNaN(currPage) ||currPage=="undefined") currPage=1;
+
+			$('#nav').remove();
+			$products.after('<div id="nav">');
+			for (i=0; i < pageTotal; i++) {
+				$('<a href="javascript:void(0)"></a>')
+						.attr('rel', i)
+						.html(i + 1)
+						.appendTo('#nav');
+			}
+			//rowPerPage의 수를 넘어가면 숨김
+			$tr.addClass('off-screen')
+					.slice(0, rowPerPage)
+					.removeClass('off-screen');
+
+			var $pagingLink = $('#nav a');
+			//상품 추가시 paging 유지
+			if(currPage>1)
+			{
+				if(rowTotals <= rowPerPage) currPage=1;
+				$("#nav a:nth-child("+currPage+")").addClass('active'); //페이징유지
+			}
+			else	$pagingLink.filter(':first').addClass('active');
+			startItem = (currPage-1) * rowPerPage;
+			endItem = startItem + rowPerPage;
+			$tr.css('opacity', '0.0')
+					.addClass('off-screen')
+					.slice(startItem, endItem)
+					.removeClass('off-screen')
+					.animate({ opacity: 1 }, 300);
+
+		}
+		//@cart_function click
+		$(document).on("click","#nav a",function(evt){
+			evt.preventDefault();
+			var $this = $(this);
+			var $products=$('#products');
+			var $tr = $($products).find('tbody tr');
+			if ($this.hasClass('active')) {
+				return;
+			}
+			$('#nav a').removeClass('active');
+			$this.addClass('active');
+			// 0 => 0(0*4), 4(0*4+4)
+			// 1 => 4(1*4), 8(1*4+4)
+			// 2 => 8(2*4), 12(2*4+4)
+			// 시작 행 = 페이지 번호 * 페이지당 행수
+			// 끝 행 = 시작 행 + 페이지당 행수
+			var currPage = $this.attr('rel'); //현재 선택된 페이지 번호
+			var startItem = currPage * rowPerPage;
+			var endItem = startItem + rowPerPage;
+
+			$tr.css('opacity', '0.0')
+					.addClass('off-screen')
+					.slice(startItem, endItem)
+					.removeClass('off-screen')
+					.animate({ opacity: 1 }, 300);
+		});
+		//@cart_function 장바구니 태그 show/hide
+		function tagToggle(cart_count){
+			if (cart_count == 0) {
+				$('.x-cart').show();
+				$('#cart_total').hide();
+				$('.buying_btn').removeClass('redline');
+				$('#nav').hide();
+			} else {
+				$('.x-cart').hide();
+				$('#cart_total').show();
+				$('.buying_btn').addClass('redline');
+			}
+		}
+		//@cart_function 미니장바구니 배송비 show/hide , param1: before_cnt_ticket, param2:after_cnt_ticket
+		function diliveryToggle(before_cnt,after_cnt){
+			var $tot=$('.cost_l strong');
+			var tot= $tot.html().replace(/원|,/gi,'')-0;
+			if(before_cnt == 0 || before_cnt > 9)
+			{
+				if(after_cnt>0 && after_cnt<10)
+				{
+					tot+=3900;
+					$tot.html(tot.toLocaleString('en'));
+					$(".delivery_cost").show();
+				}
+			}
+			else if(before_cnt > 0 && before_cnt<10)
+			{
+				if(after_cnt==0 || after_cnt>9 )
+				{
+					tot-=3900;
+					$tot.html(tot.toLocaleString('en'));
+					$(".delivery_cost").hide();
+				}
+			}
+			else if(before_cnt==0 && after_cnt==0)
+			{
+				$(".delivery_cost").hide();
+			}
+		}
+	});
+
+	// 레이어 장바구니
+	$('.layer_go_cart').click(function () {
+
+		// 미니장바구니 페이징
+		var $setRows = $('#setRows');
+
+		$setRows.submit(function (e) {
+			e.preventDefault();
+
+			var zeroWarning = 'Sorry, but we cat\'t display "0" rows page. + \nPlease try again.'
+			if (!rowPerPage) {
+				alert(zeroWarning);
+				return;
+			}
+			$('#nav').remove();
+
+			$products.after('<div id="nav">');
+
+			$('#products').find('tbody tr');
+			rowTotals = $tr.length;
+
+			var pageTotal = Math.ceil(rowTotals / rowPerPage);
+
+			for (i=0; i < pageTotal; i++) {
+				$('<a href="javascript:void(0)"></a>')
+						.attr('rel', i)
+						.html(i + 1)
+						.appendTo('#nav');
+			}
+
+			$tr.addClass('off-screen')
+					.slice(0, rowPerPage)
+					.removeClass('off-screen');
+
+			var $pagingLink = $('#nav a');
+			$pagingLink.on('click', function (evt) {
+				evt.preventDefault();
+				var $this = $(this);
+				if ($this.hasClass('active')) {
+					return;
+				}
+				$pagingLink.removeClass('active');
+				$this.addClass('active');
+
+				// 0 => 0(0*4), 4(0*4+4)
+				// 1 => 4(1*4), 8(1*4+4)
+				// 2 => 8(2*4), 12(2*4+4)
+				// 시작 행 = 페이지 번호 * 페이지당 행수
+				// 끝 행 = 시작 행 + 페이지당 행수
+
+				var currPage = $this.attr('rel');
+				var startItem = currPage * rowPerPage;
+				var endItem = startItem + rowPerPage;
+
+				$tr.css('opacity', '0.0')
+						.addClass('off-screen')
+						.slice(startItem, endItem) //장바구니에 선택된 범위 물품을 보여줌
+						.removeClass('off-screen')
+						.animate({ opacity: 1 }, 300);
+
+			});
+
+			$pagingLink.filter(':first').addClass('active');
+
+		});
+		$setRows.submit();
+	})
+
+	function submitOrder(e)
+	{
+		var div_event = "행사";
+		if(div_event == "굿즈")
+		{
+			goodsSubmit();
+			return;
+		}
+
+
+		var minicart_count = $('#gogo_cart td').length;
+		if(minicart_count == 0) {
+			alert("장바구니에 상품이 없습니다.");
+			e.preventDefault();
+		} else {
+			$("#order").submit();
+		}
+	}
+
+	/*미니장바구니 기능 끝*/
+</script>
+
+<li class="right_lis">
+	<div class="quick_minicart">
+		<ul>
+			
+				
+				
+					<li>
+						<a href="https://nextgate.kr/cart"><img class="mini_cart" src="images/mini-cart.png"></a>
+					</li>
+				
+			
+
+			<li>
+				<a id="buy_btn" href="javascript:void(0)" onclick="return false" style="text-decoration: none;">
+					<div class="buying_btn" onclick="submitOrder()" >
+						<p>
+							
+								
+								
+								
+								구매하기
+							
+						</p>
+					</div>
+				</a>
+			</li>
+
+			<div id="cart_total">
+				<div class="delivery_cost">
+					<span class="delivery_nameL">배송비</span>
+					<span class="delivery_nameR">3,600원</span>
+				</div>
+				<div class="cost_total">
+					
+						<span class="costs">결제금액</span>
+					
+					
+				</div>
+				<div class="cost_l">
+					<strong>0</strong><span>원</span>
+				</div>
+			</div>
+
+			
+				
+				
+					<li class="x-cart">
+						<img src="images/x-cart_bg.png">
+					</li>
+				
+			
+
+			<div id="cart_add">
+				<table id="products" border="1">
+					<div id="setRows" style="display: none;">
+						<input type="text" name="rowPerPage" value="3"> <!-- 한페이지당 표시할 row  -->
+					</div>
+					<tbody id="gogo_cart">
+					
+					</tbody>
+				</table>
+			</div>
+
+			
+				
+				
+					<li>
+						<a href="javascript:gotop();">
+							<div class="top_btn">
+								<p>
+									<img src="images/arrow_up_2.png" class="top_img">TOP
+								</p>
+							</div>
+						</a>
+					</li>
+				
+			
+
+		</ul>
+	</div>
+</li>
+				    <!-- 미니장바구니 끝 -->
+				</form>
+						
+					<!-- 카카오톡 상담 -->
+					<li class="right_lis">
+							
+							
+							
+								
+									<a	href="http://goto.kakao.com/@넥스트에너지">
+										<div class="quick_kakao" style = "background-image: url('https://nextgate.kr/bori/upload/detail/20250612_39076505.jpg');">
+										</div>
+									</a>	
+								
+								
+							
+							
+						
+					</li>
+					<!-- 고객센터 -->
+		
+					</ul>
+			</div>
+			
+			<!-- 팝업 레이아웃  -->
+			<form action="cartOrder" id="orderDirect" method="post">
+					<input name="directFlag" type="hidden" value="Y">
+					<input name="idx_eventProduct" id="list_idx_eventProduct" type="hidden" value="">
+					<div class='dim-layer'>
+						<div class='dimBg'></div>
+						<div id='layer2' class='pop-layer' style='border-radius: 10px;'>
+							<div class='pop-container' style='height: auto;'>
+								<div class='pop-conts' style='height: auto;'>
+									<div class="pop_header">
+									옵션선택 <a href="javascript:void(0)" class='btn-layerClose'><img src="images/x-mark.png"></a>
+									</div>
+									<div class="option_box" style="padding:20px;">
+										<div class="image_box">
+											<img class="p_img">
+										</div>
+	
+										<div class="option_wrap">
+											<span id='title'></span>
+											<div class='memo'></div> 
+										</div>
+										<div class='txt_s'
+											style='display: block; font-size: 12px; font-weight: 600; padding: 15px 0px 5px;'>
+											<span>사용기한 : </span>
+										</div>
+										
+										<select id='select_box' style='padding-top: 3px; cursor: pointer;'> 										
+										</select>
+																	
+										<table id="option_table">
+										</table>
+										
+										<div class="details_total_bg clearfix">
+											<p class="details_total">
+												총 금액 <span id="total_price">0</span><span>원</span>
+											</p>
+											<ul class="details_btn_box clearfix">
+												<div class="details_btn_box clearfix">
+	
+													<a href="javascript:void(0)" style="text-decoration: none;">
+														
+															<li class="buying_btn_02" onclick="orderDirectSubmit()">바로 구매하기</li>
+														
+														
+														<span id="ck_mobile"></span>
+													</a>
+													<a href="javascript:void(0)" style="text-decoration: none;">
+														<li class="cart_btn_02 go_cart popup"
+														data-product_name=""
+														data-idx_eventProduct=""
+														data-ticket_type="">장바구니</li>
+													</a>
+												</div>
+											</ul>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+					<!-- 팝업 레이아웃  -->
+				</form>	
+			
+		</div>
+
+<!-- 		 푸터 시작 -->
+	
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>Insert title here</title>
+<link rel="stylesheet" href="https://nextgate.kr/css/res_style.css">
+<link rel="stylesheet" href="https://nextgate.kr/css/notice.css">
+<link rel="stylesheet" href="https://nextgate.kr/css/Layer_Popup.css">
+<link rel="stylesheet" href="https://nextgate.kr/css/jquery.bxslider.css">
+<script src="https://code.jquery.com/jquery-3.2.1.js"></script>
+<script type="text/javascript"	src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+<script src="https://nextgate.kr/js/jquery.bxslider.min.js"></script>
+</head>
+<body>
+	<footer class="footer_container">
+		<div class="footer_box">
+			<a href="policy_use">이용약관</a>| 
+			<a href="policy_privacy">개인정보취급방침</a>| 
+			<a href="policy_email">이메일무단수집거부</a>
+		</div>
+			
+		
+	</footer>
+</body>
+
+
+
+</html>
+<!-- 		 //푸터 끝//   -->
+
+	</div>
+
+
+</body>
