@@ -30,3 +30,18 @@
 - 대표가격 = 옵션 목록의 **첫 번째 옵션** (`productMake.js`에서 최고할인 옵션 선택 코드는 주석 처리됨).
 - 전체 조회 1회: 상품 100개, 옵션 306개. 테마파크 소분류 45개(수동 조사와 일치).
 - 원본: `raw/probe/list_all.json`, `raw/probe/detail_329434.html`, `raw/probe/productMake.js`.
+
+## 2026-09-30 단계 3 샘플 검증
+
+`python3 collect.py samples` (요청 7건) → `samples/` / `python3 parse.py samples` → `samples/parsed_samples.json`, `samples/테마파크_목록_parsed.csv`
+
+- 샘플 4개(한국민속촌, 볼베어파크, 2호선세입자, 스파도고 캐빈파크): 상세 HTML ↔ 목록 JSON 교차검증 경고 0건
+  (상품명·대표가격·옵션 수·유효기간 모두 일치)
+- 테마파크 목록: 45개, 할인율 평균 27.8% / 중간값 23% / 전북 0개 → 수동 조사와 일치
+- 파싱 규칙
+  - region·name: 상품명 `[지역] 이름` 분리 / 대표가격·basis: 상세 상단(= 첫 번째 옵션)
+  - 유효기간: 상세 정적 표기 `A ~ B` (0 = 구매일, 숫자 = 구매 후 N일 → valid_days)
+  - issue_type: 안내문에 `예약대기` → 예약대기, 그 외 ticket_div(바로 사용가능 → 즉시발송, 예약필수, 수령 후 사용 가능, 광고상품)
+  - issue_channel: 안내문 `발송채널 : ○○` / issue_medium: 알림톡·LMS 문자·순차 발송
+  - usage_method: 키워드 태그 + 안내문 `이용 방법 :` 줄
+  - refund_rule: 기한 / 수수료 / 불가 조건 / 접수 방법 요약 (공통 타행 이체수수료 500원 제외), 원문은 refund_text

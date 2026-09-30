@@ -1,0 +1,72 @@
+[
+ {
+  "t": "2026-09-30T04:31:33",
+  "m": "GET",
+  "path": "?CD=1707897200",
+  "status": 200,
+  "len": 86895
+ },
+ {
+  "t": "2026-09-30T04:31:33",
+  "m": "POST",
+  "path": "eventCodeAjax",
+  "data": {
+   "CD": "1707897200"
+  },
+  "status": 200,
+  "len": 0
+ },
+ {
+  "t": "2026-09-30T04:31:37",
+  "m": "POST",
+  "path": "cartListAjax",
+  "data": {
+   "searchDiv": "",
+   "categoryDiv": "테마파크",
+   "categorySubDiv": "테마파크",
+   "searchWord": ""
+  },
+  "status": 200,
+  "len": 342447
+ },
+ {
+  "t": "2026-09-30T04:31:38",
+  "m": "POST",
+  "path": "cartProduct",
+  "data": {
+   "idx_eventProduct": "328990"
+  },
+  "status": 200,
+  "len": 76493
+ },
+ {
+  "t": "2026-09-30T04:31:41",
+  "m": "POST",
+  "path": "cartProduct",
+  "data": {
+   "idx_eventProduct": "330001"
+  },
+  "status": 200,
+  "len": 76503
+ },
+ {
+  "t": "2026-09-30T04:31:43",
+  "m": "POST",
+  "path": "cartProduct",
+  "data": {
+   "idx_eventProduct": "328418"
+  },
+  "status": 200,
+  "len": 77807
+ },
+ {
+  "t": "2026-09-30T04:31:46",
+  "m": "POST",
+  "path": "cartProduct",
+  "data": {
+   "idx_eventProduct": "328481"
+  },
+  "status": 200,
+  "len": 79102
+ }
+]
