@@ -1,0 +1,14 @@
+[
+ {
+  "method": "GET",
+  "url": "https://nextgate.kr/",
+  "post": null,
+  "status": 502,
+  "ctype": "text/plain; charset=utf-8",
+  "len": 23,
+  "file": "raw/probe/000.txt"
+ },
+ {
+  "mark": "CLICK category"
+ }
+]
