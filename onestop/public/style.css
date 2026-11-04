@@ -26,6 +26,7 @@ html,body{
   --text-danger:#B8325A;                  /* 흰 바탕 위 오류 글자 (대비 4.5:1 확보, 테두리는 --color-danger) */
   --overlay:rgba(31,29,43,.45);           /* 대화상자 뒤 어둡게 */
   --shadow-bar:0 -6px 20px rgba(110,79,168,.08);   /* 하단 탭바·하단 고정 영역 */
+  --shadow-card-hover:0 14px 32px rgba(110,79,168,.16);   /* 카드에 마우스를 올렸을 때 */
 
   /* ===== Typography — 고령 직원 대상으로 기준서보다 1단계 크게 유지 (CLAUDE.md) ===== */
   --fs-title-l:21px; --fs-title-m:17px; --fs-body-m:15px; --fs-body-s:14px;
@@ -51,6 +52,7 @@ html,body{
 
   /* ===== Motion ===== */
   --duration-fast:150ms; --duration-base:300ms; --easing:cubic-bezier(.2,0,0,1);
+  --duration-slow:700ms; --stagger:45ms;     /* 추가: 막대·숫자 채우기 / 카드가 차례로 들어오는 간격 */
 
   font-family:'Noto Sans KR','Malgun Gothic','Apple SD Gothic Neo',system-ui,sans-serif;
   color:var(--text-primary); background:var(--color-bg);
@@ -273,9 +275,10 @@ textarea.in{min-height:96px;line-height:var(--lh-normal);resize:vertical}
 .empty p{font-size:var(--fs-body-s);color:var(--text-secondary)}
 
 /* ═══ 로딩 스켈레톤 ═══ */
-.sk{background:var(--color-field);border-radius:var(--radius-m);height:76px;margin-bottom:var(--gap-item);
-  animation:sh 1.4s ease-in-out infinite}
-@keyframes sh{0%,100%{opacity:1}50%{opacity:.55}}
+.sk{background:linear-gradient(90deg,var(--color-field) 25%,var(--color-surface) 50%,var(--color-field) 75%);
+  background-size:200% 100%;border-radius:var(--radius-m);height:76px;margin-bottom:var(--gap-item);
+  animation:shimmer 1.4s linear infinite}
+@keyframes shimmer{from{background-position:200% 0}to{background-position:-200% 0}}
 
 /* ═══ 로그인 ═══ */
 .auth{min-height:100%;display:flex;flex-direction:column;justify-content:center;
@@ -370,3 +373,99 @@ input[type=file]:focus-visible{outline:2px solid var(--color-primary);outline-of
 
 /* 요약 카드 묶음 바로 아래에 오는 안내 상자는 간격을 둔다 */
 .kpis + .note{margin-top:var(--space-4)}
+
+
+/* ═══════════════════════════════════════════════════════════════
+   움직임 (DESIGN_SYSTEM — 움직임)
+   · 입장 효과는 #app.enter(화면이 바뀐 순간)에서만 — 단추를 누를 때마다 되풀이되지 않음
+   · prefers-reduced-motion 이면 맨 위 규칙이 모든 움직임을 끕니다
+   ═══════════════════════════════════════════════════════════════ */
+@keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+@keyframes pop{0%{opacity:0;transform:scale(.6)}60%{opacity:1;transform:scale(1.08)}100%{opacity:1;transform:none}}
+@keyframes dlgin{from{opacity:0;transform:translateY(10px) scale(.94)}to{opacity:1;transform:none}}
+@keyframes grow{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+@keyframes sweep{from{transform:translateX(-120%)}to{transform:translateX(320%)}}
+@keyframes shake{0%,100%{transform:none}20%{transform:translateX(-6px)}40%{transform:translateX(5px)}60%{transform:translateX(-4px)}80%{transform:translateX(3px)}}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+@keyframes ring{0%{box-shadow:0 0 0 0 rgba(238,110,143,.55)}70%{box-shadow:0 0 0 8px rgba(238,110,143,0)}100%{box-shadow:0 0 0 0 rgba(238,110,143,0)}}
+
+/* 1) 화면이 바뀔 때 — 위에서부터 차례로 올라옴 */
+#app.enter .page > *:not(.sk),#app.enter .auth > *{animation:rise var(--duration-base) var(--easing) both}
+#app.enter .page > :nth-child(2),#app.enter .auth > :nth-child(2){animation-delay:calc(var(--stagger)*1)}
+#app.enter .page > :nth-child(3),#app.enter .auth > :nth-child(3){animation-delay:calc(var(--stagger)*2)}
+#app.enter .page > :nth-child(4),#app.enter .auth > :nth-child(4){animation-delay:calc(var(--stagger)*3)}
+#app.enter .page > :nth-child(5),#app.enter .auth > :nth-child(5){animation-delay:calc(var(--stagger)*4)}
+#app.enter .page > :nth-child(6){animation-delay:calc(var(--stagger)*5)}
+#app.enter .page > :nth-child(n+7){animation-delay:calc(var(--stagger)*6)}
+#app.enter .tlist > *{animation:rise var(--duration-base) var(--easing) both}
+#app.enter .tlist > :nth-child(1){animation-delay:calc(var(--stagger)*2)}
+#app.enter .tlist > :nth-child(2){animation-delay:calc(var(--stagger)*3)}
+#app.enter .tlist > :nth-child(3){animation-delay:calc(var(--stagger)*4)}
+#app.enter .tlist > :nth-child(4){animation-delay:calc(var(--stagger)*5)}
+#app.enter .tlist > :nth-child(n+5){animation-delay:calc(var(--stagger)*6)}
+#app.enter .kpis > *{animation:pop var(--duration-base) var(--easing) both}
+#app.enter .kpis > :nth-child(2){animation-delay:calc(var(--stagger)*1)}
+#app.enter .kpis > :nth-child(3){animation-delay:calc(var(--stagger)*2)}
+#app.enter .kpis > :nth-child(4){animation-delay:calc(var(--stagger)*3)}
+#app.enter .kpis > :nth-child(n+5){animation-delay:calc(var(--stagger)*4)}
+#app.enter .auth .brand img{animation:pop 500ms var(--easing) 60ms both}
+
+/* 2) 막대·게이지가 차오름 */
+.pbar i,.sbar i{transform-origin:left center}
+#app.enter .pbar i,#app.enter .sbar i{animation:grow var(--duration-slow) var(--easing) 250ms both}
+#app.enter .sbar:nth-child(2) i{animation-delay:calc(250ms + var(--stagger)*1)}
+#app.enter .sbar:nth-child(3) i{animation-delay:calc(250ms + var(--stagger)*2)}
+#app.enter .sbar:nth-child(4) i{animation-delay:calc(250ms + var(--stagger)*3)}
+#app.enter .sbar:nth-child(5) i{animation-delay:calc(250ms + var(--stagger)*4)}
+#app.enter .sbar:nth-child(6) i{animation-delay:calc(250ms + var(--stagger)*5)}
+#app.enter .sbar:nth-child(n+7) i{animation-delay:calc(250ms + var(--stagger)*6)}
+#app.enter .gauge span{animation:pop var(--duration-base) var(--easing) both}
+#app.enter .gauge span:nth-child(1){animation-delay:300ms}
+#app.enter .gauge span:nth-child(2){animation-delay:340ms}
+#app.enter .gauge span:nth-child(3){animation-delay:380ms}
+#app.enter .gauge span:nth-child(4){animation-delay:420ms}
+#app.enter .gauge span:nth-child(5){animation-delay:460ms}
+#app.enter .gauge span:nth-child(6){animation-delay:500ms}
+#app.enter .gauge span:nth-child(n+7){animation-delay:540ms}
+
+/* 3) 점수 카드에 빛이 한 번 지나감 */
+.feature::before{content:"";position:absolute;top:0;bottom:0;left:0;width:35%;pointer-events:none;
+  background:linear-gradient(100deg,transparent,rgba(255,255,255,.28),transparent);transform:translateX(-120%)}
+#app.enter .feature::before{animation:sweep 1.1s var(--easing) 450ms 1}
+
+/* 4) 아래 탭: 현재 탭 아이콘이 톡 튀고, 개수 배지가 나타남 */
+#app.enter .tabbar button.on svg{animation:pop var(--duration-base) var(--easing) 120ms both}
+#app.enter .tabbar .cnt{animation:pop var(--duration-base) var(--easing) 400ms both}
+.dot{animation:ring 1.8s ease-out infinite}
+
+/* 5) 눌렀을 때·마우스를 올렸을 때 */
+.btn,.btn2,.cta,.chip,.iconbtn,.tli,.tabbar button,.side nav button,.back{
+  transition:transform var(--duration-fast) var(--easing),box-shadow var(--duration-fast) var(--easing),
+    background-color var(--duration-fast) var(--easing),color var(--duration-fast) var(--easing),filter var(--duration-fast) var(--easing)}
+.btn:active,.btn2:active,.chip:active,.iconbtn:active,.back:active{transform:scale(.95)}
+.cta:active{transform:scale(.98)}
+.tabbar button svg{transition:transform var(--duration-fast) var(--easing)}
+.tabbar button:active svg{transform:scale(.82)}
+.in{transition:background-color var(--duration-fast) var(--easing)}
+.tbl tbody tr td{transition:background-color var(--duration-fast) var(--easing)}
+@media (hover:hover){
+  .tli:hover{transform:translateY(-3px);box-shadow:var(--shadow-card-hover)}
+  .tli:active{transform:scale(.99)}
+  .btn.g:hover,.btn2.ghost:hover{transform:translateY(-1px);box-shadow:var(--shadow-card-hover)}
+  .cta:hover:not(:disabled),.btn.pt:hover{transform:translateY(-2px);box-shadow:0 14px 30px rgba(110,79,168,.38)}
+  .cta:active,.btn.pt:active{transform:scale(.98)}
+  .chip:hover:not(.on){transform:translateY(-1px)}
+  .side nav button svg{transition:transform var(--duration-fast) var(--easing)}
+  .side nav button:hover svg{transform:translateX(3px)}
+  .tbl tbody tr:hover td{background:var(--tint-primary)}
+}
+
+/* 6) 안내·오류·대화상자·빈 화면 */
+.note.fx-in{animation:rise var(--duration-base) var(--easing)}
+.in.err{animation:shake 420ms var(--easing)}
+.errmsg{animation:rise var(--duration-base) var(--easing)}
+.dlgwrap{animation:fade var(--duration-fast) var(--easing)}
+.dlg{animation:dlgin var(--duration-base) var(--easing)}
+.empty .ring{animation:float 3.2s ease-in-out infinite}
+.scroll-area{scroll-behavior:smooth}

@@ -19,7 +19,10 @@ function updateStaffList() {
   if (!S.admin) return;
   const box = document.getElementById("stafftable");
   const cnt = document.getElementById("empcount");
-  if (box) box.innerHTML = staffTable(S.admin);
+  if (box) {
+    box.innerHTML = staffTable(S.admin);
+    if (!reducedMotion() && box.animate) box.animate([{ opacity: .45 }, { opacity: 1 }], { duration: 160, easing: "ease-out" });
+  }
   if (cnt) cnt.textContent = `직원 ${staffList(S.admin).length}명`;
 }
 

@@ -165,20 +165,68 @@ const S = {
 const setMsg = (t, m) => { S.msg = m ? { t, m } : null; };
 
 /* ══════════ 그리기 ══════════ */
+/* ── 움직임 ──
+   화면이 "바뀌었을 때"(다른 탭으로 가거나, 자료가 처음 들어왔을 때)만 #app 에 enter 를 붙여
+   카드가 차례로 올라오게 합니다. 칩을 누르는 것처럼 같은 화면 안에서 다시 그릴 때는 붙이지 않습니다. */
+let lastViewKey = "", enterTimer = 0;
+function viewKey() {
+  if (!S.me) return "login";
+  if (S.me.mustChange) return "pw";
+  const admin = S.me.role === "admin";
+  return [S.me.role, admin ? S.adminTab : S.tab, S.detail || "", S.pre ? "pre" : "", (admin ? S.admin : S.view) ? 1 : 0].join("|");
+}
+const reducedMotion = () => window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+/* 점수·건수 숫자가 0에서 올라가며 보이게 (숫자만 있는 칸에 한해) */
+function runCountUp(root) {
+  if (reducedMotion()) return;
+  root.querySelectorAll(".feature .big, .kpi .v").forEach((el) => {
+    const n = el.firstChild;
+    if (!n || n.nodeType !== 3) return;
+    const raw = n.nodeValue.trim();
+    if (!/^[\d,]+(\.\d+)?$/.test(raw)) return;
+    const target = parseFloat(raw.replace(/,/g, ""));
+    if (!(target > 0)) return;
+    const dec = (raw.split(".")[1] || "").length, comma = raw.includes(",");
+    const fmt = (v) => comma
+      ? v.toLocaleString("ko-KR", { minimumFractionDigits: dec, maximumFractionDigits: dec }) : v.toFixed(dec);
+    const t0 = performance.now(), dur = 700;
+    n.nodeValue = fmt(0);
+    const step = (now) => {
+      const p = Math.min(1, (now - t0) / dur);
+      if (p < 1 && n.isConnected) { n.nodeValue = fmt(target * (1 - Math.pow(1 - p, 3))); requestAnimationFrame(step); }
+      else n.nodeValue = raw;
+    };
+    requestAnimationFrame(step);
+  });
+}
+
 function render() {
   const app = $("#app");
+  const key = viewKey(), changed = key !== lastViewKey;
+  lastViewKey = key;
+  app.classList.toggle("enter", changed);
   if (!S.me) app.innerHTML = screenLogin();
   else if (S.me.mustChange) app.innerHTML = screenChangePw();
   else if (S.me.role === "admin") app.innerHTML = screenAdmin();
   else app.innerHTML = screenStaff();
   app.scrollTop = 0;
+  if (changed) {
+    runCountUp(app);
+    clearTimeout(enterTimer);
+    enterTimer = setTimeout(() => app.classList.remove("enter"), 1400);
+  }
 }
 
 const Mission = () => `<div class="mission"><div class="m">MISSION</div><div class="s">${MISSION}</div></div>`;
 const Empty = (icon, text) =>
   `<div class="empty"><div class="ring">${icon || I.box}</div><p>${esc(text)}</p></div>`;
 const Note = (tone, html) => `<div class="note ${tone || ""}">${html}</div>`;
-const MsgBox = () => (S.msg ? Note(S.msg.t, esc(S.msg.m)) : "");
+const MsgBox = () => {
+  if (!S.msg) return "";
+  const fresh = !S.msg.seen; S.msg.seen = true;   // 새로 뜬 안내만 한 번 미끄러져 들어옴
+  return Note(S.msg.t, esc(S.msg.m)).replace('class="note ', `class="note${fresh ? " fx-in" : ""} `);
+};
 const NavHeader = (title, sub, back, right) => `
   <div class="hdr">
     ${back ? `<button class="back" data-act="${back}" aria-label="뒤로 가기">${I.back}</button>` : ""}
