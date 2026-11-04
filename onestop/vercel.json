@@ -1,6 +1,18 @@
 {
-  "buildCommand": "node build-demo.js && cp 원스탑서비스-체험판.html public/demo.html",
+  "framework": null,
+  "installCommand": "",
+  "buildCommand": "node build-demo.js && cp \uc6d0\uc2a4\ud0d1\uc11c\ube44\uc2a4-\uccb4\ud5d8\ud310.html public/demo.html",
   "outputDirectory": "public",
-  "functions": { "api/index.js": { "includeFiles": "{server.js,lib/**}", "maxDuration": 30 } },
-  "rewrites": [{ "source": "/api/(.*)", "destination": "/api/index.js" }]
+  "functions": {
+    "api/index.js": {
+      "includeFiles": "{server.js,lib/**}",
+      "maxDuration": 30
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "/api/index.js"
+    }
+  ]
 }
