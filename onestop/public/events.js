@@ -66,7 +66,7 @@ async function act(a, d = {}) {
       case "login": {
         const id = document.getElementById("lid").value.trim();
         const pw = document.getElementById("lpw").value;
-        if (!id) return fail("사번을 입력해 주세요.");
+        if (!id) return fail("이름을 입력해 주세요.");
         if (!pw) return fail("비밀번호를 입력해 주세요.");
         S.busy = true; S.err = ""; render();
         try {
@@ -275,13 +275,13 @@ async function act(a, d = {}) {
       case "eadd": {
         const n = S.nf || {};
         const dept = n.dept === "__etc" ? "" : (n.dept || "");
-        if (!String(n.empNo || "").trim() || !String(n.name || "").trim() || !dept.trim()
-          || digits(n.phone).length < 9) return warn("사번·이름·부서·연락처를 모두 입력해 주세요.");
+        if (!String(n.name || "").trim() || !dept.trim()
+          || digits(n.phone).length < 9) return warn("이름·부서·연락처를 모두 입력해 주세요.");
         const r = await api("/api/admin/employee", { action: "create",
           empNo: n.empNo, name: n.name, dept, phone: n.phone });
         S.nf = { empNo: "", name: "", dept: "", phone: "" }; S.adding = false;
         await refresh();
-        setMsg("amber", `${n.name} 님의 계정을 만들었습니다. 사번 ${r.empNo} / 비밀번호 ${r.pw}(연락처 뒷번호 4자리) — 본인에게 알려주세요.`);
+        setMsg("amber", `${n.name} 님의 계정을 만들었습니다. 로그인 이름 ${n.name} / 비밀번호 ${r.pw}(연락처 뒷번호 4자리) — 본인에게 알려주세요.`);
         return render();
       }
       case "eedit": {

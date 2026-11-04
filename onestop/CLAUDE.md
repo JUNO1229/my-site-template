@@ -173,7 +173,7 @@ deptCount    = pending + approved + reserve  // 예비도 병동 인원에 셈  
 
 | 경로 | 쓰는 사람 | 하는 일 |
 |---|---|---|
-| `POST /api/login` | 누구나 | 사번(또는 `admin`) + 비밀번호 |
+| `POST /api/login` | 누구나 | 직원은 이름 + 비밀번호(연락처 뒷 4자리), 담당자는 `admin` + 비밀번호 |
 | `POST /api/logout` | 로그인한 사람 | 나가기 |
 | `GET  /api/me` | 로그인한 사람 | 내 정보 + 공고 + 내 신청 + 내 실적 한 번에 |
 | `POST /api/password` | 로그인한 사람 | 비밀번호 바꾸기 |

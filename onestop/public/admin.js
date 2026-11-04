@@ -386,7 +386,7 @@ function addForm(depts) {
     <h3>직원 한 명 추가</h3>
     <p class="cap">신규 입사자처럼 명단에 없는 직원을 한 명만 넣을 때 씁니다. 비밀번호는 연락처 뒷번호 4자리로 자동 설정됩니다.</p>
     <div class="frow">
-      <div class="f"><label>사번</label>
+      <div class="f"><label>사번 <span class="hint">모르면 비워 두세요</span></label>
         <input class="in" data-f="nf" data-k="empNo" value="${esc(n.empNo)}"></div>
       <div class="f"><label>이름</label>
         <input class="in" data-f="nf" data-k="name" value="${esc(n.name)}"></div>

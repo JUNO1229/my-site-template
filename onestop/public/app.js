@@ -188,14 +188,13 @@ function screenLogin() {
     </div>
     <div class="box">
       <div class="f">
-        <label for="lid">사번</label>
-        <input id="lid" class="in${S.err ? " err" : ""}" inputmode="numeric"
-          placeholder="사번을 입력하세요" autocomplete="username">
+        <label for="lid">이름</label>
+        <input id="lid" class="in${S.err ? " err" : ""}" placeholder="이름을 입력하세요" autocomplete="username">
       </div>
       <div class="f">
         <label for="lpw">비밀번호</label>
         <input id="lpw" class="in${S.err ? " err" : ""}" type="password"
-          placeholder="비밀번호" autocomplete="current-password">
+          placeholder="연락처 뒷번호 4자리" autocomplete="current-password">
       </div>
       ${S.err ? `<div class="errmsg" role="alert">${esc(S.err)}</div>` : ""}
       <button class="cta" style="margin-top:4px" data-act="login"${S.busy ? " disabled" : ""}>
@@ -257,7 +256,7 @@ function screenStaff() {
          <img class="avatar" src="/emblem.png" alt="">
          <div style="min-width:0">
            <div class="ttl">${esc(v.me.name)} 님</div>
-           <div class="sub">${esc(v.me.dept)} · 사번 ${esc(v.me.empNo)}</div>
+           <div class="sub">${esc(v.me.dept)}</div>
          </div>
          <div class="right">
            <button class="iconbtn" data-act="gochangepw" aria-label="비밀번호 변경">${I.key}</button>
@@ -438,7 +437,7 @@ function screenDetail() {
         <p class="cap">담당자가 연락드릴 번호입니다. 바뀌었으면 고쳐 주세요.</p>
         <div class="frow">
           <div class="f"><label>이름</label>
-            <input class="in" value="${esc(v.me.name)} (${esc(v.me.empNo)})" disabled></div>
+            <input class="in" value="${esc(v.me.name)}" disabled></div>
           <div class="f"><label>부서(병동)</label>
             <input class="in" value="${esc(v.me.dept)}" disabled></div>
         </div>

@@ -165,9 +165,10 @@ async function api(path, body) {
         SESSION = { role: "admin", id: adm.id, name: adm.name, mustChange: !!adm.mustChange };
         return { ok: true, me: SESSION };
       }
-      const acc = D.accounts.find((a) => String(a.empNo) === id);
-      const emp = D.employees.find((e) => String(e.empNo) === id);
-      if (!acc || !emp || String(acc.pw) !== String(body.pw)) stop("사번 또는 비밀번호가 맞지 않습니다.");
+      const emp = D.employees.find((e) => String(e.name).replace(/\s/g, "") === id.replace(/\s/g, "")
+        && D.accounts.some((a) => String(a.empNo) === String(e.empNo) && String(a.pw) === String(body.pw)));
+      const acc = emp && D.accounts.find((a) => String(a.empNo) === String(emp.empNo));
+      if (!acc || !emp) stop("이름 또는 비밀번호가 맞지 않습니다.");
       if (!isActive(emp)) stop("퇴사 처리된 계정입니다. 사회사업실로 문의해 주세요.");
       SESSION = { role: "staff", empNo: emp.empNo, name: emp.name, dept: emp.dept,
         phone: emp.phone, mustChange: !!acc.mustChange };
@@ -291,8 +292,8 @@ async function api(path, body) {
     case "/api/admin/employee": {
       needAdm();
       if (body.action === "create") {
-        const no = String(body.empNo || "").trim();
-        if (!no) stop("사번을 입력해 주세요.");
+        const no = String(body.empNo || "").trim() || (String(body.name || "").replace(/\s/g, "") + "-" + String(body.phone || "").replace(/\D/g, "").slice(-8));
+        if (!String(body.name || "").trim()) stop("이름을 입력해 주세요.");
         if (D.employees.some((e) => String(e.empNo) === no)) stop("이미 있는 사번입니다.");
         const pw = pwFromPhone(body.phone);
         D.employees.push({ empNo: no, name: String(body.name).trim(), dept: String(body.dept).trim(),
@@ -467,8 +468,8 @@ screenLogin = function () {
     const my = D.records.filter((r) => String(r.empNo) === e.empNo);
     const s = round2(my.filter((r) => String(r.date).startsWith(year))
       .reduce((a, r) => a + scoreOf(r), 0));
-    return `<button class="row" data-act="fill" data-v="${e.empNo}" data-p="${e.pw}">
-      <div class="r1"><b>${esc(e.name)}</b><span class="key">${e.empNo} / ${e.pw}</span></div>
+    return `<button class="row" data-act="fill" data-v="${e.name}" data-p="${e.pw}">
+      <div class="r1"><b>${esc(e.name)}</b><span class="key">${e.name} / ${e.pw}</span></div>
       <div class="r2">${esc(e.dept)} · ${year}년 ${s}점${s < ANNUAL_DUTY
         ? ' <b style="color:var(--color-danger)">(의무 미충족)</b>' : ""} · 봉사 ${my.length}건</div>
     </button>`;

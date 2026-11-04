@@ -184,21 +184,28 @@ on("POST", "/api/login", async (req, res) => {
       { "set-cookie": setCookie(auth.makeSession("admin", adm.id)) });
   }
 
-  // 직원
-  const acc = db.accounts.find((a) => String(a.empNo) === key);
-  const emp = db.employees.find((e) => String(e.empNo) === key);
-  if (!acc || !emp) {
-    writeLog({ event: "login_fail", role: "staff", id: key, ip, reason: "no_account" });
-    return err(res, 401, "사번 또는 비밀번호가 맞지 않습니다.");
-  }
-  const left = auth.lockedFor(acc);
-  if (left) return err(res, 429, `비밀번호를 여러 번 틀렸습니다. ${left}분 뒤에 다시 시도해 주세요.`);
-  if (!auth.checkPw(pw, acc.salt, acc.hash)) {
-    auth.noteFail(acc); store.save();
+  // 직원 — 이름 + 비밀번호(연락처 뒷 4자리)
+  const sameName = (e) => String(e.name).replace(/\s/g, "") === key.replace(/\s/g, "");
+  const cands = db.employees.filter(sameName)
+    .map((e) => ({ emp: e, acc: db.accounts.find((a) => String(a.empNo) === String(e.empNo)) }))
+    .filter((c) => c.acc);
+  const fail = () => {
+    for (const c of cands) auth.noteFail(c.acc);
+    if (cands.length) store.save();
     writeLog({ event: "login_fail", role: "staff", id: key, ip });
-    return err(res, 401, "사번 또는 비밀번호가 맞지 않습니다.");
-  }
-  if (!R.isActive(emp)) return err(res, 403, "퇴사 처리된 계정입니다. 사회사업실로 문의해 주세요.");
+    return err(res, 401, "이름 또는 비밀번호가 맞지 않습니다.");
+  };
+  if (!cands.length) return fail();
+  const left = Math.min(...cands.map((c) => auth.lockedFor(c.acc) || 0));
+  if (left && cands.every((c) => auth.lockedFor(c.acc)))
+    return err(res, 429, `비밀번호를 여러 번 틀렸습니다. ${left}분 뒤에 다시 시도해 주세요.`);
+  const hit = cands.filter((c) => !auth.lockedFor(c.acc) && auth.checkPw(pw, c.acc.salt, c.acc.hash));
+  if (!hit.length) return fail();
+  const live = hit.filter((c) => R.isActive(c.emp));
+  if (!live.length) return err(res, 403, "퇴사 처리된 계정입니다. 사회사업실로 문의해 주세요.");
+  if (live.length > 1)
+    return err(res, 409, "같은 이름과 비밀번호를 가진 직원이 여러 명입니다. 사회사업실로 문의해 주세요.");
+  const { emp, acc } = live[0];
   auth.noteOk(acc); store.save();
   writeLog({ event: "login", role: "staff", id: emp.empNo, ip });
   return ok(res, { me: { role: "staff", empNo: emp.empNo, name: emp.name, dept: emp.dept, phone: emp.phone, mustChange: !!acc.mustChange } },
@@ -382,12 +389,11 @@ on("POST", "/api/admin/employee", async (req, res) => {
 
   if (action === "create") {
     const { empNo, name, dept, phone } = body;
-    if (!String(empNo || "").trim() || !String(name || "").trim() || !String(dept || "").trim()
-      || R.digits(phone).length < 9)
-      return err(res, 400, "사번·이름·부서·연락처를 모두 입력해 주세요.");
-    if (db.employees.some((e) => String(e.empNo) === String(empNo).trim()))
-      return err(res, 400, "이미 있는 사번입니다.");
-    const no = String(empNo).trim();
+    if (!String(name || "").trim() || !String(dept || "").trim() || R.digits(phone).length < 9)
+      return err(res, 400, "이름·부서·연락처를 모두 입력해 주세요.");
+    const no = String(empNo || "").trim() || R.autoEmpNo(name, phone); // 사번을 모르면 자동으로 붙임
+    if (db.employees.some((e) => String(e.empNo) === no))
+      return err(res, 400, "이미 있는 직원입니다. (사번 또는 이름·연락처가 같음)");
     db.employees.push({ empNo: no, name: String(name).trim(), dept: String(dept).trim(),
       phone: String(phone).trim(), status: "active", updatedAt: new Date().toISOString() });
     const pw = auth.pwFromPhone(phone);
@@ -452,6 +458,13 @@ on("POST", "/api/admin/upload", async (req, res) => {
     }
     if (kind === "records") {
       const list = R.parseRecords(rows);
+      // 사번 칸이 비어 있으면 이름으로 직원을 찾아 맞춘다 (같은 이름이 둘 이상이면 맞추지 않음)
+      const byName = new Map();
+      for (const e of db.employees) {
+        const k = String(e.name).replace(/\s/g, "");
+        byName.set(k, byName.has(k) ? null : e);
+      }
+      for (const r of list) if (!r.empNo) r.empNo = byName.get(String(r.name).replace(/\s/g, ""))?.empNo || "";
       const known = new Set(db.employees.map((e) => String(e.empNo)));
       db.records = list;
       store.save();

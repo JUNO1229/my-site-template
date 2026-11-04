@@ -159,6 +159,10 @@ function buildDiff(current, incoming) {
   return { added, changed, same, missing, back };
 }
 
+/** 사번을 모를 때 쓰는 내부 번호 — 같은 사람이면 항상 같은 값이라 명단을 다시 올려도 겹치지 않는다 */
+const autoEmpNo = (name, phone) =>
+  `${String(name).replace(/\s/g, "")}-${digits(phone).slice(-8)}`;
+
 /* ── 업로드 표 → 항목 ── */
 const ALIAS = {
   empNo: ["사번", "사원번호", "직원번호"],
@@ -194,7 +198,7 @@ function mapHeaders(headers) {
 function findHeader(rows) {
   const hi = rows.findIndex((r) =>
     r.some((c) => ["사번", "사원번호", "이름", "성명"].includes(String(c).trim())));
-  if (hi < 0) throw new Error("머리글 행을 찾지 못했습니다. '사번'과 '이름' 열이 있는지 확인해 주세요.");
+  if (hi < 0) throw new Error("머리글 행을 찾지 못했습니다. '이름' 열이 있는지 확인해 주세요.");
   return { headers: rows[hi], body: rows.slice(hi + 1) };
 }
 function cellDate(v) {
@@ -207,19 +211,19 @@ function cellDate(v) {
 function parseEmployees(rows) {
   const { headers, body } = findHeader(rows);
   const m = mapHeaders(headers);
-  if (m.empNo === undefined || m.name === undefined)
-    throw new Error("'사번'과 '이름' 열이 필요합니다.");
+  if (m.name === undefined) throw new Error("'이름' 열이 필요합니다.");
   const map = new Map();
   let dup = 0;
   for (const r of body) {
-    const empNo = String(r[m.empNo] ?? "").trim();
     const name = String(r[m.name] ?? "").trim();
-    if (!empNo || !name) continue;
+    if (!name) continue;
+    const phone = String(r[m.phone] ?? "").trim();
+    const empNo = String(r[m.empNo] ?? "").trim() || autoEmpNo(name, phone); // 사번 칸이 없어도 됨
     if (map.has(empNo)) dup++;
     map.set(empNo, {
       empNo, name,
       dept: String(r[m.dept] ?? "").trim(),
-      phone: String(r[m.phone] ?? "").trim(),
+      phone,
       status: "active",
     });
   }
@@ -229,11 +233,11 @@ function parseEmployees(rows) {
 function parseRecords(rows) {
   const { headers, body } = findHeader(rows);
   const m = mapHeaders(headers);
-  if (m.empNo === undefined) throw new Error("'사번' 열이 필요합니다.");
+  if (m.empNo === undefined && m.name === undefined) throw new Error("'이름' 열(또는 '사번' 열)이 필요합니다.");
   const out = [];
   for (const r of body) {
     const empNo = String(r[m.empNo] ?? "").trim();
-    if (!empNo) continue;
+    if (!empNo && !String(r[m.name] ?? "").trim()) continue;
     const cnt = r[m.count];
     out.push({
       empNo,
@@ -252,7 +256,7 @@ function parseRecords(rows) {
 
 module.exports = {
   ANNUAL_DUTY, RESERVE_LIMIT, POINT_PER_CASE, MSG_DEPT_FULL, MSG_CLOSED, LIVE,
-  digits, round2, isActive, scoreOf, monthKey, monthLabel,
+  digits, autoEmpNo, round2, isActive, scoreOf, monthKey, monthLabel,
   deadlineEnd, deadlinePassed, isDone, isOpen,
   seatCount, reserveCount, deptCount, decideApply, summarize, scoreMap,
   wardNo, deptCheck, buildDiff, parseEmployees, parseRecords,
