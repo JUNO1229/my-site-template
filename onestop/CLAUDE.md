@@ -231,7 +231,8 @@ icons.js → app.js → demo.js → admin.js → events.js → demo-tail.js
 
 ## 9. 디자인
 
-`DESIGN_GUIDE.md` (소프트 UI — 라벤더 배경 + 흰 카드 + 보라/핑크 그라데이션)를 따릅니다.
+**`DESIGN_SYSTEM.md`가 지금 적용된 기준서입니다**(토큰·컴포넌트·상태·접근성·원본과 다른 점). 화면을 고치기 전에 읽어 주세요.
+원본 `DESIGN_GUIDE.md`(소프트 UI — 라벤더 배경 + 흰 카드 + 보라/핑크 그라데이션)를 바탕으로 합니다.
 토큰은 전부 `public/style.css` 맨 위에 있습니다. **색을 코드에 직접 적지 말고 토큰을 쓰세요.**
 
 ```css
