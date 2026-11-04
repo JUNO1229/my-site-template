@@ -471,7 +471,7 @@ screenLogin = function () {
     return `<button class="row" data-act="fill" data-v="${e.name}" data-p="${e.pw}">
       <div class="r1"><b>${esc(e.name)}</b><span class="key">${e.name} / ${e.pw}</span></div>
       <div class="r2">${esc(e.dept)} · ${year}년 ${s}점${s < ANNUAL_DUTY
-        ? ' <b style="color:var(--color-danger)">(의무 미충족)</b>' : ""} · 봉사 ${my.length}건</div>
+        ? ' <b style="color:var(--text-danger)">(의무 미충족)</b>' : ""} · 봉사 ${my.length}건</div>
     </button>`;
   }).join("");
   const notice = Note("amber", "<b>체험판입니다.</b> 서버 없이 이 브라우저 안에서만 돌아갑니다. "

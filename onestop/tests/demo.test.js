@@ -70,20 +70,20 @@ const ok = (c, m) => { c ? (pass++, console.log("  ✓", m)) : (fail++, console.
   await page.waitForTimeout(200);
   ok((await txt()).includes("admin / 1234"), "담당자 계정이 보인다");
   ok((await txt()).includes("의무 미충족"), "의무 미충족 표시가 보인다");
-  await page.click('[data-act="fill"][data-v="230053"]');
+  await page.click('[data-act="fill"][data-v="강영식"]');
   await page.waitForTimeout(500);
   ok((await txt()).includes("강영식"), "계정을 누르면 바로 들어간다");
   await logout();
 
   console.log("\n[2] 잘못된 비밀번호");
-  await page.fill("#lid", "230053");
+  await page.fill("#lid", "강영식");
   await page.fill("#lpw", "0000");
   await page.click('[data-act="login"]');
   await page.waitForTimeout(300);
   ok((await txt()).includes("맞지 않습니다"), "틀린 비밀번호를 막는다");
 
   console.log("\n[3] 직원 로그인 — 강영식(간호부 10병동)");
-  await login("230053", "9493");
+  await login("강영식", "9493");
   let t = await txt();
   ok(t.includes("강영식"), "이름이 보인다");
   ok(t.includes("어르신 와플나눔 봉사"), "모집 공고가 보인다");
@@ -106,20 +106,20 @@ const ok = (c, m) => { c ? (pass++, console.log("  ✓", m)) : (fail++, console.
 
   console.log("\n[6] 같은 병동 4명 신청 — 4번째는 누락");
   await logout();
-  for (const [no, pw] of [["230056", "4197"], ["230055", "9236"]]) {
+  for (const [no, pw] of [["고성호", "4197"], ["권은지", "9236"]]) {
     await login(no, pw);
     await openPost("어르신 와플나눔 봉사");
     await applyNow("010-0000-0000");
     await logout();
   }
-  await login("230043", "9791");
+  await login("김태현", "9791");
   await openPost("어르신 와플나눔 봉사");
   await applyNow("010-3478-9791");
   ok((await txt()).includes("초과"), "4번째 10병동 직원은 부서 초과 안내를 받는다");
   await logout();
 
   console.log("\n[6-2] 다른 병동은 정상 접수 · 한 달 한 건");
-  await login("230021", "9137");
+  await login("홍도윤", "9137");
   await openPost("어르신 와플나눔 봉사");
   await applyNow("010-6737-9137");
   ok(!(await txt()).includes("초과"), "3병동 직원은 정상 접수된다");

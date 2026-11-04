@@ -231,23 +231,26 @@ icons.js → app.js → demo.js → admin.js → events.js → demo-tail.js
 
 ## 9. 디자인
 
-`DESIGN_GUIDE_v2 (Black & Gold)` 의 짜임새는 그대로 두고 **색만 병원 녹색으로** 바꾼 것입니다.
+`DESIGN_GUIDE.md` (소프트 UI — 라벤더 배경 + 흰 카드 + 보라/핑크 그라데이션)를 따릅니다.
 토큰은 전부 `public/style.css` 맨 위에 있습니다. **색을 코드에 직접 적지 말고 토큰을 쓰세요.**
 
 ```css
-/* 무게 — 가이드의 '차콜' 자리 */
---deep-900:#0D2B22;  --deep-800:#0F3A2E;  --deep-700:#174C3C;  --deep-500:#3D6B5C;
-/* 포인트 — 가이드의 '골드' 자리 */
---green-700:#1F6B4D; --green-600:#2E8B63; --green-500:#4FAE80;
---green-400:#7FC9A1; --green-100:#E2F0E8;
+/* 포인트 — 보라 그라데이션 (선택·활성·주 단추·강조 카드) */
+--color-primary-start:#8E6BBF; --color-primary-end:#6E4FA8; --color-primary:#7E5DB4; --color-primary-soft:#B9A2DA;
+--gradient-primary / --gradient-accent(핑크)
 /* 바탕·글자 */
---color-bg:#F1F4F0;  --color-surface:#FFFFFF;  --color-field:#EBF0EA;
---text-primary:#16211D;  --text-secondary:#5C6B64;
-/* 글씨 — 고령 직원을 생각해 한 단계 키워 놓았습니다. 줄이지 마세요 */
+--color-bg:#EEEFF6; --color-surface:#FFFFFF; --color-field:#F3F4F9;
+--text-primary:#1F1D2B; --text-secondary:#6E6E82; --text-on-color:#FFFFFF;
+/* 기준서에 없어 추가한 값 */
+--tint-primary(옅은 보라 면) --text-danger(흰 바탕 위 오류 글자) --overlay --shadow-bar
+/* 글씨 — 고령 직원을 생각해 기준서(20/16/14/13/12)보다 한 단계 크게 둡니다. 줄이지 마세요 */
 --fs-title-l:21px; --fs-title-m:17px; --fs-body-m:15px; --fs-body-s:14px; --fs-caption:13px;
 ```
 
+- 강조색(그라데이션)은 한 화면에 1~2곳만. 선택·활성 = 보라, 나머지 = 흰 카드/회색 면.
+- 구분선 대신 면의 밝기 차이와 옅은 그림자로 나눕니다(표는 줄무늬).
 - 틀은 **세 층**입니다: 머리글(고정) / 가운데(`.scroll-area`, 여기만 스크롤) / 아래 탭(고정).
+  담당자 화면은 1100px 이상에서 왼쪽 사이드바.
 - 화면 맨 아래에는 항상 **MISSION** 이 들어갑니다 —
   *어르신은 건강하게, 가족은 편안하게, 직원은 즐겁게*
 - 로고(`public/emblem.png`)는 뒤에 흰 네모 없이 그대로 얹습니다.

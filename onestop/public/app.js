@@ -211,7 +211,7 @@ function screenLogin() {
       ${S.err ? `<div class="errmsg" role="alert">${esc(S.err)}</div>` : ""}
       <button class="cta" style="margin-top:4px" data-act="login"${S.busy ? " disabled" : ""}>
         ${S.busy ? "확인 중…" : "로그인"}</button>
-      <button class="cta" style="margin-top:12px;background:var(--deep-800);color:#fff" data-act="adminenter"${S.busy ? " disabled" : ""}>
+      <button class="cta" style="margin-top:12px;background:var(--color-primary-end);color:var(--text-on-color)" data-act="adminenter"${S.busy ? " disabled" : ""}>
         담당자로 바로 들어가기</button>
       <p style="font-size:var(--fs-caption);color:var(--text-secondary);margin-top:12px;text-align:center">
         비밀번호를 모르시면 사회사업실로 문의해 주세요.</p>

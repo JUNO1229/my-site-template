@@ -62,7 +62,7 @@ function screenAdmin() {
 const scoreCell = (sc) => {
   const y = sc ? sc.year : 0, t = sc ? sc.total : 0;
   return `<span style="white-space:nowrap"><b style="font-weight:600;color:${
-    y >= ANNUAL_DUTY ? "var(--text-primary)" : "var(--color-danger)"}">${y}점</b>
+    y >= ANNUAL_DUTY ? "var(--text-primary)" : "var(--text-danger)"}">${y}점</b>
     <span style="color:var(--text-secondary);font-size:var(--fs-caption)"> / 누적 ${t}</span></span>`;
 };
 
@@ -112,7 +112,7 @@ function adminPost(A) {
     for (const a of base) if (a.status !== "excluded") byD[a.dept] = (byD[a.dept] || 0) + 1;
     const editing = S.editPost === p.id && S.pf;
 
-    return `<div class="card" style="border-left:4px solid ${S.showDone ? "var(--color-sage)" : "var(--green-600)"}">
+    return `<div class="card" style="border-left:4px solid ${S.showDone ? "var(--color-primary-soft)" : "var(--color-primary)"}">
       <div class="sec" style="margin:0 0 12px"><div style="min-width:0">
         <div style="font-size:var(--fs-caption);color:var(--text-secondary)">${esc(p.org)}</div>
         <h3 style="margin-bottom:4px">${esc(p.name)}</h3>
@@ -169,7 +169,7 @@ function adminPost(A) {
           <div class="card" style="background:var(--color-field);box-shadow:none;margin-bottom:12px">
             <div class="sec" style="margin:0 0 12px">
               <h3 style="font-size:var(--fs-body-m);color:var(--text-secondary)">일정 ${i + 1}</h3>
-              ${S.rows.length > 1 ? `<button class="linkb" style="color:var(--color-danger)" data-act="rowdel" data-v="${i}">삭제</button>` : ""}
+              ${S.rows.length > 1 ? `<button class="linkb" style="color:var(--text-danger)" data-act="rowdel" data-v="${i}">삭제</button>` : ""}
             </div>
             ${postForm(r, "row" + i, false, i)}
           </div>`).join("")}
@@ -184,7 +184,7 @@ function adminPost(A) {
 
 /** 공고 입력 칸 — 등록과 수정이 같은 모양을 씁니다 */
 function postForm(r, ns, isEdit, idx) {
-  const w = isEdit ? ' style="background:#fff"' : ' style="background:#fff"';
+  const w = isEdit ? ' style="background:var(--color-surface)"' : ' style="background:var(--color-surface)"';
   const d = (k) => `data-f="${ns}" data-k="${k}"${idx !== undefined ? ` data-i="${idx}"` : ""}`;
   return `
     <div class="frow">
@@ -199,7 +199,7 @@ function postForm(r, ns, isEdit, idx) {
       <div class="f"><label>모집 마감일 <span class="hint">이 날 자정까지</span></label>
         <input type="date" class="in"${w} ${d("deadline")} value="${esc(r.deadline)}">
         ${isEdit ? "" : `<div class="chips" style="margin-top:8px">
-          ${[2, 3, 5, 7].map((n) => `<button class="chip" style="min-height:34px;background:#fff"
+          ${[2, 3, 5, 7].map((n) => `<button class="chip" style="min-height:34px;background:var(--color-surface)"
             data-act="dl" data-i="${idx}" data-v="${n}">${n}일 뒤</button>`).join("")}</div>`}</div>
     </div>
     <div class="frow">
@@ -319,9 +319,9 @@ function staffTable(A) {
             ${on ? `<tr><td colspan="7" style="background:var(--color-field)">
               <div class="frow">
                 <div class="f"><label>이름</label>
-                  <input class="in" style="background:#fff" data-f="ef" data-k="name" value="${esc(S.ef.name)}"></div>
+                  <input class="in" style="background:var(--color-surface)" data-f="ef" data-k="name" value="${esc(S.ef.name)}"></div>
                 <div class="f"><label>연락처</label>
-                  <input class="in" style="background:#fff" data-f="ef" data-k="phone" value="${esc(S.ef.phone)}"></div>
+                  <input class="in" style="background:var(--color-surface)" data-f="ef" data-k="phone" value="${esc(S.ef.phone)}"></div>
               </div>
               ${deptField(S.ef.dept, depts, "ef")}
               <div class="btns" style="margin-bottom:12px">
@@ -383,12 +383,12 @@ function deptField(value, depts, ns) {
   const etcVal = value === "__etc" ? "" : value;
   return `<div class="f">
     <label>부서(병동) <span class="hint">목록에서 고르면 표기가 통일됩니다</span></label>
-    <select class="in" style="background:#fff" data-f="${ns}" data-k="dept">
+    <select class="in" style="background:var(--color-surface)" data-f="${ns}" data-k="dept">
       <option value="">부서를 선택하세요</option>
       ${depts.map((d) => `<option value="${esc(d)}"${d === value ? " selected" : ""}>${esc(d)}</option>`).join("")}
       <option value="__etc"${isEtc ? " selected" : ""}>목록에 없음 · 직접 입력</option>
     </select>
-    ${isEtc ? `<input class="in" style="margin-top:8px;background:#fff" data-f="${ns}" data-k="dept"
+    ${isEtc ? `<input class="in" style="margin-top:8px;background:var(--color-surface)" data-f="${ns}" data-k="dept"
       value="${esc(etcVal)}" placeholder="예: 간호부 10병동">` : ""}
   </div>`;
 }
