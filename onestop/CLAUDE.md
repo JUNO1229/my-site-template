@@ -32,6 +32,7 @@ Windows 원내 PC에서는 `시작.bat` 을 두 번 눌러 켭니다. `백업.ba
 | `node build-demo.js` | `public/` 을 HTML 한 장(`원스탑서비스-체험판.html`)으로 묶음 |
 | `node tests/demo.test.js` | **체험판 브라우저 검사 28건.** 먼저 `build-demo.js` 를 돌려야 함 |
 | `node tests/dept-limit.test.js` | **부서별 제한 검사 24건.** 건별·월별·둘 다·제한 없음. 엑셀 샘플 없이 혼자 돌아감 |
+| `node presentation/build.js` | **발표자료**(`원스탑서비스-발표자료.html`)를 만들고 `public/presentation.html` 로도 복사. 체험판·글꼴·로고를 HTML 한 장에 담음 |
 | `node --check 파일.js` | 문법만 빠르게 확인 |
 
 **바깥에서 가져다 쓰는 것이 하나도 없습니다.** `npm install` 할 것이 없고, `package.json` 도 없습니다.
@@ -59,6 +60,7 @@ public/
   demo.js            ☆ 체험판 전용. 서버 대신 브라우저가 답함 (500줄)
   demo-tail.js       ☆ 체험판 전용. act() 에 체험 단추 세 개를 덧붙임
 build-demo.js        ☆ 체험판 HTML 한 장 만들기
+presentation/        ☆ 경진대회 발표자료. template.html(슬라이드·시연 도우미) + build.js. 실서버에서는 안 읽힘
 tests/
   e2e.test.js        서버 검사 69건
   demo.test.js       체험판 브라우저 검사 28건 (playwright)
