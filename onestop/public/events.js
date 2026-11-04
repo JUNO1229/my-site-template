@@ -77,6 +77,15 @@ async function act(a, d = {}) {
         } catch (err) { S.busy = false; fail(err.message); }
         return;
       }
+      case "adminenter": {
+        S.busy = true; S.err = ""; render();
+        try {
+          const r = await api("/api/admin-enter", {});
+          S.me = r.me; S.busy = false;
+          await refresh(); render();
+        } catch (err) { S.busy = false; fail(err.message); }
+        return;
+      }
       case "logout":
         await api("/api/logout", {});
         Object.assign(S, { me: null, view: null, admin: null, err: "", msg: null, tab: "home", adminTab: "post", detail: null });

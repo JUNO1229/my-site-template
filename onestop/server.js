@@ -83,7 +83,7 @@ function bootstrapAdmin() {
   const db = store.get();
   if (!db.admins.length) {
     const { salt, hash } = auth.hashPw("1234");
-    db.admins.push({ id: "admin", name: "사회사업실 담당자", salt, hash, mustChange: true });
+    db.admins.push({ id: "admin", name: "사회사업실 담당자", salt, hash, mustChange: false });
     store.save();
     console.log("\n  담당자 계정을 만들었습니다 →  아이디 admin / 비밀번호 1234");
     console.log("  첫 로그인에서 비밀번호를 반드시 바꿔 주세요.\n");
@@ -203,6 +203,16 @@ on("POST", "/api/login", async (req, res) => {
   writeLog({ event: "login", role: "staff", id: emp.empNo, ip });
   return ok(res, { me: { role: "staff", empNo: emp.empNo, name: emp.name, dept: emp.dept, phone: emp.phone, mustChange: !!acc.mustChange } },
     { "set-cookie": setCookie(auth.makeSession("staff", emp.empNo)) });
+});
+
+/* 담당자 바로 들어가기 — 사번·비밀번호 없이 (시험 단계용) */
+on("POST", "/api/admin-enter", async (req, res) => {
+  const adm = store.get().admins[0];
+  if (!adm) return err(res, 404, "담당자 계정이 없습니다.");
+  if (adm.mustChange) { adm.mustChange = false; store.save(); }
+  writeLog({ event: "login", role: "admin", id: adm.id, how: "direct", ip: req.socket.remoteAddress });
+  return ok(res, { me: { role: "admin", id: adm.id, name: adm.name, mustChange: false } },
+    { "set-cookie": setCookie(auth.makeSession("admin", adm.id)) });
 });
 
 on("POST", "/api/logout", async (req, res) => ok(res, {}, { "set-cookie": clearCookie() }));
