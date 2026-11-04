@@ -480,3 +480,9 @@ input[type=file]:focus-visible{outline:2px solid var(--color-primary);outline-of
 .dlg{animation:dlgin var(--duration-base) var(--easing)}
 .empty .ring{animation:float 3.2s ease-in-out infinite}
 .scroll-area{scroll-behavior:smooth}
+
+/* 선호 분석 — 색 농도로 보는 표(heat) */
+.tbl.heat tbody tr:nth-child(even) td{background:transparent}
+.tbl.heat tbody tr:hover td{filter:brightness(.97)}
+details>summary{list-style:none}
+details>summary::-webkit-details-marker{display:none}

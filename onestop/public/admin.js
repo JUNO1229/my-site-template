@@ -683,12 +683,21 @@ function adminStats(A) {
   const maxC = Math.max(1, ...T.months.map((m) => m.cases));
   const kpi = (k, v, u) => `<div class="kpi"><div class="k">${k}</div><div class="v">${v}<small>${u || ""}</small></div></div>`;
 
-  return `
+  /* 위쪽 공통: 보기 전환(봉사 현황 / 선호 봉사 분석) + 연도 */
+  const view = S.statView === "pref" ? "pref" : "base";
+  const head = (title, cap, tail) => `
     <div class="card">
-      <h3>${year}년 봉사 통계</h3>
-      <p class="cap">1월 1일 ~ 12월 31일 기준입니다. 직원별 항목은 재직 중인 직원만 셉니다.</p>
+      <h3>${year}년 ${title}</h3>
+      <p class="cap">${cap}</p>
+      <div class="chips" style="margin-bottom:12px" role="group" aria-label="통계 보기">${[["base", "봉사 현황"], ["pref", "선호 봉사 분석"]].map(([id, l]) =>
+        `<button class="chip ${view === id ? "on" : ""}" data-act="statview" data-v="${id}">${l}</button>`).join("")}</div>
       <div class="chips" style="margin-bottom:12px">${years.map((y) =>
-        `<button class="chip ${y === year ? "on" : ""}" data-act="statyear" data-v="${y}">${y}년</button>`).join("")}</div>
+        `<button class="chip ${y === year ? "on" : ""}" data-act="statyear" data-v="${y}">${y}년</button>`).join("")}</div>${tail || ""}
+    </div>`;
+  if (view === "pref")
+    return adminStatsPref(A, year, head("선호 봉사 분석", "직원들이 어떤 봉사를 많이 하고, 어떤 봉사를 하고 싶어 하는지 봅니다. 1월 1일 ~ 12월 31일 기준입니다."));
+
+  const baseTail = `
       <div class="kpis">
         ${kpi("봉사 건수", won(T.recs.length), "건")}
         ${kpi("인정 점수 합", T.totalScore, "점")}
@@ -696,8 +705,10 @@ function adminStats(A) {
         ${kpi("의무 달성", `${T.done}`, `명 (${pctOf(T.done, T.staff)}%)`)}
         ${kpi("지급 포인트", won(T.points), "P")}
       </div>
-      ${T.unmatched ? Note("amber", `이 해 봉사 내역 ${T.unmatched}건은 직원 명단에서 찾지 못해 직원별·부서별 항목에서 빠졌습니다. 직원 명단을 올리면 자동으로 맞춰집니다.`) : ""}
-    </div>
+      ${T.unmatched ? Note("amber", `이 해 봉사 내역 ${T.unmatched}건은 직원 명단에서 찾지 못해 직원별·부서별 항목에서 빠졌습니다. 직원 명단을 올리면 자동으로 맞춰집니다.`) : ""}`;
+
+  return `
+    ${head("봉사 통계", "1월 1일 ~ 12월 31일 기준입니다. 직원별 항목은 재직 중인 직원만 셉니다.", baseTail)}
 
     <div class="sec"><h2>월별 봉사 건수</h2></div>
     <div class="card">
@@ -744,4 +755,222 @@ function adminStats(A) {
       <tbody>${T.shortList.map((p) => `<tr><td>${esc(p.e.name)}</td><td>${esc(p.e.dept)}</td><td>${esc(p.e.phone)}</td>
         <td>${p.cases}건</td><td>${p.score}점</td></tr>`).join("")}</tbody>
     </table></div>`}`;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   선호 봉사 분석 — "직원들은 어떤 봉사를 좋아하는가"
+   ① 실제 자료로 계산하는 항목: 봉사 내역(내용·구분·날짜)·직원 명단·공고·신청에서 바로 뽑습니다.
+   ② 아직 자료가 없는 항목(설문·만족도·미참여 사유): 칸만 만들고 가상 데이터로 채웠습니다.
+      → 화면에 "가상 데이터" 표시가 붙어 있고, 실제 입력 기능이 생기면 PREF_SAMPLE 만 교체하면 됩니다.
+   ══════════════════════════════════════════════════════════════ */
+
+/* 봉사 내용(자유 글)을 활동 분야로 나눕니다. 위에서부터 먼저 맞는 분야가 됩니다. */
+const PREF_CATS = [
+  ["김장·명절", ["김장", "송편", "말복", "명절", "설날", "추석"]],
+  ["와플·요리", ["와플", "요리", "윤식당"]],
+  ["배식·나눔", ["배식", "연탄", "반찬", "밀키트", "간식", "식사", "전처리", "나눔"]],
+  ["교육·검진·의료", ["교육", "검진", "의료", "의약품", "구급함", "감염"]],
+  ["환우 돌봄", ["청결", "이미용", "이송", "성체", "수족", "목욕"]],
+  ["행사·사무 지원", ["준비", "바자회", "소식지", "우편", "장학금", "조사", "기념식"]],
+  ["환우 행사·프로그램", ["대회", "나들이", "공연", "문화", "무비", "햇빛", "힐링", "이벤트", "체육", "낚시", "윷놀이", "노래", "장수사진", "프로그램", "공예"]],
+  ["시설 방문 지원", ["주간보호", "요양원", "복지관", "양로원", "센터", "재가"]],
+];
+const PREF_OTHER = "기타";
+const PREF_NAMES = [...PREF_CATS.map((c) => c[0]), PREF_OTHER];
+function prefCat(content) {
+  const t = String(content || "");
+  for (const [name, keys] of PREF_CATS) if (keys.some((k) => t.includes(k))) return name;
+  return PREF_OTHER;
+}
+
+/* ── 가상 데이터 (설문 응답 212명 / 재직 316명 기준의 예시 숫자) ── */
+const PREF_SAMPLE = {
+  respondents: 212, total: 316,
+  wish: { "배식·나눔": 62, "환우 행사·프로그램": 55, "와플·요리": 48, "환우 돌봄": 34, "교육·검진·의료": 27, "김장·명절": 25, "시설 방문 지원": 18, "행사·사무 지원": 12, "기타": 4 },
+  day: [["월", 8], ["화", 10], ["수", 14], ["목", 12], ["금", 18], ["토", 24], ["일", 14]],
+  time: [["오전 (9~12시)", 31], ["오후 (13~17시)", 44], ["저녁 (18시 이후)", 12], ["상관없음", 13]],
+  freq: [["월 1회", 28], ["분기 1회", 36], ["반기 1회", 22], ["연 1회", 14]],
+  factors: [["봉사 시간대", 4.3], ["봉사 내용", 4.2], ["봉사 후 휴식 보장", 4.1], ["이동 거리·교통", 3.9], ["함께하는 동료", 3.6], ["지급 포인트", 3.4]],
+  satis: { "배식·나눔": [4.4, 86], "환우 행사·프로그램": [4.6, 91], "와플·요리": [4.5, 88], "환우 돌봄": [4.1, 74], "교육·검진·의료": [3.9, 68], "김장·명절": [4.3, 82], "시설 방문 지원": [4.0, 71], "행사·사무 지원": [3.5, 55], "기타": [3.8, 60] },
+  reasons: [["근무 일정과 겹침", 38], ["휴무일에는 쉬고 싶음", 27], ["이동 거리·교통이 불편", 12], ["관심 있는 분야가 없음", 9], ["신청 방법·일정을 몰랐음", 9], ["건강·개인 사정", 5]],
+};
+
+const DOW = ["일", "월", "화", "수", "목", "금", "토"];
+const VBADGE = `<span class="badge info" style="margin-left:8px;vertical-align:middle">가상 데이터</span>`;
+const heatCell = (v, max) => {
+  const p = max ? Math.round((v / max) * 60) : 0;
+  return v ? `style="text-align:center;background:var(--tint-primary);background:color-mix(in srgb,var(--color-primary) ${p}%,var(--color-surface))"`
+    : `style="text-align:center;color:var(--text-disabled)"`;
+};
+
+function calcPref(A, year) {
+  const Y = String(year);
+  const recs = A.records.filter((r) => String(r.date).startsWith(Y));
+  const deptOf = new Map(A.employees.map((e) => [String(e.empNo), String(e.dept || "").trim() || "(부서 없음)"]));
+  const cats = new Map(PREF_NAMES.map((n) => [n, { name: n, cases: 0, people: new Set(), score: 0, inn: 0, out: 0, q: [0, 0, 0, 0] }]));
+  const people = new Map();           // 사번 → { 분야 → 건수 }
+  const dow = [0, 0, 0, 0, 0, 0, 0];
+  const types = new Map();
+  const deptCat = new Map();          // 부서 → { 분야 → 건수 }
+  let pointCases = 0, linked = 0;
+
+  for (const r of recs) {
+    const c = cats.get(prefCat(r.content));
+    const inn = String(r.type).includes("내부");
+    c.cases++; c.people.add(String(r.empNo)); c.score += scoreOf(r);
+    inn ? c.inn++ : c.out++;
+    const m = Number(String(r.date).slice(5, 7)) - 1;
+    if (m >= 0 && m < 12) c.q[Math.floor(m / 3)]++;
+    const pm = people.get(String(r.empNo)) || people.set(String(r.empNo), {}).get(String(r.empNo));
+    pm[c.name] = (pm[c.name] || 0) + 1;
+    const d = new Date(String(r.date) + "T00:00:00");
+    if (!Number.isNaN(d.getTime())) dow[d.getDay()]++;
+    const tk = String(r.type || "외부").trim() || "외부";
+    types.set(tk, (types.get(tk) || 0) + 1);
+    if (Number(r.points) > 0) pointCases++;
+    const dept = deptOf.get(String(r.empNo));
+    if (dept) {
+      linked++;
+      const dm = deptCat.get(dept) || deptCat.set(dept, {}).get(dept);
+      dm[c.name] = (dm[c.name] || 0) + 1;
+    }
+  }
+  const list = [...cats.values()].filter((c) => c.cases > 0).sort((a, b) => b.cases - a.cases);
+  const participants = people.size;
+  const repeaters = [...people.values()].filter((m) => Object.values(m).some((n) => n >= 2)).length;
+  const multi = [...people.values()].filter((m) => Object.keys(m).length >= 2).length;
+  const topCats = list.filter((c) => c.name !== PREF_OTHER).slice(0, 5).map((c) => c.name);
+  const depts = [...deptCat.entries()].map(([dept, m]) => ({ dept, m, total: Object.values(m).reduce((a, b) => a + b, 0) }))
+    .sort((a, b) => b.total - a.total).slice(0, 15);
+
+  // 공고 인기도 — 봉사일이 그 해인 공고
+  const posts = A.postings.filter((p) => String(p.when).startsWith(Y))
+    .sort((a, b) => String(a.when).localeCompare(String(b.when)))
+    .map((p) => {
+      const as = A.apps.filter((a) => a.postId === p.id)
+        .sort((a, b) => String(a.appliedAt).localeCompare(String(b.appliedAt)));
+      const span = as.length > 1 ? (new Date(as[as.length - 1].appliedAt) - new Date(as[0].appliedAt)) / 3600000 : 0;
+      return { p, cat: prefCat(p.name), total: as.length, cap: Number(p.capacity) || 0, span };
+    });
+
+  return { year: Y, recs, list, participants, repeaters, multi, dow, types: [...types.entries()].sort((a, b) => b[1] - a[1]),
+    pointCases, linked, topCats, depts, posts };
+}
+
+function adminStatsPref(A, year, headHtml) {
+  const T = calcPref(A, year);
+  const S_ = PREF_SAMPLE;
+  const nRec = T.recs.length;
+  const kpi = (k, v, u) => `<div class="kpi"><div class="k">${k}</div><div class="v">${v}<small>${u || ""}</small></div></div>`;
+  const top = T.list[0];
+  const maxCase = Math.max(1, ...T.list.map((c) => c.cases));
+  const empty = (msg) => Empty(I.chart, msg);
+
+  /* 희망(가상) vs 실제 참여(실데이터) */
+  const gapRows = PREF_NAMES.map((n) => {
+    const real = T.participants ? Math.round(((T.list.find((c) => c.name === n) || { people: new Set() }).people.size / T.participants) * 100) : 0;
+    const wish = S_.wish[n] || 0;
+    return { n, wish, real, gap: real - wish };
+  }).sort((a, b) => a.gap - b.gap);
+
+  return `
+    ${headHtml}
+    ${Note("", `<b>이 화면의 구분</b> — 제목 옆에 <b>실제 자료</b>라고 적힌 항목은 봉사 내역·명단·공고에서 계산한 진짜 숫자입니다.
+      제목에 ${VBADGE} 표시가 붙은 항목은 아직 설문·만족도를 받는 기능이 없어서, <b>항목 구성만 확인하실 수 있게 예시 숫자</b>를 넣은 것이며 실제 숫자가 아닙니다.`)}
+
+    <div class="sec"><h2>한눈에 보기</h2></div>
+    <div class="card">
+      <div class="kpis">
+        ${kpi("가장 많이 한 분야", top ? esc(top.name) : "-", "")}
+        ${kpi("분야 수", T.list.filter((c) => c.name !== PREF_OTHER).length, "개")}
+        ${kpi("같은 분야 다시 참여", `${pctOf(T.repeaters, T.participants)}`, `% (${T.repeaters}/${T.participants}명)`)}
+        ${kpi("1인 평균 참여", T.participants ? round2(nRec / T.participants) : 0, "건")}
+        ${kpi("포인트 대상 비중", `${pctOf(T.pointCases, nRec)}`, `% (${T.pointCases}건)`)}
+      </div>
+      <p class="cap" style="margin:12px 0 0">같은 분야 다시 참여 = 한 해에 같은 분야 봉사를 2번 이상 한 직원의 비율입니다.
+        여러 분야를 해 본 직원은 ${T.multi}명입니다.</p>
+    </div>
+
+    <div class="sec"><h2>활동 분야별 선호 <small style="font-weight:400;color:var(--text-secondary)">— 실제 자료</small></h2>
+      <button class="btn g xs" data-act="statcsv" data-v="cat">엑셀(CSV) 내려받기</button></div>
+    ${T.list.length === 0 ? empty(`${year}년 봉사 내역이 없습니다.`) : `
+    <div class="card">
+      <p class="cap">봉사 내용의 글자를 보고 분야를 나눴습니다. 분야 기준은 아래 표 맨 아래에서 볼 수 있습니다.</p>
+      ${T.list.map((c) => bar(c.cases, maxCase, `<b>${esc(c.name)}</b> ${c.cases}건 (${pctOf(c.cases, nRec)}%) · ${c.people.size}명 참여`)).join("")}
+    </div>
+    <div class="scrollx"><table class="tbl">
+      <thead><tr><th>분야</th><th>건수</th><th>참여 인원</th><th>인정 점수</th><th>내부</th><th>외부</th></tr></thead>
+      <tbody>${T.list.map((c) => `<tr><td>${esc(c.name)}</td><td>${c.cases}건</td><td>${c.people.size}명</td><td>${round2(c.score)}점</td><td>${c.inn}건</td><td>${c.out}건</td></tr>`).join("")}</tbody>
+    </table></div>
+    <details style="margin-top:10px"><summary class="linkb" style="cursor:pointer">분야를 나눈 기준 보기</summary>
+      <div class="card" style="margin-top:8px"><p class="cap" style="margin:0">${PREF_CATS.map(([n, k]) => `<b>${esc(n)}</b> — ${esc(k.join(", "))}`).join("<br>")}<br><b>${PREF_OTHER}</b> — 위에 해당하지 않는 것<br>
+        (위에서부터 먼저 맞는 분야로 셉니다. 기준은 <code>admin.js</code> 의 <code>PREF_CATS</code> 에서 고칩니다.)</p></div></details>`}
+
+    <div class="sec"><h2>봉사 구분별 <small style="font-weight:400;color:var(--text-secondary)">— 실제 자료</small></h2></div>
+    <div class="card">${T.types.length === 0 ? empty("자료가 없습니다.")
+      : T.types.map(([k, n]) => bar(n, T.types[0][1], `<b>${esc(k)}</b> ${n}건 (${pctOf(n, nRec)}%)`)).join("")}</div>
+
+    <div class="sec"><h2>요일별 참여 <small style="font-weight:400;color:var(--text-secondary)">— 실제 자료</small></h2></div>
+    <div class="card">${DOW.map((d, i) => bar(T.dow[i], Math.max(1, ...T.dow), `<b>${d}요일</b> ${T.dow[i]}건 (${pctOf(T.dow[i], nRec)}%)`)).join("")}</div>
+
+    <div class="sec"><h2>분기별 인기 분야 <small style="font-weight:400;color:var(--text-secondary)">— 실제 자료</small></h2></div>
+    ${T.list.length === 0 ? empty("자료가 없습니다.") : `<div class="scrollx"><table class="tbl heat">
+      <thead><tr><th>분야</th><th>1분기</th><th>2분기</th><th>3분기</th><th>4분기</th></tr></thead>
+      <tbody>${(() => { const mx = Math.max(1, ...T.list.flatMap((c) => c.q));
+        return T.list.map((c) => `<tr><td>${esc(c.name)}</td>${c.q.map((v) => `<td ${heatCell(v, mx)}>${v || "-"}</td>`).join("")}</tr>`).join(""); })()}</tbody>
+    </table></div>`}
+
+    <div class="sec"><h2>부서(병동)별 선호 분야 <small style="font-weight:400;color:var(--text-secondary)">— 실제 자료</small></h2></div>
+    ${T.depts.length === 0 ? empty("직원 명단과 연결된 봉사 내역이 없습니다.") : `
+    <p class="cap" style="margin:0 0 8px">직원 명단과 연결된 내역 ${T.linked}건 기준, 건수가 많은 상위 ${T.depts.length}개 부서입니다. 진한 칸일수록 많이 한 분야입니다.</p>
+    <div class="scrollx"><table class="tbl heat">
+      <thead><tr><th>부서(병동)</th>${T.topCats.map((n) => `<th>${esc(n)}</th>`).join("")}<th>합계</th></tr></thead>
+      <tbody>${(() => { const mx = Math.max(1, ...T.depts.flatMap((d) => T.topCats.map((n) => d.m[n] || 0)));
+        return T.depts.map((d) => `<tr><td style="white-space:nowrap">${esc(d.dept)}</td>${T.topCats.map((n) => `<td ${heatCell(d.m[n] || 0, mx)}>${d.m[n] || "-"}</td>`).join("")}<td style="text-align:center"><b>${d.total}</b></td></tr>`).join(""); })()}</tbody>
+    </table></div>`}
+
+    <div class="sec"><h2>공고 인기도 <small style="font-weight:400;color:var(--text-secondary)">— 실제 자료</small></h2>
+      <button class="btn g xs" data-act="statcsv" data-v="post">엑셀(CSV) 내려받기</button></div>
+    ${T.posts.length === 0 ? empty(`${year}년에 봉사일이 있는 공고가 없습니다.`) : `
+    <div class="scrollx"><table class="tbl">
+      <thead><tr><th>봉사일</th><th>기관 · 봉사명</th><th>분야</th><th>정원</th><th>신청</th><th>경쟁률</th><th>첫~마지막 신청 간격</th></tr></thead>
+      <tbody>${T.posts.map((x) => `<tr><td style="white-space:nowrap">${esc(fmtWhen(x.p.when))}</td><td>${esc(x.p.org)} · ${esc(x.p.name)}</td>
+        <td>${esc(x.cat)}</td><td>${x.cap}</td><td>${x.total}</td>
+        <td>${x.cap ? round2(x.total / x.cap) + " : 1" : "-"}</td><td>${x.total > 1 ? (x.span < 1 ? "1시간 이내" : round2(x.span) + "시간") : "-"}</td></tr>`).join("")}</tbody>
+    </table></div>`}
+
+    <div class="sec"><h2>희망 분야와 실제 참여의 차이 ${VBADGE}</h2></div>
+    <div class="card">
+      <p class="cap">설문에서 "해 보고 싶다"고 답한 비율(가상)과, 실제로 참여한 직원 비율(실제 자료)을 견줍니다.
+        <b>차이가 마이너스</b>이면 하고 싶어 하는데 기회가 부족한 분야입니다. (설문 응답 ${S_.respondents}명 / 재직 ${S_.total}명)</p>
+      <div class="scrollx" style="box-shadow:none"><table class="tbl">
+        <thead><tr><th>분야</th><th>희망 (가상)</th><th>실제 참여 (실제)</th><th>차이</th></tr></thead>
+        <tbody>${gapRows.map((g) => `<tr><td>${esc(g.n)}</td><td>${g.wish}%</td><td>${g.real}%</td>
+          <td><b style="color:${g.gap < -5 ? "var(--text-danger)" : "var(--text-primary)"}">${g.gap > 0 ? "+" : ""}${g.gap}%p</b>${g.gap < -5 ? " · 기회 부족" : ""}</td></tr>`).join("")}</tbody>
+      </table></div>
+    </div>
+
+    <div class="sec"><h2>희망 요일 · 시간대 · 주기 ${VBADGE}</h2></div>
+    <div class="card">
+      <h3 style="font-size:var(--fs-body-m)">희망 요일</h3>
+      ${S_.day.map(([k, v]) => bar(v, 24, `<b>${k}요일</b> ${v}%`)).join("")}
+      <h3 style="font-size:var(--fs-body-m);margin-top:16px">희망 시간대</h3>
+      ${S_.time.map(([k, v]) => bar(v, 44, `<b>${k}</b> ${v}%`)).join("")}
+      <h3 style="font-size:var(--fs-body-m);margin-top:16px">희망 봉사 주기</h3>
+      ${S_.freq.map(([k, v]) => bar(v, 36, `<b>${k}</b> ${v}%`)).join("")}
+    </div>
+
+    <div class="sec"><h2>봉사를 고를 때 중요한 점 ${VBADGE}</h2></div>
+    <div class="card"><p class="cap">5점 만점 평균 중요도입니다.</p>
+      ${S_.factors.map(([k, v]) => bar(v, 5, `<b>${k}</b> ${v}점`)).join("")}</div>
+
+    <div class="sec"><h2>분야별 만족도 · 다시 참여하고 싶은 비율 ${VBADGE}</h2></div>
+    <div class="scrollx"><table class="tbl">
+      <thead><tr><th>분야</th><th>만족도 (5점)</th><th>다시 참여 의향</th></tr></thead>
+      <tbody>${PREF_NAMES.map((n) => { const [s, w] = S_.satis[n] || [0, 0]; return `<tr><td>${esc(n)}</td><td><b>${s}</b>점</td><td>${w}%</td></tr>`; }).join("")}</tbody>
+    </table></div>
+
+    <div class="sec"><h2>참여하지 못한 이유 ${VBADGE}</h2></div>
+    <div class="card"><p class="cap">올해 봉사에 참여하지 않은 직원에게 물은 이유입니다(복수 선택).</p>
+      ${S_.reasons.map(([k, v]) => bar(v, 38, `<b>${k}</b> ${v}%`)).join("")}</div>`;
 }

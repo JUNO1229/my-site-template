@@ -173,7 +173,7 @@ function viewKey() {
   if (!S.me) return "login";
   if (S.me.mustChange) return "pw";
   const admin = S.me.role === "admin";
-  return [S.me.role, admin ? S.adminTab : S.tab, S.detail || "", S.pre ? "pre" : "", (admin ? S.admin : S.view) ? 1 : 0].join("|");
+  return [S.me.role, admin ? S.adminTab : S.tab, S.detail || "", S.pre ? "pre" : "", (admin ? S.admin : S.view) ? 1 : 0, admin && S.adminTab === "stats" ? S.statView || "" : ""].join("|");
 }
 const reducedMotion = () => window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
 

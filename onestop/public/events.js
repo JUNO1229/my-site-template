@@ -220,7 +220,16 @@ async function act(a, d = {}) {
 
       /* ── 통계 ── */
       case "statyear": S.statYear = Number(d.v); return render();
+      case "statview": S.statView = d.v; return render();
       case "statcsv": {
+        if (d.v === "cat" || d.v === "post") {
+          const P = calcPref(A, S.statYear || new Date().getFullYear());
+          if (d.v === "cat") return downloadCsv(`활동분야별선호_${P.year}.csv`, P.list.map((c, i) => ({
+            순위: i + 1, 분야: c.name, 건수: c.cases, "참여 인원": c.people.size, "인정 점수": round2(c.score), 내부: c.inn, 외부: c.out })));
+          return downloadCsv(`공고인기도_${P.year}.csv`, P.posts.map((x) => ({
+            봉사일: fmtWhen(x.p.when), 기관: x.p.org, 봉사명: x.p.name, 분야: x.cat, 정원: x.cap, 신청: x.total,
+            경쟁률: x.cap ? round2(x.total / x.cap) : "" })));
+        }
         const T = calcStats(A, S.statYear || new Date().getFullYear());
         if (d.v === "dept") return downloadCsv(`부서별참여_${T.year}.csv`, T.depts.map((x) => ({
           "부서(병동)": x.dept, 직원수: x.n, 참여인원: x.joined, 참여율: pctOf(x.joined, x.n) + "%",
