@@ -171,7 +171,7 @@ async function api(path, body) {
       if (!acc || !emp) stop("이름 또는 비밀번호가 맞지 않습니다.");
       if (!isActive(emp)) stop("퇴사 처리된 계정입니다. 사회사업실로 문의해 주세요.");
       SESSION = { role: "staff", empNo: emp.empNo, name: emp.name, dept: emp.dept,
-        phone: emp.phone, mustChange: !!acc.mustChange };
+        phone: emp.phone, mustChange: false };
       return { ok: true, me: SESSION };
     }
     case "/api/logout": SESSION = null; return { ok: true };
@@ -298,7 +298,7 @@ async function api(path, body) {
         const pw = pwFromPhone(body.phone);
         D.employees.push({ empNo: no, name: String(body.name).trim(), dept: String(body.dept).trim(),
           phone: String(body.phone).trim(), status: "active", updatedAt: new Date().toISOString() });
-        D.accounts.push({ empNo: no, pw, mustChange: true });
+        D.accounts.push({ empNo: no, pw, mustChange: false });
         saveDemo(); return { ok: true, empNo: no, pw };
       }
       const e = D.employees.find((z) => String(z.empNo) === String(body.empNo));
@@ -314,8 +314,8 @@ async function api(path, body) {
       } else if (body.action === "resetPw") {
         const pw = pwFromPhone(e.phone);
         const acc = D.accounts.find((a) => String(a.empNo) === String(e.empNo));
-        if (acc) { acc.pw = pw; acc.mustChange = true; }
-        else D.accounts.push({ empNo: e.empNo, pw, mustChange: true });
+        if (acc) { acc.pw = pw; acc.mustChange = false; }
+        else D.accounts.push({ empNo: e.empNo, pw, mustChange: false });
         saveDemo(); return { ok: true, pw };
       }
       saveDemo(); return { ok: true };
@@ -389,7 +389,7 @@ async function api(path, body) {
         for (const e of diff.added) {
           if (have.has(String(e.empNo))) continue;
           const pw = pwFromPhone(e.phone);
-          D.accounts.push({ empNo: String(e.empNo), pw, mustChange: true });
+          D.accounts.push({ empNo: String(e.empNo), pw, mustChange: false });
           issued.push({ empNo: e.empNo, name: e.name, dept: e.dept, pw });
         }
       }

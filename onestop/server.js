@@ -102,7 +102,7 @@ function whoami(req) {
   const e = db.employees.find((x) => String(x.empNo) === String(p.id));
   if (!e || !R.isActive(e)) return null;
   const acc = db.accounts.find((x) => String(x.empNo) === String(p.id));
-  return { role: "staff", ...e, mustChange: !!acc?.mustChange };
+  return { role: "staff", ...e, mustChange: false };
 }
 const needStaff = (req, res) => {
   const me = whoami(req);
@@ -208,7 +208,7 @@ on("POST", "/api/login", async (req, res) => {
   const { emp, acc } = live[0];
   auth.noteOk(acc); store.save();
   writeLog({ event: "login", role: "staff", id: emp.empNo, ip });
-  return ok(res, { me: { role: "staff", empNo: emp.empNo, name: emp.name, dept: emp.dept, phone: emp.phone, mustChange: !!acc.mustChange } },
+  return ok(res, { me: { role: "staff", empNo: emp.empNo, name: emp.name, dept: emp.dept, phone: emp.phone, mustChange: false } },
     { "set-cookie": setCookie(auth.makeSession("staff", emp.empNo)) });
 });
 
@@ -397,7 +397,7 @@ on("POST", "/api/admin/employee", async (req, res) => {
     db.employees.push({ empNo: no, name: String(name).trim(), dept: String(dept).trim(),
       phone: String(phone).trim(), status: "active", updatedAt: new Date().toISOString() });
     const pw = auth.pwFromPhone(phone);
-    db.accounts.push({ empNo: no, ...auth.hashPw(pw), mustChange: true });
+    db.accounts.push({ empNo: no, ...auth.hashPw(pw), mustChange: false });
     store.save();
     writeLog({ event: "employee_create", id: me.id, target: no });
     return ok(res, { empNo: no, pw });
@@ -422,8 +422,8 @@ on("POST", "/api/admin/employee", async (req, res) => {
   } else if (action === "resetPw") {
     const pw = auth.pwFromPhone(e.phone);
     const acc = db.accounts.find((a) => String(a.empNo) === String(e.empNo));
-    if (acc) Object.assign(acc, auth.hashPw(pw), { mustChange: true, failCount: 0, lockedUntil: 0 });
-    else db.accounts.push({ empNo: e.empNo, ...auth.hashPw(pw), mustChange: true });
+    if (acc) Object.assign(acc, auth.hashPw(pw), { mustChange: false, failCount: 0, lockedUntil: 0 });
+    else db.accounts.push({ empNo: e.empNo, ...auth.hashPw(pw), mustChange: false });
     store.save();
     writeLog({ event: "reset_pw", id: me.id, target: e.empNo });
     return ok(res, { pw });
@@ -500,7 +500,7 @@ on("POST", "/api/admin/apply-employees", async (req, res) => {
     for (const e of diff.added) {
       if (have.has(String(e.empNo))) continue;
       const pw = auth.pwFromPhone(e.phone);
-      db.accounts.push({ empNo: String(e.empNo), ...auth.hashPw(pw), mustChange: true });
+      db.accounts.push({ empNo: String(e.empNo), ...auth.hashPw(pw), mustChange: false });
       issued.push({ empNo: e.empNo, name: e.name, dept: e.dept, pw });
     }
   }
