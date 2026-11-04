@@ -1,0 +1,6 @@
+{
+  "buildCommand": "node build-demo.js && cp 원스탑서비스-체험판.html public/demo.html",
+  "outputDirectory": "public",
+  "functions": { "api/index.js": { "includeFiles": "{server.js,lib/**}", "maxDuration": 30 } },
+  "rewrites": [{ "source": "/api/(.*)", "destination": "/api/index.js" }]
+}
