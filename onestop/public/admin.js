@@ -83,7 +83,7 @@ function appRow(A, a, post) {
     ${post !== undefined ? `<td>${esc(post ? post.name : "삭제된 공고")}
       <div style="font-size:12px;color:var(--text-secondary)">${esc(post ? post.org : "")}</div></td>` : ""}
     <td style="white-space:nowrap">${esc(a.name)}</td>
-    <td>${esc(a.empNo)}</td>
+    <td>${esc(noText(a.empNo))}</td>
     <td style="white-space:nowrap">${esc(a.dept)}</td>
     <td>${scoreCell(A.scores[String(a.empNo)])}</td>
     <td style="white-space:nowrap">${esc(a.phone)}</td>
@@ -272,7 +272,7 @@ function adminDonate(A) {
         <thead><tr><th>등록일시</th><th>이름</th><th>사번</th><th>부서(병동)</th><th>후원물품</th><th>연락처</th><th></th></tr></thead>
         <tbody>${rows.map((d) => `<tr>
           <td style="white-space:nowrap">${fmtShort(d.at)}</td>
-          <td>${esc(d.name)}</td><td>${esc(d.empNo)}</td>
+          <td>${esc(d.name)}</td><td>${esc(noText(d.empNo))}</td>
           <td style="white-space:nowrap">${esc(d.dept)}</td>
           <td style="white-space:pre-wrap;min-width:200px">${esc(d.item)}</td>
           <td style="white-space:nowrap">${esc(d.phone)}</td>
@@ -301,7 +301,7 @@ function staffTable(A) {
           const a = accMap[String(e.empNo)];
           const on = S.editEmp === String(e.empNo) && S.ef;
           return `<tr${isActive(e) ? "" : ' style="opacity:.55"'}>
-            <td>${esc(e.empNo)}</td>
+            <td>${esc(noText(e.empNo))}</td>
             <td style="white-space:nowrap">${esc(e.name)}
               ${isActive(e) ? "" : `<span class="badge reserve" style="margin-left:6px">퇴사</span>`}</td>
             <td style="white-space:nowrap">${esc(e.dept)}</td>
@@ -483,7 +483,7 @@ function reviewPanel(P) {
   const R_ = reviewState(P);
   if (!R_.suspects.length && !R_.conflicts.length) return "";
   const person = (e) => `<b>${esc(e.name)}</b> · ${esc(e.dept || "(부서 없음)")} · ${esc(e.phone || "(연락처 없음)")}`
-    + (e.empNo && !/\D-\d+$/.test(String(e.empNo)) ? ` · 사번 ${esc(e.empNo)}` : "");
+    + (noText(e.empNo) !== "-" && e.empNo ? ` · 사번 ${esc(e.empNo)}` : "");
   const chip = (on, act, attrs, label) =>
     `<button class="chip rv ${on ? "on" : ""}" data-act="${act}" ${attrs}>${on ? "✓ " : ""}${label}</button>`;
   return `
@@ -554,19 +554,19 @@ function staffPreview(A) {
         ${P.check.noName.length ? Note("amber", `부서명 없이 번호만 적힌 값이 있습니다 — ${P.check.noName.map((f) => `「${esc(f)}」`).join(" / ")}. <b>「간호부 10병동」</b>처럼 적어 주세요.`) : ""}
       </div>` : ""}
     ${d.added.length ? `<div class="sec"><h2>신규 ${d.added.length}명</h2></div>
-      ${tbl(["사번", "이름", "부서(병동)", "연락처"], d.added.map((e) => [e.empNo, e.name, e.dept, e.phone]))}` : ""}
+      ${tbl(["사번", "이름", "부서(병동)", "연락처"], d.added.map((e) => [noText(e.empNo), e.name, e.dept, e.phone]))}` : ""}
     ${d.changed.length ? `<div class="sec"><h2>정보가 바뀐 ${d.changed.length}명</h2></div>
       <div class="scrollx"><table class="tbl">
         <thead><tr><th>사번</th><th>이름</th><th>바뀌는 내용</th></tr></thead>
         <tbody>${d.changed.slice(0, 50).map((e) => `<tr>
-          <td>${esc(e.empNo)}</td><td style="white-space:nowrap">${esc(e.name)}</td>
+          <td>${esc(noText(e.empNo))}</td><td style="white-space:nowrap">${esc(e.name)}</td>
           <td>${e.fields.map(([f, a, b]) => `<div style="font-size:var(--fs-caption)">${esc(f)}
             <span style="color:var(--text-secondary);text-decoration:line-through">${esc(a || "(없음)")}</span>
             → <b style="font-weight:600">${esc(b || "(없음)")}</b></div>`).join("")}</td></tr>`).join("")}</tbody>
       </table></div>` : ""}
     ${d.missing.length ? `<div class="sec"><h2>파일에 없는 재직자 ${d.missing.length}명</h2></div>
       ${Note("amber", "현재 명단에는 있는데 이번 파일에는 없는 직원입니다. 퇴사했다면 아래에서 퇴사 처리하시고, <b>파일이 일부만 담긴 것이라면 체크하지 마세요.</b>")}
-      ${tbl(["사번", "이름", "부서(병동)", "연락처"], d.missing.map((e) => [e.empNo, e.name, e.dept, e.phone]))}` : ""}
+      ${tbl(["사번", "이름", "부서(병동)", "연락처"], d.missing.map((e) => [noText(e.empNo), e.name, e.dept, e.phone]))}` : ""}
     ${d.back.length ? Note("", `퇴사 처리했던 ${d.back.length}명이 파일에 다시 들어 있어 재직으로 돌아옵니다 — ${d.back.slice(0, 5).map((e) => esc(e.name)).join(", ")}${d.back.length > 5 ? " 외" : ""}`) : ""}
     <div class="card">
       <h3>반영 방식</h3>

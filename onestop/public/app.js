@@ -70,6 +70,8 @@ function daysLeft(d) {
   const b = new Date(t); b.setHours(0, 0, 0, 0);
   return Math.round((b - a) / 86400000);
 }
+/* 사번이 없는 직원에게는 내부 구분용 번호("이름-숫자")가 붙어 있습니다. 화면에는 사번만 보여주고 그 번호는 감춥니다. */
+const noText = (no) => (/\D-\d+$/.test(String(no ?? "")) ? "-" : String(no ?? ""));
 const isActive = (e) => (e.status || "active") !== "retired";
 const isDone = (p) => !!p.closed || (!!p.when && new Date(p.when) < new Date());
 function scoreOf(r) {

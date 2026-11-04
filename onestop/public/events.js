@@ -232,7 +232,7 @@ async function act(a, d = {}) {
         const p = A.postings.find((x) => x.id === d.v);
         const rows = A.apps.filter((x) => x.postId === p.id && x.status === "approved")
           .sort((x, y) => String(x.appliedAt).localeCompare(String(y.appliedAt)))
-          .map((x, i) => ({ 순번: i + 1, 이름: x.name, 사번: x.empNo, "부서(병동)": x.dept,
+          .map((x, i) => ({ 순번: i + 1, 이름: x.name, 사번: noText(x.empNo), "부서(병동)": x.dept,
             연락처: x.phone, 접수시각: fmtStamp(x.appliedAt),
             "올해 점수": (A.scores[String(x.empNo)] || {}).year || 0,
             자원봉사기관: p.org, 자원봉사명: p.name, 일시: fmtWhen(p.when), 구분: p.type, 시간: p.hours }));
@@ -245,7 +245,7 @@ async function act(a, d = {}) {
           .sort((x, y) => String((pm[x.postId] || {}).when).localeCompare(String((pm[y.postId] || {}).when)))
           .map((x, i) => { const p = pm[x.postId] || {};
             return { 순번: i + 1, 자원봉사기관: p.org || "", 자원봉사명: p.name || "", 일시: fmtWhen(p.when),
-              구분: p.type || "", 시간: p.hours || "", 이름: x.name, 사번: x.empNo, "부서(병동)": x.dept,
+              구분: p.type || "", 시간: p.hours || "", 이름: x.name, 사번: noText(x.empNo), "부서(병동)": x.dept,
               연락처: x.phone, 접수시각: fmtStamp(x.appliedAt),
               "올해 점수": (A.scores[String(x.empNo)] || {}).year || 0 }; });
         return downloadCsv(`자원봉사_최종명단_${plusDays(0)}.csv`, rows);
@@ -254,7 +254,7 @@ async function act(a, d = {}) {
         const pm = Object.fromEntries(A.postings.map((p) => [p.id, p]));
         const rows = A.apps.map((x, i) => { const p = pm[x.postId] || {};
           return { 순번: i + 1, 자원봉사기관: p.org || "", 자원봉사명: p.name || "", 일시: fmtWhen(p.when),
-            이름: x.name, 사번: x.empNo, 부서: x.dept, 연락처: x.phone,
+            이름: x.name, 사번: noText(x.empNo), 부서: x.dept, 연락처: x.phone,
             접수시각: fmtStamp(x.appliedAt), 상태: (STATUS[x.status] || {}).label || "" }; });
         return downloadCsv(`자원봉사_신청현황_${plusDays(0)}.csv`, rows);
       }
@@ -265,7 +265,7 @@ async function act(a, d = {}) {
           const m = String(x.dept || "").match(/^(\S+)\s+(.+병동)$/);
           return { 일자: String(p.when || "").slice(0, 10),
             대분류: p.type === "내부" ? "내부봉사" : "직원자원봉사",
-            "사번 (입력)": x.empNo, 직원이름: x.name,
+            "사번 (입력)": noText(x.empNo), 직원이름: x.name,
             주부서: m ? m[1] : x.dept, 세부부서: m ? m[2].replace("병동", "") : "",
             봉사내용: p.name || "", 봉사장소: p.org || "",
             인정횟수: p.type === "내부" ? 0.5 : 1, "지급 포인트": 0, 전화번호: x.phone }; });
@@ -274,12 +274,12 @@ async function act(a, d = {}) {
       case "expdon":
         return downloadCsv(`바자회_물품후원_${plusDays(0)}.csv`,
           A.donations.slice().sort((x, y) => String(y.at).localeCompare(String(x.at)))
-            .map((x, i) => ({ 순번: i + 1, 등록일시: fmtStamp(x.at), 이름: x.name, 사번: x.empNo,
+            .map((x, i) => ({ 순번: i + 1, 등록일시: fmtStamp(x.at), 이름: x.name, 사번: noText(x.empNo),
               부서: x.dept, 연락처: x.phone, 후원물품: x.item })));
       case "expemp": {
         const accMap = Object.fromEntries(A.accounts.map((x) => [String(x.empNo), x]));
         return downloadCsv(`직원명단_${plusDays(0)}.csv`,
-          A.employees.map((e, i) => ({ 순번: i + 1, 사번: e.empNo, 이름: e.name, "부서(병동)": e.dept,
+          A.employees.map((e, i) => ({ 순번: i + 1, 사번: noText(e.empNo), 이름: e.name, "부서(병동)": e.dept,
             연락처: e.phone, 재직구분: isActive(e) ? "재직" : "퇴사",
             계정: accMap[String(e.empNo)] ? "있음" : "없음",
             "올해 점수": (A.scores[String(e.empNo)] || {}).year || 0 })));
@@ -411,9 +411,9 @@ async function act(a, d = {}) {
           if (r.back) m += ` · 퇴사자 ${r.back}명이 재직으로 돌아왔습니다`;
           if (r.issued && r.issued.length) {
             m += `\n\n발급된 비밀번호(연락처 뒷번호 4자리) — ` +
-              r.issued.map((x) => `${x.name}(${x.empNo}) ${x.pw}`).join(" / ");
+              r.issued.map((x) => `${x.name} ${x.pw}`).join(" / ");
             downloadCsv(`신규계정_${plusDays(0)}.csv`,
-              r.issued.map((x, i) => ({ 순번: i + 1, 사번: x.empNo, 이름: x.name,
+              r.issued.map((x, i) => ({ 순번: i + 1, 사번: noText(x.empNo), 이름: x.name,
                 "부서(병동)": x.dept, 임시비밀번호: x.pw })));
           }
           setMsg("amber", m); return render();
