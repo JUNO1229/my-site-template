@@ -1,6 +1,6 @@
 {
   "framework": null,
-  "buildCommand": "node build-demo.js && cp \uc6d0\uc2a4\ud0d1\uc11c\ube44\uc2a4-\uccb4\ud5d8\ud310.html public/demo.html",
+  "buildCommand": "node build-demo.js && cp 원스탑서비스-체험판.html public/demo.html",
   "outputDirectory": "public",
   "functions": {
     "api/index.js": {
@@ -12,6 +12,21 @@
     {
       "source": "/api/(.*)",
       "destination": "/api/index.js"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/docs/(.*)\\.md",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "text/markdown; charset=utf-8"
+        },
+        {
+          "key": "Content-Disposition",
+          "value": "attachment"
+        }
+      ]
     }
   ]
 }
