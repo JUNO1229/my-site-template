@@ -67,8 +67,13 @@ function noteOk(acc) {
 
 /** 무작위 6자리 임시 비밀번호 */
 const tempPw = () => String(crypto.randomInt(100000, 1000000));
+/** 초기 비밀번호 = 연락처 뒷번호 4자리 (연락처가 4자리 미만이면 임의 6자리) */
+const pwFromPhone = (phone) => {
+  const d = String(phone ?? "").replace(/\D/g, "");
+  return d.length >= 4 ? d.slice(-4) : tempPw();
+};
 
 module.exports = {
-  hashPw, checkPw, makeSession, verify, lockedFor, noteFail, noteOk, tempPw,
+  hashPw, checkPw, makeSession, verify, lockedFor, noteFail, noteOk, tempPw, pwFromPhone,
   MAX_FAIL, LOCK_MINUTES, SESSION_HOURS,
 };

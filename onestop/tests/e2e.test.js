@@ -82,7 +82,7 @@ const when = (n, h) => `${ymd(n)}T${String(h).padStart(2, "0")}:00`;
   eq(r.added, 60, "신규 60명 반영");
   eq(r.issued.length, 60, "계정 60개 발급");
   const pwOf = Object.fromEntries(r.issued.map((x) => [x.empNo, x.pw]));
-  yes(r.issued.every((x) => /^\d{6}$/.test(x.pw)), "임시 비밀번호는 6자리");
+  yes(r.issued.every((x) => /^\d{4}$/.test(x.pw)), "초기 비밀번호는 연락처 뒷 4자리");
 
   /* 비밀번호가 평문으로 저장되지 않는지 */
   const raw = fs.readFileSync(path.join(DATA, "db.json"), "utf8");
@@ -216,7 +216,7 @@ const when = (n, h) => `${ymd(n)}T${String(h).padStart(2, "0")}:00`;
 
   /* ── 비밀번호 초기화 ── */
   r = await A("/api/admin/employee", { action: "resetPw", empNo: C[0].e.empNo });
-  yes(/^\d{6}$/.test(r.pw), "초기화하면 6자리 임시 비밀번호");
+  yes(/^\d{4}$/.test(r.pw), "초기화하면 연락처 뒷 4자리 비밀번호");
   const back = client();
   x = await back("/api/login", { id: C[0].e.empNo, pw: r.pw });
   eq(x.ok, true, "초기화 뒤 로그인 (잠금도 풀림)");

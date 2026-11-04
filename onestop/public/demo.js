@@ -144,6 +144,7 @@ function dMyView(me) {
 
 const uid = () => Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-4);
 const tempPw = () => String(Math.floor(Math.random() * 900000) + 100000);
+const pwFromPhone = (phone) => { const d = String(phone ?? "").replace(/\D/g, ""); return d.length >= 4 ? d.slice(-4) : tempPw(); };
 const stop = (m) => { throw new Error(m); };
 
 /* ══════════ 서버 호출을 대신 받습니다 ══════════ */
@@ -293,7 +294,7 @@ async function api(path, body) {
         const no = String(body.empNo || "").trim();
         if (!no) stop("사번을 입력해 주세요.");
         if (D.employees.some((e) => String(e.empNo) === no)) stop("이미 있는 사번입니다.");
-        const pw = tempPw();
+        const pw = pwFromPhone(body.phone);
         D.employees.push({ empNo: no, name: String(body.name).trim(), dept: String(body.dept).trim(),
           phone: String(body.phone).trim(), status: "active", updatedAt: new Date().toISOString() });
         D.accounts.push({ empNo: no, pw, mustChange: true });
@@ -310,7 +311,7 @@ async function api(path, body) {
         D.employees = D.employees.filter((z) => String(z.empNo) !== String(e.empNo));
         D.accounts = D.accounts.filter((z) => String(z.empNo) !== String(e.empNo));
       } else if (body.action === "resetPw") {
-        const pw = tempPw();
+        const pw = pwFromPhone(e.phone);
         const acc = D.accounts.find((a) => String(a.empNo) === String(e.empNo));
         if (acc) { acc.pw = pw; acc.mustChange = true; }
         else D.accounts.push({ empNo: e.empNo, pw, mustChange: true });
@@ -386,7 +387,7 @@ async function api(path, body) {
         const have = new Set(D.accounts.map((a) => String(a.empNo)));
         for (const e of diff.added) {
           if (have.has(String(e.empNo))) continue;
-          const pw = tempPw();
+          const pw = pwFromPhone(e.phone);
           D.accounts.push({ empNo: String(e.empNo), pw, mustChange: true });
           issued.push({ empNo: e.empNo, name: e.name, dept: e.dept, pw });
         }

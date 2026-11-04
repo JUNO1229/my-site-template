@@ -281,7 +281,7 @@ async function act(a, d = {}) {
           empNo: n.empNo, name: n.name, dept, phone: n.phone });
         S.nf = { empNo: "", name: "", dept: "", phone: "" }; S.adding = false;
         await refresh();
-        setMsg("amber", `${n.name} 님의 계정을 만들었습니다. 사번 ${r.empNo} / 임시 비밀번호 ${r.pw} — 본인에게 알려주세요.`);
+        setMsg("amber", `${n.name} 님의 계정을 만들었습니다. 사번 ${r.empNo} / 비밀번호 ${r.pw}(연락처 뒷번호 4자리) — 본인에게 알려주세요.`);
         return render();
       }
       case "eedit": {
@@ -340,7 +340,7 @@ async function act(a, d = {}) {
           if (r.retired) m += ` · 퇴사 처리 ${r.retired}명`;
           if (r.back) m += ` · 퇴사자 ${r.back}명이 재직으로 돌아왔습니다`;
           if (r.issued && r.issued.length) {
-            m += `\n\n발급된 임시 비밀번호 — ` +
+            m += `\n\n발급된 비밀번호(연락처 뒷번호 4자리) — ` +
               r.issued.map((x) => `${x.name}(${x.empNo}) ${x.pw}`).join(" / ");
             downloadCsv(`신규계정_${plusDays(0)}.csv`,
               r.issued.map((x, i) => ({ 순번: i + 1, 사번: x.empNo, 이름: x.name,

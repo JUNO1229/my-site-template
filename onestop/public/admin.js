@@ -384,7 +384,7 @@ function addForm(depts) {
   const n = S.nf || (S.nf = { empNo: "", name: "", dept: "", phone: "" });
   return `<div class="card">
     <h3>직원 한 명 추가</h3>
-    <p class="cap">신규 입사자처럼 명단에 없는 직원을 한 명만 넣을 때 씁니다. 임시 비밀번호가 발급됩니다.</p>
+    <p class="cap">신규 입사자처럼 명단에 없는 직원을 한 명만 넣을 때 씁니다. 비밀번호는 연락처 뒷번호 4자리로 자동 설정됩니다.</p>
     <div class="frow">
       <div class="f"><label>사번</label>
         <input class="in" data-f="nf" data-k="empNo" value="${esc(n.empNo)}"></div>
@@ -450,7 +450,7 @@ function staffPreview(A) {
     <div class="card">
       <h3>반영 방식</h3>
       <label class="opt"><input type="checkbox" data-act="optacc"${o.makeAcc ? " checked" : ""}>
-        <span>신규 ${d.added.length}명의 <b>로그인 계정을 함께 만듭니다</b> (임시 비밀번호 발급)</span></label>
+        <span>신규 ${d.added.length}명의 <b>로그인 계정을 함께 만듭니다</b> (비밀번호는 연락처 뒷번호 4자리)</span></label>
       <label class="opt"><input type="checkbox" data-act="optret"${o.retire ? " checked" : ""}${d.missing.length ? "" : " disabled"}>
         <span>파일에 없는 재직자 <b>${d.missing.length}명을 퇴사 처리</b>합니다${d.missing.length ? "" : " (해당 없음)"}</span></label>
       ${Note("amber", "퇴사 처리해도 봉사 내역과 지난 신청은 그대로 남습니다. 로그인만 막힙니다.")}

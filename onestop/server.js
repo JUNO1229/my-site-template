@@ -390,7 +390,7 @@ on("POST", "/api/admin/employee", async (req, res) => {
     const no = String(empNo).trim();
     db.employees.push({ empNo: no, name: String(name).trim(), dept: String(dept).trim(),
       phone: String(phone).trim(), status: "active", updatedAt: new Date().toISOString() });
-    const pw = auth.tempPw();
+    const pw = auth.pwFromPhone(phone);
     db.accounts.push({ empNo: no, ...auth.hashPw(pw), mustChange: true });
     store.save();
     writeLog({ event: "employee_create", id: me.id, target: no });
@@ -414,7 +414,7 @@ on("POST", "/api/admin/employee", async (req, res) => {
     db.employees = db.employees.filter((x) => String(x.empNo) !== String(e.empNo));
     db.accounts = db.accounts.filter((x) => String(x.empNo) !== String(e.empNo));
   } else if (action === "resetPw") {
-    const pw = auth.tempPw();
+    const pw = auth.pwFromPhone(e.phone);
     const acc = db.accounts.find((a) => String(a.empNo) === String(e.empNo));
     if (acc) Object.assign(acc, auth.hashPw(pw), { mustChange: true, failCount: 0, lockedUntil: 0 });
     else db.accounts.push({ empNo: e.empNo, ...auth.hashPw(pw), mustChange: true });
@@ -486,7 +486,7 @@ on("POST", "/api/admin/apply-employees", async (req, res) => {
     const have = new Set(db.accounts.map((a) => String(a.empNo)));
     for (const e of diff.added) {
       if (have.has(String(e.empNo))) continue;
-      const pw = auth.tempPw();
+      const pw = auth.pwFromPhone(e.phone);
       db.accounts.push({ empNo: String(e.empNo), ...auth.hashPw(pw), mustChange: true });
       issued.push({ empNo: e.empNo, name: e.name, dept: e.dept, pw });
     }
