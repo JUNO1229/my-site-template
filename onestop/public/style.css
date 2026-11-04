@@ -358,3 +358,7 @@ textarea.in{min-height:96px;line-height:var(--lh-normal);resize:vertical}
 .sbar{position:relative;height:30px;margin-bottom:6px;border-radius:var(--radius-s,6px);background:var(--color-field);overflow:hidden}
 .sbar i{position:absolute;left:0;top:0;bottom:0;background:var(--green-400);border-radius:inherit}
 .sbar span{position:relative;display:block;line-height:30px;padding:0 10px;font-size:var(--fs-body-s);color:var(--text-primary);white-space:nowrap}
+
+/* 중복 확인 선택 단추 */
+.chip.rv{background:var(--color-surface);border:1.5px solid var(--green-600);color:var(--text-primary);height:auto;min-height:40px;padding:8px 14px;text-align:left;white-space:normal}
+.chip.rv.on{background:var(--deep-800);border-color:var(--deep-800);color:#fff}

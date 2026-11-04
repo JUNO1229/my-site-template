@@ -185,7 +185,7 @@ on("POST", "/api/login", async (req, res) => {
   }
 
   // 직원 — 이름 + 비밀번호(연락처 뒷 4자리)
-  const sameName = (e) => String(e.name).replace(/\s/g, "") === key.replace(/\s/g, "");
+  const sameName = (e) => R.normName(e.name) === R.normName(key); // 공백·괄호 차이는 무시
   const cands = db.employees.filter(sameName)
     .map((e) => ({ emp: e, acc: db.accounts.find((a) => String(a.empNo) === String(e.empNo)) }))
     .filter((c) => c.acc);
@@ -449,9 +449,10 @@ on("POST", "/api/admin/upload", async (req, res) => {
     if (kind === "employees") {
       const { list, dupCount } = R.parseEmployees(rows);
       if (!list.length) return err(res, 400, "읽을 수 있는 직원이 없습니다.");
+      const { diff, review } = R.reviewEmployees(db.employees, list);
       return ok(res, {
         preview: true, filename, count: list.length, dupCount,
-        diff: R.buildDiff(db.employees, list),
+        diff, review,
         check: R.deptCheck(list),
         list,
       });
@@ -476,42 +477,107 @@ on("POST", "/api/admin/upload", async (req, res) => {
   } catch (e) { return err(res, 400, e.message); }
 });
 
-/* 미리보기에서 확인한 내용을 실제로 반영 */
+/* 사번을 바꿀 때 봉사 내역·신청·후원·계정의 사번도 함께 바꿔서 기록이 끊기지 않게 한다 */
+function renameEmp(db, oldNo, newNo) {
+  const o = String(oldNo), n = String(newNo);
+  if (o === n) return true;
+  if (db.employees.some((e) => String(e.empNo) === n)) return false;
+  for (const list of [db.employees, db.accounts, db.records, db.apps, db.donations])
+    for (const x of list) if (String(x.empNo) === o) x.empNo = n;
+  return true;
+}
+
+/* 미리보기에서 확인한 내용을 실제로 반영 — 중복 확인·값 충돌 선택까지 받아서 합친다 */
 on("POST", "/api/admin/apply-employees", async (req, res) => {
   const me = needAdmin(req, res); if (!me) return;
-  const { list, retire, makeAcc } = JSON.parse((await readBody(req)).toString("utf8") || "{}");
+  const { list, retire, makeAcc, res: dec } = JSON.parse((await readBody(req)).toString("utf8") || "{}");
   if (!Array.isArray(list) || !list.length) return err(res, 400, "반영할 자료가 없습니다.");
+  const same = (dec && dec.same) || {}, pick = (dec && dec.pick) || {};
   const db = store.get();
-  const diff = R.buildDiff(db.employees, list);
+  const { rows } = R.planEmployees(db.employees, list);
 
-  const map = new Map(db.employees.map((e) => [String(e.empNo), e]));
-  for (const e of list) {
-    const old = map.get(String(e.empNo)) || {};
-    map.set(String(e.empNo), { ...old, ...e, status: "active", updatedAt: new Date().toISOString() });
+  // 1) 확인이 빠진 곳이 없는지 먼저 검사 (아무것도 바꾸기 전에)
+  for (const r of rows) {
+    if (!r.sure && r.suspects.length && same[r.key] === undefined)
+      return err(res, 400, `중복 확인이 끝나지 않았습니다. (${r.inc.name})`);
   }
-  if (retire) for (const e of diff.missing) {
-    const t = map.get(String(e.empNo));
-    if (t) { t.status = "retired"; t.updatedAt = new Date().toISOString(); }
+  await store.snapshot("before-employees"); // 되돌릴 수 있게 한 벌 남김
+
+  const byNo = new Map(db.employees.map((e) => [String(e.empNo), e]));
+  const final = new Map();           // 올린 줄의 사번 → 최종 직원
+  const matched = new Set();
+  const added = [];
+  let merged = 0, changed = 0;
+  const now = new Date().toISOString();
+  const backup = JSON.stringify(db);  // 중간에 막히면 되돌리기 위한 사본
+
+  try {
+    for (const r of rows) {
+      let target = r.sure || null;
+      if (!target && r.suspects.length && same[r.key]) {
+        const ref = String(same[r.key]);
+        const c = r.suspects.find((x) => x.ref === ref);
+        if (!c) throw new Error(`잘못된 선택입니다. (${r.inc.name})`);
+        target = ref.startsWith("e:") ? byNo.get(ref.slice(2)) : final.get(ref.slice(2));
+      }
+      if (!target) {
+        const e = { ...r.inc, status: "active", updatedAt: now };
+        byNo.set(String(e.empNo), e); db.employees.push(e); final.set(r.key, e); added.push(e);
+        continue;
+      }
+      // 같은 사람으로 합치기 — 값이 다른 칸은 담당자가 고른 대로
+      const picks = pick[r.key] || {};
+      let touched = false;
+      for (const c of R.fieldConflicts(target, r.inc)) {
+        if (picks[c.k] !== "old" && picks[c.k] !== "new")
+          throw new Error(`값이 다른 항목의 확인이 끝나지 않았습니다. (${r.inc.name} · ${c.label})`);
+        if (picks[c.k] === "new") {
+          if (c.k === "empNo") {
+            const before = String(target.empNo);
+            if (!renameEmp(db, before, r.inc.empNo)) throw new Error(`이미 쓰는 사번입니다. (${r.inc.empNo})`);
+            byNo.delete(before); byNo.set(String(target.empNo), target);
+          } else target[c.k] = r.inc[c.k];
+          touched = true;
+        }
+      }
+      for (const [k] of R.FIELDS) { // 비어 있던 칸은 새 값으로 채움
+        if (k === "empNo") continue;
+        if (!String(target[k] ?? "").trim() && String(r.inc[k] ?? "").trim()) { target[k] = r.inc[k]; touched = true; }
+      }
+      // 기존이 자동 번호이고 새 파일에 진짜 사번이 있으면 진짜 사번을 쓴다
+      if (R.isAutoNo(target) && !R.isAutoNo(r.inc) && String(target.empNo) !== String(r.inc.empNo)) {
+        const before = String(target.empNo);
+        if (renameEmp(db, before, r.inc.empNo)) { byNo.delete(before); byNo.set(String(target.empNo), target); touched = true; }
+      }
+      if (!R.isActive(target)) touched = true;
+      target.status = "active"; target.updatedAt = now;
+      matched.add(String(target.empNo)); final.set(r.key, target); merged++; if (touched) changed++;
+    }
+  } catch (e) {
+    db.employees = JSON.parse(backup).employees; // 아무것도 바뀌지 않게 되돌림
+    for (const k of ["accounts", "records", "apps", "donations"]) db[k] = JSON.parse(backup)[k];
+    return err(res, 400, e.message);
   }
-  db.employees = [...map.values()];
+
+  let retired = 0;
+  if (retire) for (const e of db.employees) {
+    if (!matched.has(String(e.empNo)) && !added.includes(e) && R.isActive(e)) { e.status = "retired"; e.updatedAt = now; retired++; }
+  }
 
   const issued = [];
   if (makeAcc) {
     const have = new Set(db.accounts.map((a) => String(a.empNo)));
-    for (const e of diff.added) {
+    for (const e of added) {
       if (have.has(String(e.empNo))) continue;
       const pw = auth.pwFromPhone(e.phone);
       db.accounts.push({ empNo: String(e.empNo), ...auth.hashPw(pw), mustChange: false });
       issued.push({ empNo: e.empNo, name: e.name, dept: e.dept, pw });
     }
   }
+  migrate(); // 봉사 내역을 새 명단과 다시 연결
   store.save();
-  writeLog({ event: "apply_employees", id: me.id,
-    added: diff.added.length, changed: diff.changed.length, retired: retire ? diff.missing.length : 0 });
-  return ok(res, {
-    added: diff.added.length, changed: diff.changed.length,
-    retired: retire ? diff.missing.length : 0, back: diff.back.length, issued,
-  });
+  writeLog({ event: "apply_employees", id: me.id, added: added.length, merged, changed, retired });
+  return ok(res, { added: added.length, merged, changed, retired, back: 0, issued });
 });
 
 on("POST", "/api/admin/donation-delete", async (req, res) => {

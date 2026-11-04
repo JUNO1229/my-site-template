@@ -12,15 +12,30 @@ const bucket = (f) => {
   return null;
 };
 
+/* 검색칸 — 한글 조합이 끝난 뒤에만 목록을 다시 그린다 */
+let composing = false;
+function redrawSearch(el) {
+  const caret = el.selectionStart;
+  render();
+  const again = document.getElementById("sq");
+  if (again) { again.focus(); again.setSelectionRange(caret, caret); }
+}
+document.addEventListener("compositionstart", (e) => {
+  if (e.target.dataset && e.target.dataset.act === "search") composing = true;
+});
+document.addEventListener("compositionend", (e) => {
+  if (e.target.dataset && e.target.dataset.act === "search") {
+    composing = false; S.q = e.target.value; redrawSearch(e.target);
+  }
+});
+
 /* 글자 입력은 다시 그리지 않는다 (입력칸에서 커서가 튀지 않도록) */
 document.addEventListener("input", (e) => {
   const el = e.target;
   if (el.dataset.act === "search") {
     S.q = el.value;
-    const caret = el.selectionStart;
-    render();
-    const again = document.getElementById("sq");
-    if (again) { again.focus(); again.setSelectionRange(caret, caret); }
+    if (composing || e.isComposing) return; // 한글을 조합하는 중에는 다시 그리지 않는다 (글자가 쪼개짐)
+    redrawSearch(el);
     return;
   }
   const f = el.dataset.f, k = el.dataset.k;
@@ -341,14 +356,29 @@ async function act(a, d = {}) {
 
       /* ── 업로드 ── */
       case "precancel": S.pre = null; S.preOpt = null; return render();
+      /* 중복 확인: 이 줄이 기존의 누구와 같은 사람인지 (빈 값 = 다른 사람) */
+      case "ressame": S.pre.res.same[d.kk] = d.v; return render();
+      /* 값이 다를 때: 기존 값 / 새 값 */
+      case "respick": {
+        const m = (S.pre.res.pick[d.kk] = S.pre.res.pick[d.kk] || {});
+        m[d.f] = d.v; return render();
+      }
+      case "resall": { // 남은 항목을 한꺼번에 (기존 값 / 새 값)
+        for (const c of reviewState(S.pre).conflicts) for (const f of c.conflicts) {
+          const m = (S.pre.res.pick[c.key] = S.pre.res.pick[c.key] || {});
+          m[f.k] = d.v;
+        }
+        return render();
+      }
       case "preapply": {
+        if (reviewState(S.pre).pending) return warn("확인이 필요한 항목이 남았습니다. 위에서 모두 골라 주세요.");
         S.busy = true; render();
         try {
           const r = await api("/api/admin/apply-employees",
-            { list: S.pre.list, retire: S.preOpt.retire, makeAcc: S.preOpt.makeAcc });
+            { list: S.pre.list, retire: S.preOpt.retire, makeAcc: S.preOpt.makeAcc, res: S.pre.res });
           S.busy = false; S.pre = null; S.preOpt = null;
           await refresh();
-          let m = `반영했습니다. 신규 ${r.added}명 · 수정 ${r.changed}명`;
+          let m = `반영했습니다. 신규 ${r.added}명 · 기존 직원과 합침 ${r.merged || 0}명 · 정보 수정 ${r.changed}명`;
           if (r.retired) m += ` · 퇴사 처리 ${r.retired}명`;
           if (r.back) m += ` · 퇴사자 ${r.back}명이 재직으로 돌아왔습니다`;
           if (r.issued && r.issued.length) {
@@ -378,7 +408,8 @@ async function onFile(kind, file, el) {
     const r = await api(path, file, { raw: true, headers: { "x-filename": encodeURIComponent(file.name) } });
     if (kind === "upemp") {
       S.pre = { filename: r.filename, count: r.count, dupCount: r.dupCount,
-        diff: r.diff, check: r.check, list: r.list };
+        diff: r.diff, check: r.check, list: r.list,
+        review: r.review || { suspects: [], conflicts: [] }, res: { same: {}, pick: {} } };
       S.preOpt = { retire: false, makeAcc: true };
       S.msg = null;
     } else {

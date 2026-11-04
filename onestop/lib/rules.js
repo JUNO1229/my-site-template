@@ -170,6 +170,93 @@ const cleanEmpNo = (v) => {
 const autoEmpNo = (name, phone) =>
   `${String(name).replace(/\s/g, "")}-${digits(phone).slice(-8)}`;
 
+
+/* ══════════ 직원 명단 합치기 (중복 확인) ══════════
+   같은 사람이 여러 번 올라와도 한 명으로 모읍니다.
+   · 확실  : 사번이 같거나, 이름과 연락처가 모두 같음 → 자동으로 같은 사람
+   · 의심  : 이름만 같거나 연락처만 같음 → 담당자가 "같은 사람 / 다른 사람"을 고름
+   · 값 충돌 : 같은 사람인데 이름·부서·연락처·사번이 서로 다름 → 담당자가 기존/새 값을 고름 */
+const normName = (v) => String(v ?? "").replace(/[^\p{L}\p{N}]/gu, "").toLowerCase();
+const isAutoNo = (e) => String(e.empNo) === autoEmpNo(e.name, e.phone);
+const FIELDS = [["name", "이름"], ["dept", "부서"], ["phone", "연락처"], ["empNo", "사번"]];
+
+function isSure(a, b) {
+  if (String(a.empNo) === String(b.empNo)) return true;
+  return normName(a.name) !== "" && normName(a.name) === normName(b.name)
+    && digits(a.phone).length >= 9 && digits(a.phone) === digits(b.phone);
+}
+function suspectWhy(a, b) {
+  if (normName(a.name) && normName(a.name) === normName(b.name)) return "이름이 같음";
+  if (digits(a.phone).length >= 9 && digits(a.phone) === digits(b.phone)) return "연락처가 같음";
+  return "";
+}
+/** 같은 사람인데 값이 서로 다른 칸 */
+function fieldConflicts(old, inc) {
+  const out = [];
+  for (const [k, label] of FIELDS) {
+    const a = String(old[k] ?? "").trim(), b = String(inc[k] ?? "").trim();
+    if (!a || !b) continue;                                          // 한쪽이 비었으면 채우기만 함
+    if (k === "empNo" && (isAutoNo(old) || isAutoNo(inc))) continue;  // 자동 번호는 진짜 사번에 양보
+    const same = k === "phone" ? digits(a) === digits(b) : k === "name" ? normName(a) === normName(b) : a === b;
+    if (!same) out.push({ k, label, old: a, new: b });
+  }
+  return out;
+}
+/** 올린 줄마다 "누구와 같은 사람인지"를 찾는다 */
+function planEmployees(current, incoming) {
+  const rows = incoming.map((inc) => ({ key: String(inc.empNo), inc, sure: null, suspects: [] }));
+  const claimed = new Set();
+  for (const r of rows) {
+    const hit = current.find((p) => !claimed.has(String(p.empNo)) && isSure(r.inc, p));
+    if (hit) { r.sure = hit; claimed.add(String(hit.empNo)); }
+  }
+  rows.forEach((r, i) => {
+    if (r.sure) return;
+    for (const p of current) {
+      if (claimed.has(String(p.empNo))) continue;
+      const why = suspectWhy(r.inc, p);
+      if (why) r.suspects.push({ ref: "e:" + p.empNo, e: p, why });
+    }
+    for (let j = 0; j < i; j++) {
+      const q = rows[j];
+      const why = suspectWhy(r.inc, q.inc);
+      if (why && !q.sure) r.suspects.push({ ref: "i:" + q.key, e: q.inc, why });
+    }
+  });
+  return { rows, claimed };
+}
+/** 미리보기용 요약 + 담당자가 확인할 항목 */
+function reviewEmployees(current, incoming) {
+  const { rows, claimed } = planEmployees(current, incoming);
+  const added = [], changed = [], same = [], back = [];
+  const review = { suspects: [], conflicts: [] };
+  const asked = new Set();
+  for (const r of rows) {
+    if (!r.sure) {
+      added.push(r.inc);
+      if (r.suspects.length) {
+        r.suspects.forEach((c) => { if (c.ref.startsWith("e:")) asked.add(c.ref.slice(2)); });
+        review.suspects.push({
+          key: r.key, inc: r.inc,
+          candidates: r.suspects.map((c) => ({ ref: c.ref, e: c.e, why: c.why, conflicts: fieldConflicts(c.e, r.inc) })),
+        });
+      }
+      continue;
+    }
+    const old = r.sure, conf = fieldConflicts(old, r.inc);
+    const fields = conf.map((c) => [c.label, c.old, c.new]);
+    for (const [k, label] of FIELDS) {
+      if (k !== "empNo" && !String(old[k] ?? "").trim() && String(r.inc[k] ?? "").trim()) fields.push([label, "", r.inc[k]]);
+    }
+    if (!isActive(old)) back.push({ ...r.inc, old });
+    if (conf.length) review.conflicts.push({ key: r.key, inc: r.inc, target: old, conflicts: conf });
+    if (fields.length) changed.push({ ...r.inc, old, fields });
+    else if (isActive(old)) same.push(r.inc);
+  }
+  const missing = current.filter((e) => !claimed.has(String(e.empNo)) && !asked.has(String(e.empNo)) && isActive(e));
+  return { diff: { added, changed, same, missing, back }, review };
+}
+
 /* ── 업로드 표 → 항목 ── */
 const ALIAS = {
   empNo: ["사번", "사원번호", "직원번호"],
@@ -266,5 +353,5 @@ module.exports = {
   digits, autoEmpNo, cleanEmpNo, round2, isActive, scoreOf, monthKey, monthLabel,
   deadlineEnd, deadlinePassed, isDone, isOpen,
   seatCount, reserveCount, deptCount, decideApply, summarize, scoreMap,
-  wardNo, deptCheck, buildDiff, parseEmployees, parseRecords,
+  wardNo, deptCheck, buildDiff, planEmployees, reviewEmployees, fieldConflicts, isAutoNo, normName, FIELDS, parseEmployees, parseRecords,
 };

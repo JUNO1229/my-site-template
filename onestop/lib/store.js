@@ -117,6 +117,20 @@ function backup() {
   }
 }
 
+/** 큰 변경(명단 합치기 등) 직전의 상태를 따로 한 벌 남겨 두어 잘못되면 되살릴 수 있게 한다 */
+async function snapshot(tag) {
+  const stamp = new Date().toISOString().replace(/[:.]/g, "-");
+  const name = `${tag}-${stamp}.json`;
+  if (REMOTE) {
+    const { put } = require("@vercel/blob");
+    await put(`onestop/backup/${name}`, JSON.stringify(db), { access: "private", allowOverwrite: true, addRandomSuffix: false, contentType: "application/json" });
+  } else {
+    ensureDirs();
+    fs.writeFileSync(path.join(BACKUP, name), JSON.stringify(db, null, 1), "utf8");
+  }
+  return name;
+}
+
 const get = () => db || load();
 
-module.exports = { get, load, save, backup, pull, flush, REMOTE, DATA, FILE, BACKUP };
+module.exports = { get, load, save, backup, snapshot, pull, flush, REMOTE, DATA, FILE, BACKUP };

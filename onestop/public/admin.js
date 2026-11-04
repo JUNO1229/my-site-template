@@ -404,9 +404,69 @@ function addForm(depts) {
     </div></div>`;
 }
 
+/* ── 중복 확인 상태: 담당자가 아직 고르지 않은 것이 몇 건인지 ── */
+function reviewState(P) {
+  const rv = P.review || { suspects: [], conflicts: [] };
+  const conflicts = rv.conflicts.map((c) => ({ key: c.key, inc: c.inc, target: c.target, conflicts: c.conflicts }));
+  let pending = 0;
+  for (const s of rv.suspects) {
+    const d = P.res.same[s.key];
+    if (d === undefined) { pending++; continue; }
+    const c = s.candidates.find((x) => x.ref === d);
+    if (c && c.conflicts.length) conflicts.push({ key: s.key, inc: s.inc, target: c.e, conflicts: c.conflicts });
+  }
+  for (const c of conflicts) for (const f of c.conflicts)
+    if (!(P.res.pick[c.key] || {})[f.k]) pending++;
+  return { suspects: rv.suspects, conflicts, pending };
+}
+
+/* 중복 확인 · 값 충돌 선택 화면 */
+function reviewPanel(P) {
+  const R_ = reviewState(P);
+  if (!R_.suspects.length && !R_.conflicts.length) return "";
+  const person = (e) => `<b>${esc(e.name)}</b> · ${esc(e.dept || "(부서 없음)")} · ${esc(e.phone || "(연락처 없음)")}`
+    + (e.empNo && !/\D-\d+$/.test(String(e.empNo)) ? ` · 사번 ${esc(e.empNo)}` : "");
+  const chip = (on, act, attrs, label) =>
+    `<button class="chip rv ${on ? "on" : ""}" data-act="${act}" ${attrs}>${on ? "✓ " : ""}${label}</button>`;
+  return `
+    <div class="card" style="border-left:4px solid var(--color-warning)">
+      <h3>중복 확인 — 담당자가 직접 골라 주세요</h3>
+      <p class="cap">같은 사람이 여러 번 올라온 것인지 확인합니다. 고르기 전에는 [명단에 반영]을 누를 수 없습니다.
+        남은 확인 <b>${R_.pending}건</b></p>
+      ${R_.suspects.length ? `<h4 style="margin:4px 0 8px">같은 사람인가요? ${R_.suspects.length}건</h4>` : ""}
+      ${R_.suspects.map((s) => {
+        const d = P.res.same[s.key];
+        return `<div class="card" style="background:var(--color-field);box-shadow:none;margin-bottom:10px">
+          <div style="margin-bottom:8px">이번 파일: ${person(s.inc)}</div>
+          <div style="display:flex;flex-wrap:wrap;gap:8px">
+            ${s.candidates.map((c) => chip(d === c.ref, "ressame",
+              `data-kk="${esc(s.key)}" data-v="${esc(c.ref)}"`,
+              `같은 사람 → ${esc(c.e.name)} · ${esc(c.e.dept || "부서없음")} · ${esc(c.e.phone || "연락처없음")} <small>(${esc(c.why)})</small>`)).join("")}
+            ${chip(d === "", "ressame", `data-kk="${esc(s.key)}" data-v=""`, "다른 사람 (새로 등록)")}
+          </div></div>`;
+      }).join("")}
+      ${R_.conflicts.length ? `
+        <h4 style="margin:12px 0 8px">같은 사람인데 값이 다릅니다 ${R_.conflicts.length}명</h4>
+        <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap">
+          <button class="btn g xs" data-act="resall" data-v="old">남은 항목 모두 기존 값으로</button>
+          <button class="btn g xs" data-act="resall" data-v="new">남은 항목 모두 새 값으로</button></div>
+        ${R_.conflicts.map((c) => `<div class="card" style="background:var(--color-field);box-shadow:none;margin-bottom:10px">
+          <div style="margin-bottom:8px"><b>${esc(c.target.name)}</b></div>
+          ${c.conflicts.map((f) => {
+            const sel = (P.res.pick[c.key] || {})[f.k];
+            return `<div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:6px">
+              <span style="min-width:48px;color:var(--text-secondary)">${esc(f.label)}</span>
+              ${chip(sel === "old", "respick", `data-kk="${esc(c.key)}" data-f="${f.k}" data-v="old"`, `기존 ${esc(f.old)}`)}
+              ${chip(sel === "new", "respick", `data-kk="${esc(c.key)}" data-f="${f.k}" data-v="new"`, `새 값 ${esc(f.new)}`)}
+            </div>`; }).join("")}</div>`).join("")}` : ""}
+    </div>`;
+}
+
 /* ── 업로드 미리보기 ── */
 function staffPreview(A) {
   const P = S.pre, d = P.diff, o = S.preOpt;
+  const nSame = Object.values(P.res.same).filter(Boolean).length; // 기존 직원과 같다고 고른 수
+  const nNew = d.added.length - nSame;
   const tbl = (head, rows) => {
     const show = rows.slice(0, 50);
     return `<div class="scrollx"><table class="tbl">
@@ -421,12 +481,13 @@ function staffPreview(A) {
     ${Note("", `<b>${esc(P.filename)}</b>에서 ${P.count}명을 읽었습니다. 아래 내용을 확인하고 맨 아래 [명단에 반영]을 누르면 적용됩니다. <b>누르기 전에는 아무것도 바뀌지 않습니다.</b>`)}
     ${P.dupCount ? Note("amber", `파일 안에 같은 사번이 ${P.dupCount}개 중복돼 있습니다. 마지막 줄을 기준으로 읽었습니다.`) : ""}
     <div class="kpis" style="margin-bottom:16px">
-      <div class="kpi"><div class="k">신규</div><div class="v">${d.added.length}<small>명</small></div></div>
+      <div class="kpi"><div class="k">신규</div><div class="v">${nNew}<small>명</small></div></div>
       <div class="kpi"><div class="k">정보 변경</div><div class="v">${d.changed.length}<small>명</small></div></div>
       <div class="kpi"><div class="k">그대로</div><div class="v">${d.same.length}<small>명</small></div></div>
       <div class="kpi"><div class="k">파일에 없음</div>
         <div class="v"${d.missing.length ? ' style="color:var(--on-tint-warning)"' : ""}>${d.missing.length}<small>명</small></div></div>
     </div>
+    ${reviewPanel(P)}
     ${(P.check.mixed.length || P.check.noName.length) ? `
       <div class="card" style="border-left:4px solid var(--color-warning)">
         <h3>부서 표기 점검</h3>
@@ -452,12 +513,12 @@ function staffPreview(A) {
     <div class="card">
       <h3>반영 방식</h3>
       <label class="opt"><input type="checkbox" data-act="optacc"${o.makeAcc ? " checked" : ""}>
-        <span>신규 ${d.added.length}명의 <b>로그인 계정을 함께 만듭니다</b> (비밀번호는 연락처 뒷번호 4자리)</span></label>
+        <span>신규 ${nNew}명의 <b>로그인 계정을 함께 만듭니다</b> (비밀번호는 연락처 뒷번호 4자리)</span></label>
       <label class="opt"><input type="checkbox" data-act="optret"${o.retire ? " checked" : ""}${d.missing.length ? "" : " disabled"}>
         <span>파일에 없는 재직자 <b>${d.missing.length}명을 퇴사 처리</b>합니다${d.missing.length ? "" : " (해당 없음)"}</span></label>
       ${Note("amber", "퇴사 처리해도 봉사 내역과 지난 신청은 그대로 남습니다. 로그인만 막힙니다.")}
-      <button class="cta" data-act="preapply"${S.busy ? " disabled" : ""}>
-        ${S.busy ? "반영하는 중…" : `명단에 반영 — 신규 ${d.added.length} · 수정 ${d.changed.length}${o.retire && d.missing.length ? ` · 퇴사 ${d.missing.length}` : ""}`}</button>
+      <button class="cta" data-act="preapply"${S.busy || reviewState(P).pending ? " disabled" : ""}>
+        ${S.busy ? "반영하는 중…" : reviewState(P).pending ? `확인할 항목 ${reviewState(P).pending}건이 남았습니다` : `명단에 반영 — 신규 ${nNew} · 수정 ${d.changed.length}${o.retire && d.missing.length ? ` · 퇴사 ${d.missing.length}` : ""}`}</button>
     </div>`;
 }
 
