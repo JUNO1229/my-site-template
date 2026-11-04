@@ -367,3 +367,6 @@ input[type=file]::file-selector-button{min-height:40px;padding:0 var(--space-4);
   border:none;border-radius:var(--radius-m);background:var(--color-surface);color:var(--text-primary);
   font-family:inherit;font-size:var(--fs-body-s);font-weight:600;box-shadow:var(--shadow-card);cursor:pointer}
 input[type=file]:focus-visible{outline:2px solid var(--color-primary);outline-offset:2px}
+
+/* 요약 카드 묶음 바로 아래에 오는 안내 상자는 간격을 둔다 */
+.kpis + .note{margin-top:var(--space-4)}
