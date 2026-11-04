@@ -353,3 +353,8 @@ textarea.in{min-height:96px;line-height:var(--lh-normal);resize:vertical}
   .mtabs{display:none}
   .admin .hdr{display:none}
 }
+
+/* 통계 막대 */
+.sbar{position:relative;height:30px;margin-bottom:6px;border-radius:var(--radius-s,6px);background:var(--color-field);overflow:hidden}
+.sbar i{position:absolute;left:0;top:0;bottom:0;background:var(--green-400);border-radius:inherit}
+.sbar span{position:relative;display:block;line-height:30px;padding:0 10px;font-size:var(--fs-body-s);color:var(--text-primary);white-space:nowrap}

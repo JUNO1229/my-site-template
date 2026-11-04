@@ -17,6 +17,7 @@ function screenAdmin() {
     { id: "apps", label: "신청 현황 · 승인", icon: I.clipboard, n: pending },
     { id: "donate", label: "바자회 후원", icon: I.gift, n: A ? A.donations.length : 0 },
     { id: "staff", label: "직원 관리", icon: I.people },
+    { id: "stats", label: "통계", icon: I.chart },
     { id: "data", label: "자료 관리", icon: I.box },
   ];
   const body = !A ? `<div class="sk"></div><div class="sk"></div>`
@@ -24,6 +25,7 @@ function screenAdmin() {
     : S.adminTab === "apps" ? adminApps(A)
     : S.adminTab === "donate" ? adminDonate(A)
     : S.adminTab === "staff" ? adminStaff(A)
+    : S.adminTab === "stats" ? adminStats(A)
     : adminData(A);
 
   return `<div class="admin">
@@ -486,4 +488,138 @@ function adminData(A) {
         <b>data/backup</b>에 하루 한 번 자동으로 복사본이 생기고 30일치를 보관합니다.
         접속 기록은 <b>data/log</b>에 날짜별로 쌓입니다.`)}
     </div>`;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   통계 — 달력연도(1~12월) 기준, 담당자 전용
+   화면에서 계산합니다. 서버에 새로 요청하지 않습니다.
+   ══════════════════════════════════════════════════════════════ */
+function calcStats(A, year) {
+  const Y = String(year);
+  const recs = A.records.filter((r) => String(r.date).startsWith(Y));
+  const emps = A.employees.filter(isActive);
+  const byNo = new Map(emps.map((e) => [String(e.empNo), e]));
+  const per = new Map(emps.map((e) => [String(e.empNo), { e, cases: 0, score: 0 }]));
+  const months = Array.from({ length: 12 }, () => ({ cases: 0, score: 0 }));
+  let out = 0, inn = 0, points = 0, unmatched = 0;
+
+  for (const r of recs) {
+    const sc = scoreOf(r);
+    const m = Number(String(r.date).slice(5, 7)) - 1;
+    if (m >= 0 && m < 12) { months[m].cases++; months[m].score += sc; }
+    if (String(r.type).includes("내부")) inn++; else out++;
+    points += Number(r.points) || 0;
+    const p = per.get(String(r.empNo));
+    if (p) { p.cases++; p.score += sc; } else unmatched++;
+  }
+  const rows = [...per.values()].map((p) => ({ ...p, score: round2(p.score) }));
+  const done = rows.filter((p) => p.score >= ANNUAL_DUTY);
+  const joined = rows.filter((p) => p.cases > 0);
+
+  // 부서(병동)별
+  const depts = new Map();
+  for (const p of rows) {
+    const k = String(p.e.dept || "").trim() || "(부서 없음)";
+    const d = depts.get(k) || { dept: k, n: 0, joined: 0, done: 0, score: 0 };
+    d.n++; if (p.cases) d.joined++; if (p.score >= ANNUAL_DUTY) d.done++; d.score += p.score;
+    depts.set(k, d);
+  }
+  // 참여 횟수 분포
+  const dist = [0, 0, 0, 0];
+  for (const p of rows) dist[Math.min(p.cases, 3)]++;
+
+  // 공고별 신청 현황 (봉사일이 그 해인 공고)
+  const posts = A.postings.filter((p) => String(p.when).startsWith(Y))
+    .sort((a, b) => String(a.when).localeCompare(String(b.when)))
+    .map((p) => {
+      const as = A.apps.filter((a) => a.postId === p.id);
+      const c = (s) => as.filter((a) => a.status === s).length;
+      return { p, total: as.length, approved: c("approved"), pending: c("pending"),
+        reserve: c("reserve"), excluded: c("excluded"), rejected: c("rejected") };
+    });
+
+  return {
+    year: Y, recs, months, out, inn, points, unmatched,
+    staff: rows.length, joined: joined.length, done: done.length,
+    totalScore: round2(rows.reduce((a, p) => a + p.score, 0)),
+    shortList: rows.filter((p) => p.score < ANNUAL_DUTY).sort((a, b) => a.score - b.score
+      || String(a.e.dept).localeCompare(String(b.e.dept), "ko") || a.e.name.localeCompare(b.e.name, "ko")),
+    depts: [...depts.values()].sort((a, b) => a.dept.localeCompare(b.dept, "ko", { numeric: true })),
+    dist, posts,
+  };
+}
+
+const pctOf = (a, b) => (b ? Math.round((a / b) * 100) : 0);
+const bar = (v, max, label) => `<div class="sbar"><i style="width:${max ? Math.round((v / max) * 100) : 0}%"></i><span>${label}</span></div>`;
+
+function adminStats(A) {
+  const nowY = new Date().getFullYear();
+  const years = [...new Set([nowY, ...A.records.map((r) => Number(String(r.date).slice(0, 4))).filter((y) => y > 2000)])]
+    .sort((a, b) => b - a);
+  const year = S.statYear && years.includes(Number(S.statYear)) ? Number(S.statYear) : nowY;
+  const T = calcStats(A, year);
+  const maxC = Math.max(1, ...T.months.map((m) => m.cases));
+  const kpi = (k, v, u) => `<div class="kpi"><div class="k">${k}</div><div class="v">${v}<small>${u || ""}</small></div></div>`;
+
+  return `
+    <div class="card">
+      <h3>${year}년 봉사 통계</h3>
+      <p class="cap">1월 1일 ~ 12월 31일 기준입니다. 직원별 항목은 재직 중인 직원만 셉니다.</p>
+      <div class="chips" style="margin-bottom:12px">${years.map((y) =>
+        `<button class="chip ${y === year ? "on" : ""}" data-act="statyear" data-v="${y}">${y}년</button>`).join("")}</div>
+      <div class="kpis">
+        ${kpi("봉사 건수", won(T.recs.length), "건")}
+        ${kpi("인정 점수 합", T.totalScore, "점")}
+        ${kpi("참여 인원", `${T.joined}`, `/ ${T.staff}명 (${pctOf(T.joined, T.staff)}%)`)}
+        ${kpi("의무 달성", `${T.done}`, `명 (${pctOf(T.done, T.staff)}%)`)}
+        ${kpi("지급 포인트", won(T.points), "P")}
+      </div>
+      ${T.unmatched ? Note("amber", `이 해 봉사 내역 ${T.unmatched}건은 직원 명단에서 찾지 못해 직원별·부서별 항목에서 빠졌습니다. 직원 명단을 올리면 자동으로 맞춰집니다.`) : ""}
+    </div>
+
+    <div class="sec"><h2>월별 봉사 건수</h2></div>
+    <div class="card">
+      ${T.months.map((m, i) => bar(m.cases, maxC, `<b>${i + 1}월</b> ${m.cases}건 · ${round2(m.score)}점`)).join("")}
+    </div>
+
+    <div class="sec"><h2>의무 달성 현황</h2></div>
+    <div class="card">
+      ${bar(T.done, T.staff, `<b>달성 (${ANNUAL_DUTY}점 이상)</b> ${T.done}명 · ${pctOf(T.done, T.staff)}%`)}
+      ${bar(T.joined - T.done, T.staff, `<b>참여했으나 미달</b> ${T.joined - T.done}명`)}
+      ${bar(T.staff - T.joined, T.staff, `<b>참여 없음</b> ${T.staff - T.joined}명`)}
+      <p class="cap" style="margin:12px 0 0">참여 횟수 — 0회 ${T.dist[0]}명 · 1회 ${T.dist[1]}명 · 2회 ${T.dist[2]}명 · 3회 이상 ${T.dist[3]}명</p>
+    </div>
+
+    <div class="sec"><h2>외부 · 내부 봉사</h2></div>
+    <div class="card">
+      ${bar(T.out, Math.max(T.out, T.inn, 1), `<b>외부</b> ${T.out}건 (${pctOf(T.out, T.recs.length)}%)`)}
+      ${bar(T.inn, Math.max(T.out, T.inn, 1), `<b>내부</b> ${T.inn}건 (${pctOf(T.inn, T.recs.length)}%)`)}
+    </div>
+
+    <div class="sec"><h2>부서(병동)별 참여</h2>
+      <button class="btn g xs" data-act="statcsv" data-v="dept">엑셀(CSV) 내려받기</button></div>
+    <div class="scrollx"><table class="tbl">
+      <thead><tr><th>부서(병동)</th><th>직원</th><th>참여</th><th>참여율</th><th>의무 달성</th><th>평균 점수</th></tr></thead>
+      <tbody>${T.depts.map((d) => `<tr><td>${esc(d.dept)}</td><td>${d.n}명</td><td>${d.joined}명</td>
+        <td>${pctOf(d.joined, d.n)}%</td><td>${d.done}명 (${pctOf(d.done, d.n)}%)</td>
+        <td>${round2(d.score / d.n)}점</td></tr>`).join("") || `<tr><td colspan="6">직원 명단이 없습니다.</td></tr>`}</tbody>
+    </table></div>
+
+    <div class="sec"><h2>공고별 신청 현황 ${T.posts.length}건</h2></div>
+    ${T.posts.length === 0 ? Empty(I.clipboard, `${year}년에 봉사일이 있는 공고가 없습니다.`) : `
+    <div class="scrollx"><table class="tbl">
+      <thead><tr><th>봉사일</th><th>기관 · 봉사명</th><th>정원</th><th>신청</th><th>승인</th><th>대기</th><th>예비</th><th>누락</th><th>반려</th></tr></thead>
+      <tbody>${T.posts.map((x) => `<tr><td style="white-space:nowrap">${esc(fmtWhen(x.p.when))}</td>
+        <td>${esc(x.p.org)} · ${esc(x.p.name)}</td><td>${x.p.capacity}</td><td>${x.total}</td>
+        <td>${x.approved}</td><td>${x.pending}</td><td>${x.reserve}</td><td>${x.excluded}</td><td>${x.rejected}</td></tr>`).join("")}</tbody>
+    </table></div>`}
+
+    <div class="sec"><h2>의무 미충족자 ${T.shortList.length}명</h2>
+      <button class="btn g xs" data-act="statcsv" data-v="short">엑셀(CSV) 내려받기</button></div>
+    ${T.shortList.length === 0 ? Empty(I.chart, "의무 미충족자가 없습니다.") : `
+    <div class="scrollx"><table class="tbl">
+      <thead><tr><th>이름</th><th>부서(병동)</th><th>연락처</th><th>올해 건수</th><th>올해 점수</th></tr></thead>
+      <tbody>${T.shortList.map((p) => `<tr><td>${esc(p.e.name)}</td><td>${esc(p.e.dept)}</td><td>${esc(p.e.phone)}</td>
+        <td>${p.cases}건</td><td>${p.score}점</td></tr>`).join("")}</tbody>
+    </table></div>`}`;
 }

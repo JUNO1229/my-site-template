@@ -206,6 +206,18 @@ async function act(a, d = {}) {
         await refresh(); setMsg("", `${ids.length}건을 승인했습니다.`); return render();
       }
 
+      /* ── 통계 ── */
+      case "statyear": S.statYear = Number(d.v); return render();
+      case "statcsv": {
+        const T = calcStats(A, S.statYear || new Date().getFullYear());
+        if (d.v === "dept") return downloadCsv(`부서별참여_${T.year}.csv`, T.depts.map((x) => ({
+          "부서(병동)": x.dept, 직원수: x.n, 참여인원: x.joined, 참여율: pctOf(x.joined, x.n) + "%",
+          의무달성: x.done, 평균점수: round2(x.score / x.n) })));
+        return downloadCsv(`의무미충족자_${T.year}.csv`, T.shortList.map((p, i) => ({
+          순번: i + 1, 이름: p.e.name, "부서(병동)": p.e.dept, 연락처: p.e.phone,
+          [`${T.year}년 건수`]: p.cases, [`${T.year}년 점수`]: p.score })));
+      }
+
       /* ── 내려받기 ── */
       case "pfinal": {
         const p = A.postings.find((x) => x.id === d.v);
