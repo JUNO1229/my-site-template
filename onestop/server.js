@@ -467,6 +467,7 @@ on("POST", "/api/admin/upload", async (req, res) => {
       for (const r of list) if (!r.empNo) r.empNo = byName.get(String(r.name).replace(/\s/g, ""))?.empNo || "";
       const known = new Set(db.employees.map((e) => String(e.empNo)));
       db.records = list;
+      migrate();
       store.save();
       writeLog({ event: "upload_records", id: me.id, count: list.length });
       return ok(res, { count: list.length, orphan: list.filter((r) => !known.has(r.empNo)).length });
@@ -571,6 +572,7 @@ function localIPs() {
 if (require.main === module) {
   store.load();
   bootstrapAdmin();
+  migrate();
   store.backup();
   setInterval(() => store.backup(), 6 * 3600 * 1000);
 
@@ -588,6 +590,33 @@ if (require.main === module) {
   });
 }
 
+/** 이미 올라간 봉사 내역의 사번 칸을 깨끗이 고칩니다 (바뀐 것이 있을 때만 저장) */
+function migrate() {
+  const db = store.get();
+  let n = 0, linked = 0;
+  for (const r of db.records) {
+    const c = R.cleanEmpNo(r.empNo);
+    if (c !== r.empNo) { r.empNo = c; n++; }
+  }
+  // 사번이 직원 명단에 없는 내역은, 이름이 같은 직원이 딱 한 명이면 그 직원에게 연결
+  const norm = (v) => String(v ?? "").replace(/[^\p{L}\p{N}]/gu, "");
+  const known = new Set(db.employees.map((e) => String(e.empNo)));
+  const byName = new Map();
+  for (const e of db.employees) {
+    const k = norm(e.name);
+    byName.set(k, byName.has(k) ? null : e);
+  }
+  for (const r of db.records) {
+    if (known.has(String(r.empNo))) continue;
+    const e = byName.get(norm(r.name));
+    if (e) { r.empNo = String(e.empNo); linked++; }
+  }
+  if (n || linked) {
+    store.save();
+    console.log(`[정리] 봉사 내역 사번 ${n}건 정리, 이름으로 연결 ${linked}건`);
+  }
+}
+
 let ready = false;
 /** Vercel 함수 진입점 (api/index.js 가 부름) */
 async function handler(req, res) {
@@ -595,6 +624,7 @@ async function handler(req, res) {
     if (store.REMOTE) await store.pull(); // 요청마다 최신 자료를 불러옴
     else if (!ready) { store.load(); ready = true; }
     bootstrapAdmin();
+    migrate();
     if (store.REMOTE) { // 응답을 내보내기 직전에 바뀐 자료를 저장
       const end = res.end.bind(res);
       res.end = (...a) => { store.flush().catch((e) => console.error("[저장 실패]", e)).finally(() => end(...a)); return res; };

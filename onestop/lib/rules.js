@@ -159,6 +159,13 @@ function buildDiff(current, incoming) {
   return { added, changed, same, missing, back };
 }
 
+/** 봉사 내역 엑셀의 사번 칸은 "218790 김미영--QPS실장-[]" 처럼 이름·직책이 붙어 올 수 있어, 맨 앞 숫자만 사번으로 씁니다 */
+const cleanEmpNo = (v) => {
+  const s = String(v ?? "").trim();
+  const m = s.match(/^(\d{3,})(?=\D|$)/);
+  return m ? m[1] : s;
+};
+
 /** 사번을 모를 때 쓰는 내부 번호 — 같은 사람이면 항상 같은 값이라 명단을 다시 올려도 겹치지 않는다 */
 const autoEmpNo = (name, phone) =>
   `${String(name).replace(/\s/g, "")}-${digits(phone).slice(-8)}`;
@@ -236,7 +243,7 @@ function parseRecords(rows) {
   if (m.empNo === undefined && m.name === undefined) throw new Error("'이름' 열(또는 '사번' 열)이 필요합니다.");
   const out = [];
   for (const r of body) {
-    const empNo = String(r[m.empNo] ?? "").trim();
+    const empNo = cleanEmpNo(r[m.empNo]);
     if (!empNo && !String(r[m.name] ?? "").trim()) continue;
     const cnt = r[m.count];
     out.push({
@@ -256,7 +263,7 @@ function parseRecords(rows) {
 
 module.exports = {
   ANNUAL_DUTY, RESERVE_LIMIT, POINT_PER_CASE, MSG_DEPT_FULL, MSG_CLOSED, LIVE,
-  digits, autoEmpNo, round2, isActive, scoreOf, monthKey, monthLabel,
+  digits, autoEmpNo, cleanEmpNo, round2, isActive, scoreOf, monthKey, monthLabel,
   deadlineEnd, deadlinePassed, isDone, isOpen,
   seatCount, reserveCount, deptCount, decideApply, summarize, scoreMap,
   wardNo, deptCheck, buildDiff, parseEmployees, parseRecords,

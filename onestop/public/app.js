@@ -471,7 +471,7 @@ function staffMy(v) {
       <div class="desc">${met ? "올해 의무 봉사시간(4시간 = 1점)을 충족했습니다."
         : `${round2(ANNUAL_DUTY - s.yearScore)}점 남았습니다.`}</div>
       <div class="grid">
-        <div><div class="k">누적 봉사시간</div><div class="v">${round2(s.totalHours)}시간</div></div>
+        ${s.totalHours ? `<div><div class="k">누적 봉사시간</div><div class="v">${round2(s.totalHours)}시간</div></div>` : `<div><div class="k">누적 점수</div><div class="v">${s.totalScore}점</div></div>`}
         <div><div class="k">누적 건수</div><div class="v">${s.cases}건</div></div>
         <div><div class="k">누적 포인트</div><div class="v">${won(s.totalPoints)}P</div></div>
       </div>
@@ -511,7 +511,7 @@ function staffMy(v) {
           <td style="white-space:nowrap">${esc(r.date)}</td>
           <td>${esc(r.content)}</td>
           <td><span class="badge ${String(r.type).includes("내부") ? "info" : "green"}">${esc(r.type || "외부")}</span></td>
-          <td style="white-space:nowrap">${esc(r.hours)}시간</td>
+          <td style="white-space:nowrap">${r.hours ? esc(r.hours) + "시간" : "-"}</td>
           <td>${esc(r.count)}</td>
           <td style="white-space:nowrap">${won(r.points)}P</td>
           <td>${esc(r.pointStatus || "-")}</td></tr>`).join("")}</tbody>
