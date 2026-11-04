@@ -383,11 +383,18 @@ function staffHome(v, live) {
       : `<div class="tlist">${v.postings.slice(0, 2).map((p, i) => postingRow(v, p, i)).join("")}</div>`}`;
 }
 
+/* 부서(병동)별 제한 표시 — 서버가 건별(deptLimit)·월별(deptMonthLimit) 값을 0=쓰지 않음으로 보내 줍니다 */
+const deptPer = (p) => Number(p.deptLimit) || 0;
+const deptMon = (p) => Number(p.deptMonthLimit) || 0;
+const deptFullOf = (p) => (deptPer(p) > 0 && p.myDept >= deptPer(p)) || (deptMon(p) > 0 && p.myDeptMonth >= deptMon(p));
+const deptLine = (p) => [deptPer(p) > 0 ? `우리 부서 <b>${p.myDept}/${deptPer(p)}</b>` : "",
+  deptMon(p) > 0 ? `이달 우리 부서 <b>${p.myDeptMonth}/${deptMon(p)}</b>` : ""].filter(Boolean);
+
 function postingRow(v, p, i) {
   const cap = Number(p.capacity) || 0;
   const full = p.seat >= cap;
   const closed = full && p.reserve >= RESERVE_LIMIT;
-  const deptFull = p.myDept >= Number(p.deptLimit || 3);
+  const deptFull = deptFullOf(p);
   const t = v.takenMonths[monthKey(p.when)];
   const used = !!t && t.postId !== p.id;
   const mine = !!t && t.postId === p.id;
@@ -409,7 +416,7 @@ function postingRow(v, p, i) {
       <div class="glbl">
         <span class="${full ? "g" : "r"}">정원 <b>${p.seat}/${cap}</b>${full ? " 마감" : ""}</span>
         <span class="${closed ? "x" : "r"}">예비 <b>${p.reserve}/${RESERVE_LIMIT}</b>${closed ? " 마감" : ""}</span>
-        <span class="r">우리 부서 <b>${p.myDept}/${esc(p.deptLimit)}</b></span>
+        ${deptLine(p).map((x) => `<span class="r">${x}</span>`).join("")}
       </div>
       <div class="foot">
         ${p.deadline ? `<span class="badge" style="background:${dl <= 1 ? "var(--tint-danger)" : "var(--color-field)"};color:${dl <= 1 ? "var(--on-tint-danger)" : "var(--text-secondary)"}">마감 ${fmtDay(p.deadline)}${dl === 0 ? " · 오늘까지" : dl === 1 ? " · 내일까지" : ` · ${dl}일 남음`}</span>` : ""}
@@ -465,7 +472,7 @@ function screenDetail() {
   const cap = Number(p.capacity) || 0;
   const full = p.seat >= cap;
   const closed = full && p.reserve >= RESERVE_LIMIT;
-  const deptFull = p.myDept >= Number(p.deptLimit || 3);
+  const deptFull = deptFullOf(p);
   const t = v.takenMonths[monthKey(p.when)];
   const used = !!t && t.postId !== p.id;
   const mine = !!t && t.postId === p.id;
@@ -483,7 +490,8 @@ function screenDetail() {
         <div class="grid">
           <div><div class="k">정원</div><div class="v">${p.seat}/${cap}명</div></div>
           <div><div class="k">예비</div><div class="v">${p.reserve}/${RESERVE_LIMIT}명</div></div>
-          <div><div class="k">우리 부서</div><div class="v">${p.myDept}/${esc(p.deptLimit)}명</div></div>
+          ${deptPer(p) > 0 || deptMon(p) > 0 ? `<div>${deptPer(p) > 0 ? `<div class="k">우리 부서</div><div class="v">${p.myDept}/${deptPer(p)}명</div>` : ""}
+            ${deptMon(p) > 0 ? `<div class="k"${deptPer(p) > 0 ? ' style="margin-top:6px"' : ""}>이달 우리 부서</div><div class="v">${p.myDeptMonth}/${deptMon(p)}명</div>` : ""}</div>` : `<div><div class="k">부서 제한</div><div class="v">없음</div></div>`}
         </div>
       </div>
       ${dl !== null && dl <= 1 && !blocked ? Note("warn", `신청 마감이 ${dl === 0 ? "오늘" : "내일"}까지입니다.`) : ""}

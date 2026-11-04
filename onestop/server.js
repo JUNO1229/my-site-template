@@ -122,10 +122,12 @@ function postingsFor(db, me) {
     .sort((a, b) => String(a.when).localeCompare(String(b.when)))
     .map((p) => ({
       id: p.id, org: p.org, name: p.name, when: p.when, deadline: p.deadline,
-      type: p.type, hours: p.hours, capacity: p.capacity, deptLimit: p.deptLimit,
+      type: p.type, hours: p.hours, capacity: p.capacity,
+      deptLimit: R.perLimit(p), deptMonthLimit: R.monthLimit(p),
       seat: R.seatCount(db.apps, p.id),
       reserve: R.reserveCount(db.apps, p.id),
       myDept: R.deptCount(db.apps, p.id, me.dept),
+      myDeptMonth: R.deptMonthCount(db, p, me.dept),
     }));
 }
 function myView(db, me) {
@@ -330,7 +332,8 @@ on("POST", "/api/admin/posting", async (req, res) => {
         id: crypto.randomUUID(), org: String(r.org).trim(), name: String(r.name).trim(),
         when: r.when, deadline: r.deadline, type: r.type === "내부" ? "내부" : "외부",
         hours: Number(r.hours) || 0, capacity: Number(r.capacity) || 0,
-        deptLimit: Number(r.deptLimit) || 3, closed: false, createdAt: new Date().toISOString(),
+        deptLimit: R.limitIn(r.deptLimit, 3), deptMonthLimit: R.limitIn(r.deptMonthLimit, 0),
+        closed: false, createdAt: new Date().toISOString(),
       });
     }
     store.save();
@@ -350,7 +353,8 @@ on("POST", "/api/admin/posting", async (req, res) => {
     Object.assign(p, {
       org: String(r.org).trim(), name: String(r.name).trim(), when: r.when, deadline: r.deadline,
       type: r.type === "내부" ? "내부" : "외부", hours: Number(r.hours) || 0,
-      capacity: Number(r.capacity) || 0, deptLimit: Number(r.deptLimit) || 3,
+      capacity: Number(r.capacity) || 0,
+      deptLimit: R.limitIn(r.deptLimit, 3), deptMonthLimit: R.limitIn(r.deptMonthLimit, 0),
     });
   } else if (action === "toggle") {
     p.closed = !p.closed;

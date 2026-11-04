@@ -49,6 +49,12 @@ document.addEventListener("change", (e) => {
     if (b) { b[el.dataset.k] = el.value; if (el.dataset.k === "dept") render(); }
   }
   if (el.type === "file" && el.dataset.act) onFile(el.dataset.act, el.files && el.files[0], el);
+  if (el.type === "checkbox" && el.dataset.act === "deptopt") {   // 부서 제한 체크 — 입력칸만 켜고 끔(다시 그리지 않음)
+    const b = bucket(el.dataset.f);
+    if (b) b[el.dataset.k] = el.checked;
+    const num = el.closest("label") && el.closest("label").querySelector("input[type=number]");
+    if (num) { num.disabled = !el.checked; if (el.checked) num.focus(); }
+  }
   if (el.type === "checkbox" && el.dataset.act === "optacc") { S.preOpt.makeAcc = el.checked; render(); }
   if (el.type === "checkbox" && el.dataset.act === "optret") { S.preOpt.retire = el.checked; render(); }
 });
@@ -161,7 +167,7 @@ async function act(a, d = {}) {
         S.rows = [blankRow()]; S.msg = null; return render();
       case "dl": S.rows[Number(d.i)].deadline = plusDays(Number(d.v)); return render();
       case "psave": {
-        const rows = S.rows.map((r) => ({ ...r }));
+        const rows = S.rows.map((r) => postPayload(r));
         for (let i = 0; i < rows.length; i++) {
           const r = rows[i];
           if (!r.org.trim() || !r.name.trim() || !r.when || !r.deadline)
@@ -176,12 +182,14 @@ async function act(a, d = {}) {
         const p = A.postings.find((x) => x.id === d.v);
         S.editPost = d.v;
         S.pf = { org: p.org, name: p.name, when: p.when, deadline: p.deadline || "",
-          type: p.type, hours: p.hours, capacity: p.capacity, deptLimit: p.deptLimit };
+          type: p.type, hours: p.hours, capacity: p.capacity,
+          deptPerOn: postPer(p) > 0, deptLimit: postPer(p) || 3,
+          deptMonOn: postMon(p) > 0, deptMonthLimit: postMon(p) || 5 };
         return render();
       }
       case "peditcancel": S.editPost = null; S.pf = null; return render();
       case "peditsave":
-        await api("/api/admin/posting", { action: "update", id: S.editPost, row: S.pf });
+        await api("/api/admin/posting", { action: "update", id: S.editPost, row: postPayload(S.pf) });
         S.editPost = null; S.pf = null;
         await refresh(); setMsg("", "공고를 수정했습니다."); return render();
       case "ptoggle":
@@ -197,7 +205,9 @@ async function act(a, d = {}) {
         S.rows = [...S.rows.filter((r) => r.org.trim() || r.name.trim() || r.when), {
           key: Math.random().toString(36).slice(2, 9), org: p.org, name: p.name,
           when: nextMonthWhen(p.when), deadline: plusDays(7),
-          type: p.type, hours: p.hours, capacity: p.capacity, deptLimit: p.deptLimit }];
+          type: p.type, hours: p.hours, capacity: p.capacity,
+          deptPerOn: postPer(p) > 0, deptLimit: postPer(p) || 3,
+          deptMonOn: postMon(p) > 0, deptMonthLimit: postMon(p) || 5 }];
         setMsg("amber", `'${p.name}'을(를) 복사했습니다. 아래 등록 칸에서 일시를 확인하고 등록해 주세요.`);
         return render();
       }

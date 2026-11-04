@@ -6,8 +6,25 @@
 const blankRow = () => ({
   key: Math.random().toString(36).slice(2, 9),
   org: "", name: "", when: "", deadline: plusDays(7),
-  type: "외부", hours: 4, capacity: 5, deptLimit: 3,
+  type: "외부", hours: 4, capacity: 5,
+  deptPerOn: true, deptLimit: 3,          // 건별 부서 제한 (기본: 켬, 3명)
+  deptMonOn: false, deptMonthLimit: 5,    // 월별 부서 제한 (기본: 끔)
 });
+
+/* 부서(병동)별 제한 — 서버가 쓰는 값과 같은 규칙(lib/rules.js perLimit/monthLimit) */
+const postPer = (p) => (p.deptLimit === 0 || p.deptLimit === "0" ? 0 : Number(p.deptLimit) || 3);
+const postMon = (p) => Number(p.deptMonthLimit) || 0;
+/** 공고 입력 칸(체크 상태 포함) → 서버로 보낼 값. 체크를 끈 한도는 0 */
+const postPayload = (r) => ({ ...r,
+  deptLimit: r.deptPerOn ? Number(r.deptLimit) || 3 : 0,
+  deptMonthLimit: r.deptMonOn ? Number(r.deptMonthLimit) || 5 : 0 });
+/** 공고 목록에 보여줄 한 줄 */
+const deptLimitText = (p) => {
+  const a = postPer(p), m = postMon(p), t = [];
+  if (a > 0) t.push(`부서당 ${a}명`);
+  if (m > 0) t.push(`월 부서당 ${m}명`);
+  return t.length ? t.join(" · ") : "부서 제한 없음";
+};
 
 function screenAdmin() {
   const A = S.admin;
@@ -120,7 +137,7 @@ function adminPost(A) {
         <div style="font-size:var(--fs-caption);color:var(--text-secondary)">${esc(p.org)}</div>
         <h3 style="margin-bottom:4px">${esc(p.name)}</h3>
         <div style="font-size:var(--fs-body-s);color:var(--text-secondary)">
-          ${esc(fmtWhen(p.when))} · ${esc(p.type)} ${esc(p.hours)}시간 · 정원 ${seat}/${esc(p.capacity)}명 · 부서당 ${esc(p.deptLimit)}명
+          ${esc(fmtWhen(p.when))} · ${esc(p.type)} ${esc(p.hours)}시간 · 정원 ${seat}/${esc(p.capacity)}명 · ${esc(deptLimitText(p))}
           ${p.closed ? `<span class="badge reserve" style="margin-left:8px">모집 마감</span>` : ""}
         </div>
         ${p.deadline ? `<div style="font-size:var(--fs-caption);color:var(--text-secondary);margin-top:3px">
@@ -214,12 +231,24 @@ function postForm(r, ns, isEdit, idx) {
           </select>
           <input type="number" min="0" step="0.5" class="in"${w} ${d("hours")} value="${esc(r.hours)}">
         </div></div>
-      <div class="f" style="margin-bottom:0"><div class="frow">
-        <div><label>정원</label>
-          <input type="number" min="1" class="in"${w} ${d("capacity")} value="${esc(r.capacity)}"></div>
-        <div><label>부서별 제한</label>
-          <input type="number" min="1" class="in"${w} ${d("deptLimit")} value="${esc(r.deptLimit)}"></div>
-      </div></div>
+      <div class="f"><label>정원</label>
+        <input type="number" min="1" class="in"${w} ${d("capacity")} value="${esc(r.capacity)}"></div>
+    </div>
+    <div class="f">
+      <label>부서(병동)별 제한 <span class="hint">여러 개 선택할 수 있습니다 · 모두 끄면 제한 없음</span></label>
+      <div class="limits">
+        <label class="opt limit">
+          <input type="checkbox" data-act="deptopt" ${d("deptPerOn")}${r.deptPerOn ? " checked" : ""}>
+          <span><b>건별 제한</b> — 이 공고에서 같은 부서(병동) 최대</span>
+          <input type="number" min="1" class="in"${w} ${d("deptLimit")} value="${esc(r.deptLimit)}"${r.deptPerOn ? "" : " disabled"} aria-label="건별 부서 제한 인원">
+          <span>명</span></label>
+        <label class="opt limit">
+          <input type="checkbox" data-act="deptopt" ${d("deptMonOn")}${r.deptMonOn ? " checked" : ""}>
+          <span><b>월별 제한</b> — 봉사일이 속한 달 전체에서 같은 부서(병동) 최대</span>
+          <input type="number" min="1" class="in"${w} ${d("deptMonthLimit")} value="${esc(r.deptMonthLimit)}"${r.deptMonOn ? "" : " disabled"} aria-label="월별 부서 제한 인원">
+          <span>명</span></label>
+      </div>
+      <p class="cap" style="margin:6px 0 0">둘 다 선택하면 <b>둘 다 지켜야</b> 접수됩니다. 월별 제한은 그 달에 올라온 <b>모든 공고를 합쳐서</b> 셉니다.</p>
     </div>
     ${isEdit ? `
       ${Note("amber", "정원이나 부서 제한을 줄여도 이미 접수된 신청의 상태는 그대로입니다. 필요하면 신청 현황에서 직접 조정해 주세요.")}

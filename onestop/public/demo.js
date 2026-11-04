@@ -55,6 +55,15 @@ const LIVE3 = ["pending", "approved", "reserve"];
 const dSeat = (pid) => D.apps.filter((a) => a.postId === pid
   && (a.status === "pending" || a.status === "approved")).length;
 const dRes = (pid) => D.apps.filter((a) => a.postId === pid && a.status === "reserve").length;
+/* 부서별 제한 — lib/rules.js 의 perLimit/monthLimit/deptMonthCount 와 짝 */
+const perLimit = (p) => (p.deptLimit === 0 || p.deptLimit === "0" ? 0 : Number(p.deptLimit) || 3);
+const monthLimit = (p) => Number(p.deptMonthLimit) || 0;
+const limitIn = (v, def) => (v === 0 || v === "0" || v === false ? 0 : Number(v) || def);
+const dDeptMonth = (post, dept) => {
+  const mk = monthKey(post.when);
+  const ids = new Set(D.postings.filter((p) => monthKey(p.when) === mk).map((p) => p.id));
+  return D.apps.filter((a) => ids.has(a.postId) && LIVE3.includes(a.status) && a.dept === dept).length;
+};
 const dDept = (pid, dept) => D.apps.filter((a) => a.postId === pid
   && LIVE3.includes(a.status) && a.dept === dept).length;
 const dOpen = (p) => !p.closed && !deadlinePassed(p.deadline)
@@ -131,8 +140,10 @@ function dMyView(me) {
     me: { empNo: me.empNo, name: me.name, dept: me.dept, phone: me.phone, role: "staff" },
     postings: D.postings.filter(dOpen).sort((a, b) => String(a.when).localeCompare(String(b.when)))
       .map((p) => ({ id: p.id, org: p.org, name: p.name, when: p.when, deadline: p.deadline,
-        type: p.type, hours: p.hours, capacity: p.capacity, deptLimit: p.deptLimit,
-        seat: dSeat(p.id), reserve: dRes(p.id), myDept: dDept(p.id, me.dept) })),
+        type: p.type, hours: p.hours, capacity: p.capacity,
+        deptLimit: perLimit(p), deptMonthLimit: monthLimit(p),
+        seat: dSeat(p.id), reserve: dRes(p.id), myDept: dDept(p.id, me.dept),
+        myDeptMonth: dDeptMonth(p, me.dept) })),
     apps, takenMonths,
     records: D.records.filter((r) => String(r.empNo) === String(me.empNo))
       .sort((a, b) => String(b.date).localeCompare(String(a.date))),
@@ -216,7 +227,8 @@ async function api(path, body) {
           stop(`${monthLabel(post.when)}에는 이미 신청한 자원봉사가 있습니다(${pp.name}). 봉사를 실시하는 달 기준으로 한 건만 신청할 수 있습니다.`);
       }
       const seat = dSeat(post.id), res = dRes(post.id), dn = dDept(post.id, x.dept);
-      const deptOver = dn >= Number(post.deptLimit || 3);
+      const per = perLimit(post), mon = monthLimit(post);
+      const deptOver = (per > 0 && dn >= per) || (mon > 0 && dDeptMonth(post, x.dept) >= mon);
       const full = seat >= Number(post.capacity || 0);
       if (!deptOver && full && res >= RESERVE_LIMIT)
         stop("정원과 예비 인원이 모두 찼습니다. 다음 기회에 접수 바랍니다.");
@@ -262,7 +274,7 @@ async function api(path, body) {
         for (const r of body.rows) D.postings.push({ id: uid(), org: String(r.org).trim(),
           name: String(r.name).trim(), when: r.when, deadline: r.deadline, type: r.type || "외부",
           hours: Number(r.hours) || 0, capacity: Number(r.capacity) || 0,
-          deptLimit: Number(r.deptLimit) || 3, closed: false });
+          deptLimit: limitIn(r.deptLimit, 3), deptMonthLimit: limitIn(r.deptMonthLimit, 0), closed: false });
         saveDemo(); return { ok: true };
       }
       const pp = D.postings.find((z) => z.id === body.id);
@@ -272,7 +284,7 @@ async function api(path, body) {
         Object.assign(pp, { org: String(r.org).trim(), name: String(r.name).trim(),
           when: r.when, deadline: r.deadline, type: r.type,
           hours: Number(r.hours) || 0, capacity: Number(r.capacity) || 0,
-          deptLimit: Number(r.deptLimit) || 3 });
+          deptLimit: limitIn(r.deptLimit, 3), deptMonthLimit: limitIn(r.deptMonthLimit, 0) });
       } else if (body.action === "toggle") pp.closed = !pp.closed;
       else if (body.action === "delete") {
         D.postings = D.postings.filter((z) => z.id !== pp.id);

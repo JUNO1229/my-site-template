@@ -31,6 +31,7 @@ Windows 원내 PC에서는 `시작.bat` 을 두 번 눌러 켭니다. `백업.ba
 | `node tests/e2e.test.js` | **서버 검사 69건.** 규칙·로그인·권한·저장을 처음부터 끝까지 확인 |
 | `node build-demo.js` | `public/` 을 HTML 한 장(`원스탑서비스-체험판.html`)으로 묶음 |
 | `node tests/demo.test.js` | **체험판 브라우저 검사 28건.** 먼저 `build-demo.js` 를 돌려야 함 |
+| `node tests/dept-limit.test.js` | **부서별 제한 검사 24건.** 건별·월별·둘 다·제한 없음. 엑셀 샘플 없이 혼자 돌아감 |
 | `node --check 파일.js` | 문법만 빠르게 확인 |
 
 **바깥에서 가져다 쓰는 것이 하나도 없습니다.** `npm install` 할 것이 없고, `package.json` 도 없습니다.
@@ -99,9 +100,14 @@ data/                ★ 실제 자료. db.json + backup/ + log/  — 절대 git
 - 담당자 화면의 신청자 정렬 기본값은 **의무 미충족 우선**(올해 1점이 안 되는 사람이 위로).
   `접수 순` 으로 바꾸면 선착순입니다.
 
-### ⑤ 부서(병동)별 제한
-한 공고에 **같은 병동에서 최대 3명**(공고마다 바꿀 수 있음, `post.deptLimit`).
-넘겨서 신청하면 접수되지 않고 이 문구가 뜹니다 — 글자 하나도 바꾸지 마세요:
+### ⑤ 부서(병동)별 제한 — 두 가지를 함께 쓸 수 있습니다(공고마다 체크로 고름)
+- **건별 제한** — 그 공고에서 같은 병동 최대 N명 (`post.deptLimit`, 기본 3. `0` = 쓰지 않음. 값이 없는 옛 공고는 3으로 봄)
+- **월별 제한** — 봉사일이 속한 달에 올라온 **모든 공고를 합쳐** 같은 병동 최대 N명 (`post.deptMonthLimit`, `0`·없음 = 쓰지 않음)
+- 둘 다 켜면 **둘 다 지켜야** 접수됩니다. 둘 다 끄면 병동 제한이 없습니다. 판정은 `lib/rules.js` 의 `decideApply()`
+  (`perLimit` · `monthLimit` · `deptMonthCount`), 체험판은 `demo.js` 의 같은 이름 함수가 짝입니다.
+- 월별 인원도 건별과 같이 **예비까지 포함**해서 셉니다.
+
+넘겨서 신청하면(건별이든 월별이든) 접수되지 않고 이 문구가 뜹니다 — 글자 하나도 바꾸지 마세요:
 
 > 죄송합니다. 부서(병동)별 할당 인원이 초과되었습니다. 다음기회에 접수바랍니다.
 
@@ -153,7 +159,7 @@ deptCount    = pending + approved + reserve  // 예비도 병동 인원에 셈  
   records:   [{ empNo, name, date, content, type, hours, count, points, pointStatus }],
                           // 과거 봉사 내역. 엑셀 올리면 통째로 바뀜
   postings:  [{ id, org, name, when, deadline, type, hours,
-                capacity, deptLimit, closed, createdAt }],
+                capacity, deptLimit, deptMonthLimit, closed, createdAt }],
   apps:      [{ id, postId, empNo, name, dept, phone,
                 appliedAt, status, decidedAt, decidedBy }],
   donations: [{ id, empNo, name, dept, phone, item, at }],

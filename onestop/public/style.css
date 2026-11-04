@@ -486,3 +486,12 @@ input[type=file]:focus-visible{outline:2px solid var(--color-primary);outline-of
 .tbl.heat tbody tr:hover td{filter:brightness(.97)}
 details>summary{list-style:none}
 details>summary::-webkit-details-marker{display:none}
+
+/* 공고 입력 — 부서(병동)별 제한: 체크 + 인원 */
+.limits{display:flex;flex-direction:column;gap:var(--space-2)}
+.opt.limit{align-items:center;flex-wrap:wrap;gap:var(--space-2);padding:var(--space-2) 0}
+.opt.limit input[type=checkbox]{margin-top:0}
+.opt.limit .in{width:84px;min-height:40px;padding:8px 12px;text-align:center}
+.opt.limit .in:disabled{opacity:.45}
+.f label.opt{display:flex;font-weight:400;font-size:var(--fs-body-s);margin-bottom:0}   /* 입력 라벨 스타일이 안쪽 체크 항목에 번지지 않게 */
+.f label.opt b{font-weight:600}

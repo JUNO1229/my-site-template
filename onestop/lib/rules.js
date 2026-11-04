@@ -48,6 +48,21 @@ const reserveCount = (apps, pid) =>
 const deptCount = (apps, pid, dept) =>
   apps.filter((a) => a.postId === pid && LIVE.includes(a.status) && a.dept === dept).length;
 
+/* ── 부서(병동)별 제한 — 두 가지를 함께 쓸 수 있습니다(복수 선택) ──
+   건별 : 이 공고에서 같은 부서가 최대 N명        — post.deptLimit      (0 = 쓰지 않음, 비어 있으면 옛 공고라 3)
+   월별 : 봉사일이 속한 달의 모든 공고를 합쳐 N명 — post.deptMonthLimit (0·없음 = 쓰지 않음)
+   둘 다 켜 두면 둘 다 지켜야 접수됩니다. 초과 안내 문구는 같습니다(MSG_DEPT_FULL). */
+const perLimit = (p) => (p.deptLimit === 0 || p.deptLimit === "0" ? 0 : Number(p.deptLimit) || 3);
+const monthLimit = (p) => Number(p.deptMonthLimit) || 0;
+/** 화면에서 받은 한도 값을 저장용으로: 0·false = 쓰지 않음, 비어 있으면 기본값 */
+const limitIn = (v, def) => (v === 0 || v === "0" || v === false ? 0 : Number(v) || def);
+/** 같은 달(봉사일 기준)의 모든 공고에서 이 부서가 잡은 인원. 예비도 셉니다(deptCount 와 같은 이유) */
+const deptMonthCount = (db, post, dept) => {
+  const mk = monthKey(post.when);
+  const ids = new Set(db.postings.filter((p) => monthKey(p.when) === mk).map((p) => p.id));
+  return db.apps.filter((a) => ids.has(a.postId) && LIVE.includes(a.status) && a.dept === dept).length;
+};
+
 /**
  * 접수 판정. 거절이면 {error}, 접수면 {status, order}
  */
@@ -75,7 +90,8 @@ function decideApply(db, post, emp) {
   const seat = seatCount(db.apps, post.id);
   const res = reserveCount(db.apps, post.id);
   const dn = deptCount(db.apps, post.id, emp.dept);
-  const deptOver = dn >= Number(post.deptLimit || 3);
+  const per = perLimit(post), mon = monthLimit(post);
+  const deptOver = (per > 0 && dn >= per) || (mon > 0 && deptMonthCount(db, post, emp.dept) >= mon);
   const full = seat >= Number(post.capacity || 0);
 
   if (deptOver) return { status: "excluded", order: 0, message: MSG_DEPT_FULL };
@@ -381,6 +397,6 @@ module.exports = {
   ANNUAL_DUTY, RESERVE_LIMIT, POINT_PER_CASE, MSG_DEPT_FULL, MSG_CLOSED, LIVE,
   digits, autoEmpNo, cleanEmpNo, round2, isActive, scoreOf, monthKey, monthLabel,
   deadlineEnd, deadlinePassed, isDone, isOpen,
-  seatCount, reserveCount, deptCount, decideApply, summarize, scoreMap,
+  seatCount, reserveCount, deptCount, perLimit, monthLimit, limitIn, deptMonthCount, decideApply, summarize, scoreMap,
   wardNo, deptCheck, buildDiff, planEmployees, reviewEmployees, findDupGroups, isSure, suspectWhy, fieldConflicts, isAutoNo, normName, FIELDS, parseEmployees, parseRecords,
 };
