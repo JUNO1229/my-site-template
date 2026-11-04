@@ -407,6 +407,7 @@ async function act(a, d = {}) {
           S.busy = false; S.pre = null; S.preOpt = null;
           await refresh();
           let m = `반영했습니다. 신규 ${r.added}명 · 기존 직원과 합침 ${r.merged || 0}명 · 정보 수정 ${r.changed}명`;
+          if (r.assigned) m += ` · 봉사 내역에서 사번 ${r.assigned}명 가져옴`;
           if (r.retired) m += ` · 퇴사 처리 ${r.retired}명`;
           if (r.back) m += ` · 퇴사자 ${r.back}명이 재직으로 돌아왔습니다`;
           if (r.issued && r.issued.length) {
@@ -442,9 +443,13 @@ async function onFile(kind, file, el) {
       S.msg = null;
     } else {
       await refresh();
-      setMsg(r.orphan ? "amber" : "",
+      const amb = r.ambiguous || [];
+      setMsg(r.orphan || amb.length ? "amber" : "",
         `봉사 내역 ${r.count}건을 반영했습니다. 기존 내역은 이 파일로 교체되었습니다.`
-        + (r.orphan ? ` 이 중 ${r.orphan}건은 명단에 없는 사번입니다(퇴사자 등).` : ""));
+        + (r.assigned ? ` 사번이 없던 직원 ${r.assigned}명은 이 파일에서 사번을 가져와 채웠습니다.` : "")
+        + (r.mergedNos ? ` 사번이 바뀐 적 있는 ${r.mergedNos}건은 가장 최근 사번으로 합쳤습니다.` : "")
+        + (amb.length ? ` 이름이 같은 사번이 여러 개라 정하지 못한 직원 ${amb.length}명 — ${amb.slice(0, 5).map((a) => a.name).join(", ")}${amb.length > 5 ? " 외" : ""}` : "")
+        + (r.orphan ? ` 이 중 ${r.orphan}건은 직원 명단에 없는 사번입니다(퇴사자 또는 명단 누락).` : ""));
     }
     render();
   } catch (err) { warn(err.message); }

@@ -483,7 +483,7 @@ function reviewPanel(P) {
   const R_ = reviewState(P);
   if (!R_.suspects.length && !R_.conflicts.length) return "";
   const person = (e) => `<b>${esc(e.name)}</b> · ${esc(e.dept || "(부서 없음)")} · ${esc(e.phone || "(연락처 없음)")}`
-    + (noText(e.empNo) !== "-" && e.empNo ? ` · 사번 ${esc(e.empNo)}` : "");
+    + (e.empNo && !isAutoNo(e.empNo) ? ` · 사번 ${esc(e.empNo)}` : "");
   const chip = (on, act, attrs, label) =>
     `<button class="chip rv ${on ? "on" : ""}" data-act="${act}" ${attrs}>${on ? "✓ " : ""}${label}</button>`;
   return `

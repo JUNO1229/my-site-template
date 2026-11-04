@@ -281,13 +281,13 @@ function reviewEmployees(current, incoming) {
 
 /* ── 업로드 표 → 항목 ── */
 const ALIAS = {
-  empNo: ["사번", "사원번호", "직원번호"],
-  name: ["이름", "성명", "직원명"],
+  empNo: ["사번", "사원번호", "직원번호", "사번입력"],
+  name: ["이름", "성명", "직원명", "직원이름"],
   dept: ["부서병동", "부서", "소속", "병동", "부서명"],
   phone: ["연락처", "휴대폰", "핸드폰", "전화번호", "전화"],
   date: ["봉사일", "봉사일자", "활동일", "일자", "날짜"],
   content: ["봉사내용", "활동내용", "내용"],
-  type: ["봉사구분", "구분", "봉사유형"],
+  type: ["봉사구분", "구분", "봉사유형", "대분류"],
   hours: ["봉사시간", "활동시간", "시간"],
   count: ["인정횟수", "횟수", "건수"],
   points: ["지급포인트", "포인트", "지급액"],
@@ -312,14 +312,20 @@ function mapHeaders(headers) {
 }
 /** 머리글 행을 찾는다 (앞에 제목·설명 줄이 있어도 됨) */
 function findHeader(rows) {
+  const HEAD = ["사번", "사원번호", "이름", "성명", "사번입력", "직원이름", "직원명"];
   const hi = rows.findIndex((r) =>
-    r.some((c) => ["사번", "사원번호", "이름", "성명"].includes(String(c).trim())));
+    r.some((c) => HEAD.includes(String(c).replace(/[\s()[\]/·.]/g, "").trim())));
   if (hi < 0) throw new Error("머리글 행을 찾지 못했습니다. '이름' 열이 있는지 확인해 주세요.");
   return { headers: rows[hi], body: rows.slice(hi + 1) };
 }
 function cellDate(v) {
   if (!v) return "";
   const s = String(v).trim();
+  // 엑셀 날짜 번호(예: 45602.0) → 2024-11-06
+  if (/^\d{5}(\.\d+)?$/.test(s)) {
+    const d = new Date(Date.UTC(1899, 11, 30) + Math.floor(Number(s)) * 86400000);
+    return d.toISOString().slice(0, 10);
+  }
   const m = s.match(/(\d{4})[.\-/년\s]+(\d{1,2})[.\-/월\s]+(\d{1,2})/);
   return m ? `${m[1]}-${String(m[2]).padStart(2, "0")}-${String(m[3]).padStart(2, "0")}` : s;
 }
@@ -363,6 +369,7 @@ function parseRecords(rows) {
       type: String(r[m.type] ?? "외부").trim() || "외부",
       hours: Number(r[m.hours]) || 0,
       count: cnt === "" || cnt === undefined ? "" : Number(cnt),
+      phone: String(r[m.phone] ?? "").trim(),
       points: Number(String(r[m.points] ?? "").replace(/[^\d.-]/g, "")) || 0,
       pointStatus: String(r[m.pointStatus] ?? "").trim(),
     });

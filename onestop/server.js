@@ -533,11 +533,14 @@ on("POST", "/api/admin/upload", async (req, res) => {
       }
       for (const r of list) if (!r.empNo) r.empNo = byName.get(String(r.name).replace(/\s/g, ""))?.empNo || "";
       const known = new Set(db.employees.map((e) => String(e.empNo)));
+      await store.snapshot("before-records"); // 통째로 교체하기 전에 한 벌 남김
       db.records = list;
-      migrate();
+      const mg = migrate();
       store.save();
-      writeLog({ event: "upload_records", id: me.id, count: list.length });
-      return ok(res, { count: list.length, orphan: list.filter((r) => !known.has(r.empNo)).length });
+      writeLog({ event: "upload_records", id: me.id, count: list.length, assigned: mg.assigned });
+      const nowKnown = new Set(db.employees.map((e) => String(e.empNo)));
+      return ok(res, { count: list.length, orphan: list.filter((r) => !nowKnown.has(r.empNo)).length,
+        assigned: mg.assigned, mergedNos: mg.merged, ambiguous: mg.ambiguous });
     }
     return err(res, 400, "알 수 없는 자료 종류입니다.");
   } catch (e) { return err(res, 400, e.message); }
@@ -640,10 +643,10 @@ on("POST", "/api/admin/apply-employees", async (req, res) => {
       issued.push({ empNo: e.empNo, name: e.name, dept: e.dept, pw });
     }
   }
-  migrate(); // 봉사 내역을 새 명단과 다시 연결
+  const mg = migrate(); // 봉사 내역에 적힌 사번을 새 명단의 직원에게 가져옴
   store.save();
-  writeLog({ event: "apply_employees", id: me.id, added: added.length, merged, changed, retired });
-  return ok(res, { added: added.length, merged, changed, retired, back: 0, issued });
+  writeLog({ event: "apply_employees", id: me.id, added: added.length, merged, changed, retired, assigned: mg.assigned });
+  return ok(res, { added: added.length, merged, changed, retired, back: 0, issued, assigned: mg.assigned });
 });
 
 on("POST", "/api/admin/donation-delete", async (req, res) => {
@@ -722,31 +725,74 @@ if (require.main === module) {
   });
 }
 
-/** 이미 올라간 봉사 내역의 사번 칸을 깨끗이 고칩니다 (바뀐 것이 있을 때만 저장) */
+/** 직원 명단에 사번이 없으면, 봉사 내역 파일에 있는 사번을 가져와 그 직원의 사번으로 삼는다.
+    · 이름이 같은 내역의 사번이 딱 하나이고, 직원도 그 이름으로 한 명뿐일 때만 자동으로 정한다.
+    · 동명이인처럼 갈리는 경우는 건드리지 않고 알려 준다(ambiguous).
+    · 내역의 사번은 절대 바꾸지 않는다. 바뀌는 것은 직원 쪽 번호뿐이다. */
+const isAutoStr = (no) => /\D-\d+$/.test(String(no ?? ""));
 function migrate() {
   const db = store.get();
-  let n = 0, linked = 0;
-  for (const r of db.records) {
+  let cleaned = 0, assigned = 0, merged = 0;
+  const ambiguous = [];
+  for (const r of db.records) {            // "218790 김미영--QPS실장-[]" → "218790"
     const c = R.cleanEmpNo(r.empNo);
-    if (c !== r.empNo) { r.empNo = c; n++; }
+    if (c !== r.empNo) { r.empNo = c; cleaned++; }
   }
-  // 사번이 직원 명단에 없는 내역은, 이름이 같은 직원이 딱 한 명이면 그 직원에게 연결
-  const norm = (v) => String(v ?? "").replace(/[^\p{L}\p{N}]/gu, "");
-  const known = new Set(db.employees.map((e) => String(e.empNo)));
-  const byName = new Map();
-  for (const e of db.employees) {
-    const k = norm(e.name);
-    byName.set(k, byName.has(k) ? null : e);
-  }
+  const taken = new Set(db.employees.map((e) => String(e.empNo)));
+  const nums = new Map();                  // 이름 → 내역에 적힌 사번들
+  const byPhone = new Map();               // 전화번호(숫자) → { 사번 → 그 사번 내역에 적힌 이름들 }
   for (const r of db.records) {
-    if (known.has(String(r.empNo))) continue;
-    const e = byName.get(norm(r.name));
-    if (e) { r.empNo = String(e.empNo); linked++; }
+    const no = String(r.empNo || ""), k = R.normName(r.name);
+    if (!no || isAutoStr(no) || !k) continue;
+    if (!nums.has(k)) nums.set(k, new Set());
+    nums.get(k).add(no);
+    const ph = R.digits(r.phone);
+    if (ph.length >= 9) {
+      if (!byPhone.has(ph)) byPhone.set(ph, new Map());
+      const m = byPhone.get(ph);
+      if (!m.has(no)) m.set(no, { names: new Set(), last: "" });
+      const x = m.get(no);
+      x.names.add(k);
+      if (String(r.date || "") > x.last) x.last = String(r.date || "");
+    }
   }
-  if (n || linked) {
+  const autos = new Map();                 // 이름 → 사번 없는 직원들
+  for (const e of db.employees) {
+    if (!isAutoStr(e.empNo)) continue;
+    const k = R.normName(e.name);
+    if (!autos.has(k)) autos.set(k, []);
+    autos.get(k).push(e);
+  }
+  // 1) 전화번호가 같고 이름도 같으면 같은 사람 — 동명이인도 여기서 구분됨.
+  //    한 사람에게 사번이 여러 개(재입사 등)면 가장 최근 내역의 사번을 쓰고, 이전 사번의 내역도 그 사번으로 모은다.
+  for (const list of autos.values()) {
+    for (const e of [...list]) {
+      const ph = R.digits(e.phone), m = byPhone.get(ph); if (!m) continue;
+      const k = R.normName(e.name);
+      const cand = [...m].filter(([no, x]) => x.names.has(k) && !taken.has(no))
+        .sort((p, q) => String(q[1].last).localeCompare(String(p[1].last)));
+      if (!cand.length) continue;
+      const pick = cand[0][0], older = cand.slice(1).map(([no]) => no);
+      if (!renameEmp(db, e.empNo, pick)) continue;
+      for (const r of db.records)
+        if (older.includes(String(r.empNo)) && R.digits(r.phone) === ph && R.normName(r.name) === k) r.empNo = pick;
+      taken.add(pick); assigned++; if (older.length) merged += older.length; list.splice(list.indexOf(e), 1);
+    }
+  }
+  // 2) 전화번호로 못 정한 직원은 이름이 하나뿐일 때만
+  for (const [k, list] of autos) {
+    if (!list.length) continue;
+    const cand = [...(nums.get(k) || [])].filter((no) => !taken.has(no));
+    if (!cand.length) continue;
+    if (list.length === 1 && cand.length === 1) {
+      if (renameEmp(db, list[0].empNo, cand[0])) { taken.add(cand[0]); assigned++; }
+    } else ambiguous.push({ name: list[0].name, employees: list.length, numbers: cand });
+  }
+  if (cleaned || assigned) {
     store.save();
-    console.log(`[정리] 봉사 내역 사번 ${n}건 정리, 이름으로 연결 ${linked}건`);
+    console.log(`[정리] 내역 사번 ${cleaned}건 정리 · 직원 사번 ${assigned}명을 내역에서 가져옴`);
   }
+  return { cleaned, assigned, merged, ambiguous };
 }
 
 let ready = false;
