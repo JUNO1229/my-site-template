@@ -52,6 +52,12 @@ for (const block of css.match(/@font-face\s*{[^}]*}/g) || []) {
 const demoFont = demo.replace("</head>", `<style>${fontCss}</style></head>`);
 const demoB64 = Buffer.from(demoFont, "utf8").toString("base64");
 
+// 4-2) 캡처 화면(JPEG)과 QR(SVG)
+const assets = path.join(__dirname, "assets");
+const img = (name) => "data:image/jpeg;base64," + fs.readFileSync(path.join(assets, name + ".jpg")).toString("base64");
+const qr = "data:image/svg+xml;utf8," + encodeURIComponent(fs.readFileSync(path.join(assets, "qr-demo.svg"), "utf8"));
+tpl = tpl.replace(/\{\{IMG:([a-z0-9-]+)\}\}/g, (_, n) => img(n)).split("{{QR}}").join(qr);
+
 // 5) 합치기
 tpl = tpl.replace("{{FONT_CSS}}", () => fontCss).split("{{EMBLEM}}").join(emblem).replace("{{DEMO_B64}}", () => demoB64);
 fs.writeFileSync(OUT, tpl);
