@@ -281,54 +281,19 @@ function adminDonate(A) {
 }
 
 /* ══════════ 직원 관리 ══════════ */
-function adminStaff(A) {
-  if (S.pre) return staffPreview(A);
-
-  const act = A.employees.filter(isActive).length;
-  const ret = A.employees.length - act;
-  const accMap = Object.fromEntries(A.accounts.map((a) => [String(a.empNo), a]));
-  const depts = [...new Set(A.employees.map((e) => e.dept).filter(Boolean))].sort((a, b) => a.localeCompare(b, "ko"));
+/* 직원 목록 — 검색칸을 다시 그리지 않고 이 부분만 바꾸기 위해 따로 뺐습니다 */
+const staffDepts = (A) => [...new Set(A.employees.map((e) => e.dept).filter(Boolean))].sort((a, b) => a.localeCompare(b, "ko"));
+function staffList(A) {
   const k = norm(S.q);
-  const list = A.employees
+  return A.employees
     .filter((e) => (S.onlyActive ? isActive(e) : true))
     .filter((e) => !k || norm(e.name).includes(k) || String(e.empNo).includes(k) || norm(e.dept).includes(k))
     .sort((a, b) => String(a.dept).localeCompare(String(b.dept), "ko") || String(a.name).localeCompare(String(b.name), "ko"));
-
-  const w = A.deptCheck;
-  return `
-    <div class="card">
-      <h3>직원 명단 올리기</h3>
-      <p class="cap">사번·이름·부서(병동)·연락처 열이 있는 엑셀(.xlsx)이나 CSV를 올리면 됩니다.
-        올리면 먼저 <b>무엇이 바뀌는지 보여드리고</b>, 확인하신 뒤에 반영됩니다.</p>
-      <div class="drop">
-        <p>현재 재직 ${act}명${ret ? ` · 퇴사 ${ret}명` : ""}</p>
-        <input type="file" accept=".xlsx,.xls,.csv" data-act="upemp" aria-label="직원 명단 올리기">
-      </div>
-    </div>
-    ${(w.mixed.length || w.noName.length) ? `
-      <div class="card" style="border-left:4px solid var(--color-warning)">
-        <h3>부서 표기를 정리해 주세요</h3>
-        <p class="cap">지금 명단에 표기가 갈리는 부서가 있습니다. 이대로면 병동별 제한이 제대로 걸리지 않습니다.</p>
-        ${w.mixed.map((m) => Note("amber", `<b>${esc(m.ward)}병동</b> — ${m.forms.map((f) => `「${esc(f)}」`).join(" / ")}`)).join("")}
-        ${w.noName.length ? Note("amber", `부서명 없이 번호만 — ${w.noName.map((f) => `「${esc(f)}」`).join(" / ")}`) : ""}
-      </div>` : ""}
-    <div class="sec"><h2>직원 ${list.length}명</h2>
-      <div class="btns">
-        <button class="btn g xs" data-act="dupfind">${I.people} 중복 직원 찾기</button>
-        <button class="btn g xs" data-act="addtoggle">${I.plus} 한 명 추가</button>
-        <button class="btn g xs" data-act="expemp">${I.down} 엑셀</button>
-      </div></div>
-    ${S.dups ? dupPanel() : ""}
-    ${S.adding ? addForm(depts) : ""}
-    <div class="frow" style="margin-bottom:12px">
-      <div class="f" style="margin-bottom:0"><label for="sq">검색 <span class="hint">이름 · 사번 · 부서</span></label>
-        <input id="sq" class="in" value="${esc(S.q)}" placeholder="예: 10병동" data-act="search"></div>
-      <div class="f" style="margin-bottom:0;align-self:flex-end"><div class="chips">
-        <button class="chip ${S.onlyActive ? "on" : ""}" data-act="onlyact" data-v="1">재직 ${act}명</button>
-        <button class="chip ${S.onlyActive ? "" : "on"}" data-act="onlyact" data-v="0">전체 ${A.employees.length}명</button>
-      </div></div>
-    </div>
-    ${list.length === 0 ? Empty(I.people, "조건에 맞는 직원이 없습니다.") : `
+}
+function staffTable(A) {
+  const list = staffList(A), depts = staffDepts(A);
+  const accMap = Object.fromEntries(A.accounts.map((a) => [String(a.empNo), a]));
+  return `${list.length === 0 ? Empty(I.people, "조건에 맞는 직원이 없습니다.") : `
       <div class="scrollx"><table class="tbl">
         <thead><tr><th>사번</th><th>이름</th><th>부서(병동)</th><th>연락처</th>
           <th>계정</th><th>올해 점수</th><th>처리</th></tr></thead>
@@ -365,7 +330,51 @@ function adminStaff(A) {
                 <span style="flex:1"></span>
                 <button class="btn dg" data-act="edel" data-v="${esc(e.empNo)}">완전 삭제</button>
               </div></td></tr>` : ""}`;
-        }).join("")}</tbody></table></div>`}
+        }).join("")}</tbody></table></div>`}`;
+}
+
+function adminStaff(A) {
+  if (S.pre) return staffPreview(A);
+
+  const act = A.employees.filter(isActive).length;
+  const ret = A.employees.length - act;
+  const depts = staffDepts(A);
+
+  const w = A.deptCheck;
+  return `
+    <div class="card">
+      <h3>직원 명단 올리기</h3>
+      <p class="cap">사번·이름·부서(병동)·연락처 열이 있는 엑셀(.xlsx)이나 CSV를 올리면 됩니다.
+        올리면 먼저 <b>무엇이 바뀌는지 보여드리고</b>, 확인하신 뒤에 반영됩니다.</p>
+      <div class="drop">
+        <p>현재 재직 ${act}명${ret ? ` · 퇴사 ${ret}명` : ""}</p>
+        <input type="file" accept=".xlsx,.xls,.csv" data-act="upemp" aria-label="직원 명단 올리기">
+      </div>
+    </div>
+    ${(w.mixed.length || w.noName.length) ? `
+      <div class="card" style="border-left:4px solid var(--color-warning)">
+        <h3>부서 표기를 정리해 주세요</h3>
+        <p class="cap">지금 명단에 표기가 갈리는 부서가 있습니다. 이대로면 병동별 제한이 제대로 걸리지 않습니다.</p>
+        ${w.mixed.map((m) => Note("amber", `<b>${esc(m.ward)}병동</b> — ${m.forms.map((f) => `「${esc(f)}」`).join(" / ")}`)).join("")}
+        ${w.noName.length ? Note("amber", `부서명 없이 번호만 — ${w.noName.map((f) => `「${esc(f)}」`).join(" / ")}`) : ""}
+      </div>` : ""}
+    <div class="sec"><h2 id="empcount">직원 ${staffList(A).length}명</h2>
+      <div class="btns">
+        <button class="btn g xs" data-act="dupfind">${I.people} 중복 직원 찾기</button>
+        <button class="btn g xs" data-act="addtoggle">${I.plus} 한 명 추가</button>
+        <button class="btn g xs" data-act="expemp">${I.down} 엑셀</button>
+      </div></div>
+    ${S.dups ? dupPanel() : ""}
+    ${S.adding ? addForm(depts) : ""}
+    <div class="frow" style="margin-bottom:12px">
+      <div class="f" style="margin-bottom:0"><label for="sq">검색 <span class="hint">이름 · 사번 · 부서</span></label>
+        <input id="sq" class="in" value="${esc(S.q)}" placeholder="예: 10병동" data-act="search"></div>
+      <div class="f" style="margin-bottom:0;align-self:flex-end"><div class="chips">
+        <button class="chip ${S.onlyActive ? "on" : ""}" data-act="onlyact" data-v="1">재직 ${act}명</button>
+        <button class="chip ${S.onlyActive ? "" : "on"}" data-act="onlyact" data-v="0">전체 ${A.employees.length}명</button>
+      </div></div>
+    </div>
+    <div id="stafftable">${staffTable(A)}</div>
     ${Note("amber", "<b>퇴사와 완전 삭제는 다릅니다.</b> 퇴사는 로그인만 막고 봉사 실적을 남깁니다. 완전 삭제는 명단에서 지웁니다. 잘못 올린 자료가 아니라면 <b>퇴사</b>를 쓰세요.")}`;
 }
 

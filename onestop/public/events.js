@@ -12,30 +12,24 @@ const bucket = (f) => {
   return null;
 };
 
-/* 검색칸 — 한글 조합이 끝난 뒤에만 목록을 다시 그린다 */
-let composing = false;
-function redrawSearch(el) {
-  const caret = el.selectionStart;
-  render();
-  const again = document.getElementById("sq");
-  if (again) { again.focus(); again.setSelectionRange(caret, caret); }
+/* 검색칸 — 입력칸은 절대 다시 그리지 않고, 아래 목록만 바꿉니다.
+   (입력칸을 새로 그리면 한글 조합이 끊겨서 글자가 쪼개지고 커서가 튑니다) */
+let searchTimer = 0;
+function updateStaffList() {
+  if (!S.admin) return;
+  const box = document.getElementById("stafftable");
+  const cnt = document.getElementById("empcount");
+  if (box) box.innerHTML = staffTable(S.admin);
+  if (cnt) cnt.textContent = `직원 ${staffList(S.admin).length}명`;
 }
-document.addEventListener("compositionstart", (e) => {
-  if (e.target.dataset && e.target.dataset.act === "search") composing = true;
-});
-document.addEventListener("compositionend", (e) => {
-  if (e.target.dataset && e.target.dataset.act === "search") {
-    composing = false; S.q = e.target.value; redrawSearch(e.target);
-  }
-});
 
 /* 글자 입력은 다시 그리지 않는다 (입력칸에서 커서가 튀지 않도록) */
 document.addEventListener("input", (e) => {
   const el = e.target;
   if (el.dataset.act === "search") {
     S.q = el.value;
-    if (composing || e.isComposing) return; // 한글을 조합하는 중에는 다시 그리지 않는다 (글자가 쪼개짐)
-    redrawSearch(el);
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(updateStaffList, 120); // 타자를 칠 때마다가 아니라 잠깐 멈추면 목록 갱신
     return;
   }
   const f = el.dataset.f, k = el.dataset.k;
