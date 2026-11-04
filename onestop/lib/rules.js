@@ -202,6 +202,28 @@ function fieldConflicts(old, inc) {
   }
   return out;
 }
+/** 이미 들어 있는 명단 안에서 같은 사람으로 보이는 묶음을 찾는다 (확실 → 의심 순) */
+function findDupGroups(emps) {
+  const n = emps.length, parent = emps.map((_, i) => i);
+  const find = (x) => (parent[x] === x ? x : (parent[x] = find(parent[x])));
+  const sure = new Set();
+  for (let i = 0; i < n; i++) for (let j = i + 1; j < n; j++) {
+    const a = emps[i], b = emps[j];
+    const isS = normName(a.name) !== "" && normName(a.name) === normName(b.name)
+      && digits(a.phone).length >= 9 && digits(a.phone) === digits(b.phone);
+    if (isS || suspectWhy(a, b)) {
+      parent[find(i)] = find(j);
+      if (isS) { sure.add(i); sure.add(j); }
+    }
+  }
+  const groups = new Map();
+  emps.forEach((e, i) => { const r = find(i); (groups.get(r) || groups.set(r, { members: [], sure: false }).get(r)).members.push(e); if (sure.has(i)) groups.get(r).sure = true; });
+  return [...groups.values()].filter((g) => g.members.length > 1)
+    .map((g) => ({ level: g.sure ? "sure" : "suspect", members: g.members }))
+    .sort((a, b) => (a.level === b.level ? 0 : a.level === "sure" ? -1 : 1)
+      || a.members[0].name.localeCompare(b.members[0].name, "ko"));
+}
+
 /** 올린 줄마다 "누구와 같은 사람인지"를 찾는다 */
 function planEmployees(current, incoming) {
   const rows = incoming.map((inc) => ({ key: String(inc.empNo), inc, sure: null, suspects: [] }));
@@ -353,5 +375,5 @@ module.exports = {
   digits, autoEmpNo, cleanEmpNo, round2, isActive, scoreOf, monthKey, monthLabel,
   deadlineEnd, deadlinePassed, isDone, isOpen,
   seatCount, reserveCount, deptCount, decideApply, summarize, scoreMap,
-  wardNo, deptCheck, buildDiff, planEmployees, reviewEmployees, fieldConflicts, isAutoNo, normName, FIELDS, parseEmployees, parseRecords,
+  wardNo, deptCheck, buildDiff, planEmployees, reviewEmployees, findDupGroups, isSure, suspectWhy, fieldConflicts, isAutoNo, normName, FIELDS, parseEmployees, parseRecords,
 };

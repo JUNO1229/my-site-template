@@ -136,7 +136,11 @@ async function api(path, body, opts = {}) {
   let j = {};
   try { j = await r.json(); } catch { /* 본문 없음 */ }
   if (r.status === 401 && S.me) { S.me = null; render(); throw new Error("로그인이 풀렸습니다. 다시 로그인해 주세요."); }
-  if (!r.ok || j.ok === false) throw new Error(j.error || `오류가 났습니다 (${r.status})`);
+  if (!r.ok || j.ok === false) {
+    const e = new Error(j.error || `오류가 났습니다 (${r.status})`);
+    e.needConfirm = !!j.needConfirm; // 서버가 "확인 후 계속"을 요청한 경우
+    throw e;
+  }
   return j;
 }
 

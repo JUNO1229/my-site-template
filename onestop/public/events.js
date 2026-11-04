@@ -149,7 +149,7 @@ async function act(a, d = {}) {
       }
 
       /* ── 담당자 공통 ── */
-      case "atab": S.adminTab = d.v; S.msg = null; S.pre = null; S.editPost = null; S.editEmp = null; await refresh(); return render();
+      case "atab": S.adminTab = d.v; S.msg = null; S.pre = null; S.dups = null; S.editPost = null; S.editEmp = null; await refresh(); return render();
       case "reload": await refresh(); setMsg("", "최신 내용을 불러왔습니다."); return render();
       case "order": S.order = d.v; return render();
       case "filter": S.filter = d.v; return render();
@@ -304,8 +304,14 @@ async function act(a, d = {}) {
         const dept = n.dept === "__etc" ? "" : (n.dept || "");
         if (!String(n.name || "").trim() || !dept.trim()
           || digits(n.phone).length < 9) return warn("이름·부서·연락처를 모두 입력해 주세요.");
-        const r = await api("/api/admin/employee", { action: "create",
-          empNo: n.empNo, name: n.name, dept, phone: n.phone });
+        const body = { action: "create", empNo: n.empNo, name: n.name, dept, phone: n.phone };
+        let r;
+        try { r = await api("/api/admin/employee", body); }
+        catch (e) {
+          if (!e.needConfirm) throw e;
+          if (!await ask(e.message, "다른 사람입니다. 추가")) return; // 이름만 같은 경우 담당자가 확인
+          r = await api("/api/admin/employee", { ...body, force: true });
+        }
         S.nf = { empNo: "", name: "", dept: "", phone: "" }; S.adding = false;
         await refresh();
         setMsg("amber", `${n.name} 님의 계정을 만들었습니다. 로그인 이름 ${n.name} / 비밀번호 ${r.pw}(연락처 뒷번호 4자리) — 본인에게 알려주세요.`);
@@ -352,6 +358,34 @@ async function act(a, d = {}) {
         await refresh();
         setMsg("amber", `${e.name} 님의 새 비밀번호는 ${r.pw} 입니다. 본인에게 알려주세요. 첫 로그인 때 직접 바꾸게 됩니다.`);
         return render();
+      }
+
+      /* ── 중복 직원 찾기 · 합치기 ── */
+      case "dupfind": {
+        const r = await api("/api/admin/employee-dups");
+        S.dups = r.groups; S.dres = {}; S.msg = null;
+        if (!r.groups.length) setMsg("", "같은 사람으로 보이는 중복 직원이 없습니다.");
+        return render();
+      }
+      case "dupclose": S.dups = null; S.dres = {}; return render();
+      case "duprole": { // 이 직원을 남길지 / 대표에 합칠지 / 별개로 둘지
+        const g = (S.dres[d.g] = S.dres[d.g] || { role: {}, vals: {} });
+        if (d.v === "keep") for (const k of Object.keys(g.role)) if (g.role[k] === "keep") g.role[k] = "";
+        g.role[d.e] = d.v; return render();
+      }
+      case "dupval": {
+        const g = (S.dres[d.g] = S.dres[d.g] || { role: {}, vals: {} });
+        g.vals[d.f] = d.v; return render();
+      }
+      case "dupmerge": {
+        const grp = S.dups[Number(d.g)], g = S.dres[d.g];
+        const keep = grp.members.find((m) => g.role[m.empNo] === "keep");
+        const merge = grp.members.filter((m) => g.role[m.empNo] === "merge");
+        if (!await ask(`${keep.name} 님 한 명으로 합칩니다. 합쳐진 직원 ${merge.length}명은 명단에서 사라지고, 봉사 내역·신청·계정은 남는 직원에게 이어집니다. 진행할까요?`, "합치기")) return;
+        await api("/api/admin/employee-merge", { keep: keep.empNo, merge: merge.map((m) => m.empNo), values: g.vals });
+        await refresh();
+        const r = await api("/api/admin/employee-dups"); S.dups = r.groups; S.dres = {};
+        setMsg("", `${keep.name} 님을 한 명으로 합쳤습니다.`); return render();
       }
 
       /* ── 업로드 ── */

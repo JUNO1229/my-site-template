@@ -314,9 +314,11 @@ function adminStaff(A) {
       </div>` : ""}
     <div class="sec"><h2>직원 ${list.length}명</h2>
       <div class="btns">
+        <button class="btn g xs" data-act="dupfind">${I.people} 중복 직원 찾기</button>
         <button class="btn g xs" data-act="addtoggle">${I.plus} 한 명 추가</button>
         <button class="btn g xs" data-act="expemp">${I.down} 엑셀</button>
       </div></div>
+    ${S.dups ? dupPanel() : ""}
     ${S.adding ? addForm(depts) : ""}
     <div class="frow" style="margin-bottom:12px">
       <div class="f" style="margin-bottom:0"><label for="sq">검색 <span class="hint">이름 · 사번 · 부서</span></label>
@@ -402,6 +404,53 @@ function addForm(depts) {
       <button class="btn pt" data-act="eadd">계정 만들기</button>
       <button class="btn g" data-act="addtoggle">닫기</button>
     </div></div>`;
+}
+
+/* ── 이미 들어 있는 중복 직원 찾기 · 합치기 ── */
+function dupPanel() {
+  const chip = (on, attrs, label) => `<button class="chip rv ${on ? "on" : ""}" ${attrs}>${on ? "✓ " : ""}${label}</button>`;
+  const ROLE = [["keep", "남길 직원"], ["merge", "남길 직원에 합침"], ["other", "별개 직원"]];
+  const LABEL = { name: "이름", dept: "부서", phone: "연락처" };
+  return `
+    <div class="card" style="border-left:4px solid var(--color-warning)">
+      <div class="sec" style="margin:0 0 8px"><h3>중복 직원 ${S.dups.length}묶음</h3>
+        <button class="btn g xs" data-act="dupclose">닫기</button></div>
+      <p class="cap">같은 사람이 두 줄로 들어간 경우를 찾았습니다. 묶음마다 <b>남길 직원 1명</b>과 <b>합칠 직원</b>을 골라 주세요.
+        합치면 봉사 내역·신청·계정이 남는 직원에게 이어집니다. 동명이인이면 "별개 직원"을 고르세요.</p>
+      ${S.dups.length === 0 ? Empty(I.people, "중복으로 보이는 직원이 없습니다.") : S.dups.map((grp, gi) => {
+        const g = S.dres[gi] || { role: {}, vals: {} };
+        const keep = grp.members.find((m) => g.role[m.empNo] === "keep");
+        const merge = grp.members.filter((m) => g.role[m.empNo] === "merge");
+        const undecided = grp.members.filter((m) => !g.role[m.empNo]).length;
+        const chosen = keep ? [keep, ...merge] : [];
+        const conf = {};
+        if (merge.length) for (const f of ["name", "dept", "phone"]) {
+          const vals = [...new Set(chosen.map((m) => String(m[f] || "").trim()).filter(Boolean))];
+          if (vals.length > 1) conf[f] = vals;
+        }
+        const pickLeft = Object.keys(conf).filter((f) => !conf[f].includes(g.vals[f])).length;
+        const ready = keep && merge.length && !undecided && !pickLeft;
+        return `<div class="card" style="background:var(--color-field);box-shadow:none;margin-bottom:12px">
+          <div style="margin-bottom:8px"><span class="badge ${grp.level === "sure" ? "rejected" : "pending"}">${grp.level === "sure" ? "이름·연락처 같음" : "이름 또는 연락처 같음"}</span></div>
+          ${grp.members.map((m) => `<div style="padding:10px 0;border-top:1px solid var(--border,rgba(0,0,0,.08))">
+            <div style="margin-bottom:6px"><b>${esc(m.name)}</b> · ${esc(m.dept || "(부서 없음)")} · ${esc(m.phone || "(연락처 없음)")}
+              <span style="color:var(--text-secondary);font-size:var(--fs-caption)"> — ${m.auto ? "사번 없음" : "사번 " + esc(m.empNo)}
+              · 봉사 ${m.records}건 · 신청 ${m.apps}건 · ${m.account ? "계정 있음" : "계정 없음"}${m.status === "retired" ? " · 퇴사" : ""}</span></div>
+            <div style="display:flex;flex-wrap:wrap;gap:8px">${ROLE.map(([v, l]) =>
+              chip(g.role[m.empNo] === v, `data-act="duprole" data-g="${gi}" data-e="${esc(m.empNo)}" data-v="${v}"`, l)).join("")}</div>
+          </div>`).join("")}
+          ${Object.keys(conf).map((f) => `<div style="padding-top:10px;border-top:1px solid var(--border,rgba(0,0,0,.08))">
+            <div style="margin-bottom:6px;color:var(--text-secondary)">${LABEL[f]}은(는) 어느 값으로 할까요?</div>
+            <div style="display:flex;flex-wrap:wrap;gap:8px">${conf[f].map((val) =>
+              chip(g.vals[f] === val, `data-act="dupval" data-g="${gi}" data-f="${f}" data-v="${esc(val)}"`, esc(val))).join("")}</div></div>`).join("")}
+          <button class="cta" style="margin-top:12px" data-act="dupmerge" data-g="${gi}"${ready ? "" : " disabled"}>${
+            ready ? `${esc(keep.name)} 님 ${merge.length + 1}줄을 한 명으로 합치기`
+            : !keep ? "남길 직원을 1명 골라 주세요"
+            : undecided ? `모든 직원의 선택이 필요합니다 (${undecided}명 남음)`
+            : !merge.length ? "합칠 직원을 골라 주세요" : `값을 골라 주세요 (${pickLeft}건 남음)`}</button>
+        </div>`;
+      }).join("")}
+    </div>`;
 }
 
 /* ── 중복 확인 상태: 담당자가 아직 고르지 않은 것이 몇 건인지 ── */

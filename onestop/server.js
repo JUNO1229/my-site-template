@@ -392,6 +392,14 @@ on("POST", "/api/admin/employee", async (req, res) => {
     if (!String(name || "").trim() || !String(dept || "").trim() || R.digits(phone).length < 9)
       return err(res, 400, "이름·부서·연락처를 모두 입력해 주세요.");
     const no = String(empNo || "").trim() || R.autoEmpNo(name, phone); // 사번을 모르면 자동으로 붙임
+    // 같은 사람이 두 줄로 생기지 않게 — 이름·연락처가 같으면 막고, 이름만 같으면 확인을 받는다
+    const probe = { empNo: no, name, phone };
+    const dupSure = db.employees.find((e) => R.isSure(probe, e));
+    if (dupSure) return err(res, 400, `이미 같은 직원이 있습니다 — ${dupSure.name} · ${dupSure.dept || "부서없음"} · ${dupSure.phone}. 정보를 고치려면 목록에서 [수정]을 눌러 주세요.`);
+    const dupName = db.employees.filter((e) => R.normName(e.name) === R.normName(name));
+    if (dupName.length && !body.force)
+      return json(res, 409, { ok: false, needConfirm: true,
+        error: `같은 이름의 직원이 이미 있습니다 — ${dupName.map((e) => `${e.name} · ${e.dept || "부서없음"} · ${e.phone}`).join(" / ")}. 다른 사람이면 계속 추가하세요.` });
     if (db.employees.some((e) => String(e.empNo) === no))
       return err(res, 400, "이미 있는 직원입니다. (사번 또는 이름·연락처가 같음)");
     db.employees.push({ empNo: no, name: String(name).trim(), dept: String(dept).trim(),
@@ -411,6 +419,8 @@ on("POST", "/api/admin/employee", async (req, res) => {
     if (!String(name || "").trim()) return err(res, 400, "이름을 입력해 주세요.");
     if (!String(dept || "").trim()) return err(res, 400, "부서를 입력해 주세요.");
     if (R.digits(phone).length < 9) return err(res, 400, "연락처를 정확히 입력해 주세요.");
+    const clash = db.employees.find((x) => x !== e && R.isSure({ empNo: "", name, phone }, x));
+    if (clash) return err(res, 400, `같은 이름·연락처의 직원이 이미 있습니다 — ${clash.name} · ${clash.dept || "부서없음"}. 중복을 합치려면 [중복 직원 찾기]를 이용해 주세요.`);
     Object.assign(e, { name: String(name).trim(), dept: String(dept).trim(),
       phone: String(phone).trim(), updatedAt: new Date().toISOString() });
   } else if (action === "retire" || action === "restore") {
@@ -435,6 +445,62 @@ on("POST", "/api/admin/employee", async (req, res) => {
 });
 
 /* 엑셀 올리기 — 미리보기와 반영을 나눠서 처리 */
+/* 이미 들어 있는 명단의 중복 찾기 */
+on("GET", "/api/admin/employee-dups", async (req, res) => {
+  const me = needAdmin(req, res); if (!me) return;
+  const db = store.get();
+  const cnt = (list) => { const m = new Map(); for (const x of list) m.set(String(x.empNo), (m.get(String(x.empNo)) || 0) + 1); return m; };
+  const rc = cnt(db.records), ac = cnt(db.apps);
+  const acc = new Map(db.accounts.map((a) => [String(a.empNo), a]));
+  const groups = R.findDupGroups(db.employees).map((g) => ({
+    level: g.level,
+    members: g.members.map((e) => ({
+      empNo: e.empNo, name: e.name, dept: e.dept, phone: e.phone, status: e.status || "active",
+      auto: R.isAutoNo(e), records: rc.get(String(e.empNo)) || 0, apps: ac.get(String(e.empNo)) || 0,
+      account: acc.has(String(e.empNo)), lastLogin: (acc.get(String(e.empNo)) || {}).lastLogin || null,
+    })),
+  }));
+  return ok(res, { groups });
+});
+
+/* 같은 사람 한 명으로 합치기 — 남길 직원 하나에 나머지를 합친다 */
+on("POST", "/api/admin/employee-merge", async (req, res) => {
+  const me = needAdmin(req, res); if (!me) return;
+  const { keep, merge, values } = JSON.parse((await readBody(req)).toString("utf8") || "{}");
+  const db = store.get();
+  const byNo = new Map(db.employees.map((e) => [String(e.empNo), e]));
+  const K = byNo.get(String(keep));
+  const M = (Array.isArray(merge) ? merge : []).map((n) => byNo.get(String(n))).filter(Boolean);
+  if (!K || !M.length || M.includes(K)) return err(res, 400, "남길 직원과 합칠 직원을 다시 골라 주세요.");
+  const v = values || {};
+  await store.snapshot("before-merge");
+
+  const now = new Date().toISOString();
+  const realNo = [K, ...M].find((e) => !R.isAutoNo(e));       // 진짜 사번이 있으면 그것을 씀
+  for (const f of ["name", "dept", "phone"]) {
+    const all = [K, ...M].map((e) => String(e[f] ?? "").trim()).filter(Boolean);
+    const distinct = [...new Set(all)];
+    if (distinct.length > 1 && !distinct.includes(String(v[f] ?? "").trim()))
+      return err(res, 400, `${{ name: "이름", dept: "부서", phone: "연락처" }[f]}을(를) 어느 값으로 할지 골라 주세요.`);
+    K[f] = distinct.length > 1 ? String(v[f]).trim() : (distinct[0] || "");
+  }
+  const keepAcc = db.accounts.find((a) => String(a.empNo) === String(K.empNo));
+  for (const m of M) {
+    const mAcc = db.accounts.find((a) => String(a.empNo) === String(m.empNo));
+    if (mAcc && !keepAcc) mAcc.empNo = String(K.empNo);           // 계정이 없던 쪽이면 이어받음
+    else if (mAcc) db.accounts = db.accounts.filter((a) => a !== mAcc);
+    for (const list of [db.records, db.apps, db.donations])
+      for (const x of list) if (String(x.empNo) === String(m.empNo)) { x.empNo = String(K.empNo); }
+    if (R.isActive(m)) K.status = "active";
+    db.employees = db.employees.filter((e) => e !== m);
+  }
+  if (realNo && realNo !== K) renameEmp(db, K.empNo, realNo.empNo); // 이미 사라진 쪽의 번호이므로 충돌 없음
+  K.updatedAt = now;
+  store.save();
+  writeLog({ event: "employee_merge", id: me.id, keep: K.empNo, merged: M.map((m) => m.empNo) });
+  return ok(res, { empNo: K.empNo, merged: M.length });
+});
+
 on("POST", "/api/admin/upload", async (req, res) => {
   const me = needAdmin(req, res); if (!me) return;
   const kind = new URL(req.url, "http://x").searchParams.get("kind");
