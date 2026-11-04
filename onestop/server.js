@@ -663,7 +663,7 @@ on("POST", "/api/admin/donation-delete", async (req, res) => {
 const MIME = {
   ".html": "text/html; charset=utf-8", ".js": "text/javascript; charset=utf-8",
   ".css": "text/css; charset=utf-8", ".png": "image/png", ".svg": "image/svg+xml",
-  ".ico": "image/x-icon", ".json": "application/json; charset=utf-8",
+  ".ico": "image/x-icon", ".woff2": "font/woff2", ".txt": "text/plain; charset=utf-8", ".json": "application/json; charset=utf-8",
 };
 function serveStatic(req, res, pathname) {
   let rel = pathname === "/" ? "/index.html" : pathname;
@@ -675,7 +675,8 @@ function serveStatic(req, res, pathname) {
   }
   res.writeHead(200, {
     "content-type": MIME[path.extname(file)] || "application/octet-stream",
-    "cache-control": "no-cache",
+    // 글꼴은 바뀌지 않으므로 오래 보관하게 해서 매번 다시 받지 않게 한다
+    "cache-control": file.endsWith(".woff2") ? "public, max-age=31536000, immutable" : "no-cache",
     "x-content-type-options": "nosniff",
   });
   fs.createReadStream(file).pipe(res);

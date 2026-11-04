@@ -52,7 +52,7 @@ html,body{
   /* ===== Motion ===== */
   --duration-fast:150ms; --duration-base:300ms; --easing:cubic-bezier(.2,0,0,1);
 
-  font-family:'Pretendard','Apple SD Gothic Neo','Malgun Gothic',system-ui,sans-serif;
+  font-family:'Noto Sans KR','Malgun Gothic','Apple SD Gothic Neo',system-ui,sans-serif;
   color:var(--text-primary); background:var(--color-bg);
   font-size:var(--fs-body-m); line-height:var(--lh-normal); word-break:keep-all;
   height:100%; overflow:hidden;

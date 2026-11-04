@@ -247,6 +247,10 @@ icons.js → app.js → demo.js → admin.js → events.js → demo-tail.js
 --fs-title-l:21px; --fs-title-m:17px; --fs-body-m:15px; --fs-body-s:14px; --fs-caption:13px;
 ```
 
+- **글꼴은 Noto Sans KR**(가변, 오픈 라이선스)입니다. 기준서의 Pretendard 대신 담당자가 정했습니다.
+  파일은 `public/fonts/noto-sans-kr/` 에 들어 있고 `public/fonts/noto-sans-kr.css` 가 불러옵니다.
+  바깥 주소로 받아오지 않으니 인터넷이 없어도 됩니다. 굵기는 400~600만 씁니다(700 이상 금지).
+  (체험판 HTML 한 장에는 글꼴이 들어가지 않아 Malgun Gothic 등 시스템 글꼴로 보입니다.)
 - 강조색(그라데이션)은 한 화면에 1~2곳만. 선택·활성 = 보라, 나머지 = 흰 카드/회색 면.
 - 구분선 대신 면의 밝기 차이와 옅은 그림자로 나눕니다(표는 줄무늬).
 - 틀은 **세 층**입니다: 머리글(고정) / 가운데(`.scroll-area`, 여기만 스크롤) / 아래 탭(고정).
