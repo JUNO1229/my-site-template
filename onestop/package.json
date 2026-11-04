@@ -1,0 +1,6 @@
+{
+  "name": "onestop",
+  "private": true,
+  "description": "원내 PC에서는 의존 패키지가 필요 없습니다. @vercel/blob 은 Vercel 배포에서만 쓰입니다.",
+  "dependencies": { "@vercel/blob": "2.8.2" }
+}

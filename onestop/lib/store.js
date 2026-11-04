@@ -24,13 +24,53 @@ const EMPTY = {
   admins: [],
 };
 
+/* Vercel 에서는 파일이 사라지므로 Vercel Blob(비공개 저장소)에 db 를 통째로 보관합니다.
+   BLOB_READ_WRITE_TOKEN 이 있을 때만 켜지고, 원내 PC 에서는 지금처럼 db.json 파일을 씁니다. */
+const REMOTE = !!process.env.BLOB_READ_WRITE_TOKEN;
+const BLOB_KEY = "onestop/db.json";
+let dirty = false;
+let lastBackupDay = "";
+
 let db = null;
 
 function ensureDirs() {
+  if (REMOTE) return;
   for (const d of [DATA, BACKUP]) if (!fs.existsSync(d)) fs.mkdirSync(d, { recursive: true });
 }
 
+/** (Blob 모드) 요청마다 맨 처음에 불러 옵니다 */
+async function pull() {
+  const { get: blobGet } = require("@vercel/blob");
+  const r = await blobGet(BLOB_KEY, { access: "private", useCache: false });
+  if (r && r.stream) {
+    db = { ...EMPTY, ...JSON.parse(await new Response(r.stream).text()) };
+  } else {
+    db = { ...EMPTY, secret: crypto.randomBytes(32).toString("hex") };
+    dirty = true; await flush();
+  }
+  if (!db.secret) { db.secret = crypto.randomBytes(32).toString("hex"); dirty = true; }
+  return db;
+}
+
+/** (Blob 모드) 바뀐 것이 있으면 저장합니다. 응답을 보내기 전에 기다립니다 */
+async function flush() {
+  if (!REMOTE || !dirty || !db) return;
+  const { put } = require("@vercel/blob");
+  const body = JSON.stringify(db);
+  const opt = { access: "private", allowOverwrite: true, addRandomSuffix: false, contentType: "application/json" };
+  await put(BLOB_KEY, body, opt);
+  dirty = false;
+  const day = new Date().toISOString().slice(0, 10);
+  if (day !== lastBackupDay) {            // 하루 한 번 백업 한 벌
+    await put(`onestop/backup/db-${day}.json`, body, opt);
+    lastBackupDay = day;
+  }
+}
+
 function load() {
+  if (REMOTE) { // pull() 을 거치지 않았을 때를 위한 빈 자료
+    return db || (db = { ...EMPTY, secret: crypto.randomBytes(32).toString("hex") });
+  }
   ensureDirs();
   if (!fs.existsSync(FILE)) {
     db = { ...EMPTY, secret: crypto.randomBytes(32).toString("hex") };
@@ -56,6 +96,7 @@ function load() {
 }
 
 function save() {
+  if (REMOTE) { dirty = true; return; }
   ensureDirs();
   const tmp = FILE + ".tmp";
   fs.writeFileSync(tmp, JSON.stringify(db, null, 1), "utf8");
@@ -64,6 +105,7 @@ function save() {
 
 /** 하루 한 번 백업을 남기고 30일이 지난 것은 지운다 */
 function backup() {
+  if (REMOTE) return;
   ensureDirs();
   const day = new Date().toISOString().slice(0, 10);
   const dest = path.join(BACKUP, `db-${day}.json`);
@@ -77,4 +119,4 @@ function backup() {
 
 const get = () => db || load();
 
-module.exports = { get, load, save, backup, DATA, FILE, BACKUP };
+module.exports = { get, load, save, backup, pull, flush, REMOTE, DATA, FILE, BACKUP };

@@ -577,8 +577,20 @@ if (require.main === module) {
 
 let ready = false;
 /** Vercel 함수 진입점 (api/index.js 가 부름) */
-function handler(req, res) {
-  if (!ready) { store.load(); bootstrapAdmin(); ready = true; }
+async function handler(req, res) {
+  try {
+    if (store.REMOTE) await store.pull(); // 요청마다 최신 자료를 불러옴
+    else if (!ready) { store.load(); ready = true; }
+    bootstrapAdmin();
+    if (store.REMOTE) { // 응답을 내보내기 직전에 바뀐 자료를 저장
+      const end = res.end.bind(res);
+      res.end = (...a) => { store.flush().catch((e) => console.error("[저장 실패]", e)).finally(() => end(...a)); return res; };
+    }
+  } catch (e) {
+    console.error("[시작 실패]", e);
+    res.statusCode = 500; res.setHeader("content-type", "application/json; charset=utf-8");
+    return res.end(JSON.stringify({ ok: false, error: "자료 저장소에 연결하지 못했습니다." }));
+  }
   return server.emit("request", req, res);
 }
 
