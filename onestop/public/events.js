@@ -147,7 +147,7 @@ async function act(a, d = {}) {
 
       /* ── 담당자 공통 ── */
       case "atab": S.adminTab = d.v; S.msg = null; S.pre = null; S.dups = null; S.editPost = null; S.editEmp = null; await refresh(); return render();
-      case "reload": await refresh(); setMsg("", "최신 내용을 불러왔습니다."); return render();
+      case "reload": document.querySelector("[data-act=reload] svg")?.classList.add("spin"); await refresh(); setMsg("", "최신 내용을 불러왔습니다."); return render();
       case "order": S.order = d.v; return render();
       case "filter": S.filter = d.v; return render();
       case "togdone": S.showDone = !S.showDone; S.editPost = null; return render();

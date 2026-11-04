@@ -49,10 +49,13 @@ function screenAdmin() {
           ${m.label}${m.n > 0 ? ` ${m.n}` : ""}</button>`).join("")}
       </div>
       <div class="toolbar">
-        <button class="btn g xs" data-act="reload">${I.refresh}<span style="margin-left:6px">새로고침</span></button>
-        <span class="meta">${A
-          ? `직원 ${A.employees.filter(isActive).length}명 · 공고 ${A.postings.length}건 · 신청 ${A.apps.length}건 · 후원 ${A.donations.length}건`
-          : "불러오는 중…"}</span>
+        <button class="btn g" data-act="reload">${I.refresh}<span style="margin-left:6px">새로고침</span></button>
+        <div class="stats" role="group" aria-label="현황 바로가기">${A
+          ? [["staff", "직원", A.employees.filter(isActive).length, "명"], ["post", "공고", A.postings.length, "건"],
+             ["apps", "신청", A.apps.length, "건"], ["donate", "후원", A.donations.length, "건"]]
+              .map(([id, name, n, u]) => `<button class="chip stat ${S.adminTab === id ? "on" : ""}" data-act="atab" data-v="${id}"
+                aria-label="${name} ${n}${u} — ${name} 화면으로 이동">${name} <span><b>${n}</b>${u}</span></button>`).join("")
+          : `<span class="chip stat sk-chip">불러오는 중…</span>`}</div>
       </div>
       <div class="scroll-area"><div class="page">${MsgBox()}${body}${Mission()}</div></div>
     </div>
