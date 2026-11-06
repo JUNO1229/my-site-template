@@ -1,0 +1,1137 @@
+[
+ {
+  "t": "2026-11-06T09:20:24",
+  "m": "GET",
+  "path": "?CD=1707897200",
+  "status": 200,
+  "len": 86999
+ },
+ {
+  "t": "2026-11-06T09:20:24",
+  "m": "POST",
+  "path": "eventCodeAjax",
+  "data": {
+   "CD": "1707897200"
+  },
+  "status": 200,
+  "len": 0
+ },
+ {
+  "t": "2026-11-06T09:20:28",
+  "m": "POST",
+  "path": "cartListAjax",
+  "data": {
+   "searchDiv": "",
+   "categoryDiv": "",
+   "categorySubDiv": "",
+   "searchWord": ""
+  },
+  "status": 200,
+  "len": 730639
+ },
+ {
+  "t": "2026-11-06T09:20:29",
+  "m": "POST",
+  "path": "cartListAjax",
+  "data": {
+   "searchDiv": "",
+   "categoryDiv": "삼성미라클안과",
+   "categorySubDiv": "라식·라섹",
+   "searchWord": ""
+  },
+  "status": 200,
+  "len": 4575
+ },
+ {
+  "t": "2026-11-06T09:20:33",
+  "m": "POST",
+  "path": "cartListAjax",
+  "data": {
+   "searchDiv": "",
+   "categoryDiv": "워터파크",
+   "categorySubDiv": "워터파크",
+   "searchWord": ""
+  },
+  "status": 200,
+  "len": 129919
+ },
+ {
+  "t": "2026-11-06T09:20:35",
+  "m": "POST",
+  "path": "cartListAjax",
+  "data": {
+   "searchDiv": "",
+   "categoryDiv": "숙박",
+   "categorySubDiv": "숙박",
+   "searchWord": ""
+  },
+  "status": 200,
+  "len": 58004
+ },
+ {
+  "t": "2026-11-06T09:20:38",
+  "m": "POST",
+  "path": "cartListAjax",
+  "data": {
+   "searchDiv": "",
+   "categoryDiv": "테마파크",
+   "categorySubDiv": "테마파크",
+   "searchWord": ""
+  },
+  "status": 200,
+  "len": 306731
+ },
+ {
+  "t": "2026-11-06T09:20:39",
+  "m": "POST",
+  "path": "cartListAjax",
+  "data": {
+   "searchDiv": "",
+   "categoryDiv": "테마파크",
+   "categorySubDiv": "놀이공원",
+   "searchWord": ""
+  },
+  "status": 200,
+  "len": 23471
+ },
+ {
+  "t": "2026-11-06T09:20:43",
+  "m": "POST",
+  "path": "cartListAjax",
+  "data": {
+   "searchDiv": "",
+   "categoryDiv": "테마파크",
+   "categorySubDiv": "아쿠아리움",
+   "searchWord": ""
+  },
+  "status": 200,
+  "len": 40713
+ },
+ {
+  "t": "2026-11-06T09:20:45",
+  "m": "POST",
+  "path": "cartListAjax",
+  "data": {
+   "searchDiv": "",
+   "categoryDiv": "공연",
+   "categorySubDiv": "연극",
+   "searchWord": ""
+  },
+  "status": 200,
+  "len": 23625
+ },
+ {
+  "t": "2026-11-06T09:20:47",
+  "m": "POST",
+  "path": "cartListAjax",
+  "data": {
+   "searchDiv": "",
+   "categoryDiv": "공연",
+   "categorySubDiv": "콘서트",
+   "searchWord": ""
+  },
+  "status": 200,
+  "len": 5648
+ },
+ {
+  "t": "2026-11-06T09:20:50",
+  "m": "POST",
+  "path": "cartListAjax",
+  "data": {
+   "searchDiv": "",
+   "categoryDiv": "공연",
+   "categorySubDiv": "뮤지컬",
+   "searchWord": ""
+  },
+  "status": 200,
+  "len": 7683
+ },
+ {
+  "t": "2026-11-06T09:20:53",
+  "m": "POST",
+  "path": "cartListAjax",
+  "data": {
+   "searchDiv": "",
+   "categoryDiv": "서울베스트의료의원",
+   "categorySubDiv": "건강검진",
+   "searchWord": ""
+  },
+  "status": 200,
+  "len": 4695
+ },
+ {
+  "t": "2026-11-06T09:20:55",
+  "m": "POST",
+  "path": "cartListAjax",
+  "data": {
+   "searchDiv": "",
+   "categoryDiv": "레져",
+   "categorySubDiv": "액티비티",
+   "searchWord": ""
+  },
+  "status": 200,
+  "len": 57013
+ },
+ {
+  "t": "2026-11-06T09:20:58",
+  "m": "POST",
+  "path": "cartListAjax",
+  "data": {
+   "searchDiv": "",
+   "categoryDiv": "레져",
+   "categorySubDiv": "크루즈",
+   "searchWord": ""
+  },
+  "status": 200,
+  "len": 45722
+ },
+ {
+  "t": "2026-11-06T09:21:00",
+  "m": "POST",
+  "path": "cartListAjax",
+  "data": {
+   "searchDiv": "",
+   "categoryDiv": "자동차 구매",
+   "categorySubDiv": "제네시스",
+   "searchWord": ""
+  },
+  "status": 200,
+  "len": 6926
+ },
+ {
+  "t": "2026-11-06T09:21:02",
+  "m": "POST",
+  "path": "cartListAjax",
+  "data": {
+   "searchDiv": "",
+   "categoryDiv": "전시",
+   "categorySubDiv": "박물관",
+   "searchWord": ""
+  },
+  "status": 200,
+  "len": 7128
+ },
+ {
+  "t": "2026-11-06T09:21:05",
+  "m": "POST",
+  "path": "cartListAjax",
+  "data": {
+   "searchDiv": "",
+   "categoryDiv": "헬스&푸드",
+   "categorySubDiv": "푸드",
+   "searchWord": ""
+  },
+  "status": 200,
+  "len": 8800
+ },
+ {
+  "t": "2026-11-06T09:21:08",
+  "m": "POST",
+  "path": "cartProduct",
+  "data": {
+   "idx_eventProduct": "243478"
+  },
+  "status": 200,
+  "len": 73350
+ },
+ {
+  "t": "2026-11-06T09:21:11",
+  "m": "POST",
+  "path": "cartProduct",
+  "data": {
+   "idx_eventProduct": "331639"
+  },
+  "status": 200,
+  "len": 77399
+ },
+ {
+  "t": "2026-11-06T09:21:14",
+  "m": "POST",
+  "path": "cartProduct",
+  "data": {
+   "idx_eventProduct": "333343"
+  },
+  "status": 200,
+  "len": 76456
+ },
+ {
+  "t": "2026-11-06T09:21:16",
+  "m": "POST",
+  "path": "cartProduct",
+  "data": {
+   "idx_eventProduct": "330631"
+  },
+  "status": 200,
+  "len": 76429
+ },
+ {
+  "t": "2026-11-06T09:21:18",
+  "m": "POST",
+  "path": "cartProduct",
+  "data": {
+   "idx_eventProduct": "331954"
+  },
+  "status": 200,
+  "len": 76944
+ },
+ {
+  "t": "2026-11-06T09:21:21",
+  "m": "POST",
+  "path": "cartProduct",
+  "data": {
+   "idx_eventProduct": "332836"
+  },
+  "status": 200,
+  "len": 79970
+ },
+ {
+  "t": "2026-11-06T09:21:24",
+  "m": "POST",
+  "path": "cartProduct",
+  "data": {
+   "idx_eventProduct": "332962"
+  },
+  "status": 200,
+  "len": 79413
+ },
+ {
+  "t": "2026-11-06T09:21:26",
+  "m": "POST",
+  "path": "cartProduct",
+  "data": {
+   "idx_eventProduct": "330505"
+  },
+  "status": 200,
+  "len": 77044
+ },
+ {
+  "t": "2026-11-06T09:21:28",
+  "m": "POST",
+  "path": "cartProduct",
+  "data": {
+   "idx_eventProduct": "328545"
+  },
+  "status": 200,
+  "len": 78203
+ },
+ {
+  "t": "2026-11-06T09:21:31",
+  "m": "POST",
+  "path": "cartProduct",
+  "data": {
+   "idx_eventProduct": "328609"
+  },
+  "status": 200,
+  "len": 80385
+ },
+ {
+  "t": "2026-11-06T09:21:34",
+  "m": "POST",
+  "path": "cartProduct",
+  "data": {
+   "idx_eventProduct": "332206"
+  },
+  "status": 200,
+  "len": 81612
+ },
+ {
+  "t": "2026-11-06T09:21:36",
+  "m": "POST",
+  "path": "cartProduct",
+  "data": {
+   "idx_eventProduct": "332143"
+  },
+  "status": 200,
+  "len": 77921
+ },
+ {
+  "t": "2026-11-06T09:21:38",
+  "m": "POST",
+  "path": "cartProduct",
+  "data": {
+   "idx_eventProduct": "225306"
+  },
+  "status": 200,
+  "len": 72525
+ },
+ {
+  "t": "2026-11-06T09:21:41",
+  "m": "POST",
+  "path": "cartProduct",
+  "data": {
+   "idx_eventProduct": "332017"
+  },
+  "status": 200,
+  "len": 76888
+ },
+ {
+  "t": "2026-11-06T09:21:43",
+  "m": "POST",
+  "path": "cartProduct",
+  "data": {
+   "idx_eventProduct": "332458"
+  },
+  "status": 200,
+  "len": 76104
+ },
+ {
+  "t": "2026-11-06T09:21:45",
+  "m": "POST",
+  "path": "cartProduct",
+  "data": {
+   "idx_eventProduct": "330001"
+  },
+  "status": 200,
+  "len": 76555
+ },
+ {
+  "t": "2026-11-06T09:21:48",
+  "m": "POST",
+  "path": "cartProduct",
+  "data": {
+   "idx_eventProduct": "327536"
+  },
+  "status": 200,
+  "len": 76657
+ },
+ {
+  "t": "2026-11-06T09:21:50",
+  "m": "POST",
+  "path": "cartProduct",
+  "data": {
+   "idx_eventProduct": "313585"
+  },
+  "status": 200,
+  "len": 77021
+ },
+ {
+  "t": "2026-11-06T09:21:52",
+  "m": "POST",
+  "path": "cartProduct",
+  "data": {
+   "idx_eventProduct": "331261"
+  },
+  "status": 200,
+  "len": 79335
+ },
+ {
+  "t": "2026-11-06T09:21:55",
+  "m": "POST",
+  "path": "cartProduct",
+  "data": {
+   "idx_eventProduct": "331387"
+  },
+  "status": 200,
+  "len": 77438
+ },
+ {
+  "t": "2026-11-06T09:21:58",
+  "m": "POST",
+  "path": "cartProduct",
+  "data": {
+   "idx_eventProduct": "331450"
+  },
+  "status": 200,
+  "len": 77263
+ },
+ {
+  "t": "2026-11-06T09:22:00",
+  "m": "POST",
+  "path": "cartProduct",
+  "data": {
+   "idx_eventProduct": "331513"
+  },
+  "status": 200,
+  "len": 77418
+ },
+ {
+  "t": "2026-11-06T09:22:03",
+  "m": "POST",
+  "path": "cartProduct",
+  "data": {
+   "idx_eventProduct": "293316"
+  },
+  "status": 200,
+  "len": 76045
+ },
+ {
+  "t": "2026-11-06T09:22:05",
+  "m": "POST",
+  "path": "cartProduct",
+  "data": {
+   "idx_eventProduct": "311872"
+  },
+  "status": 200,
+  "len": 76974
+ },
+ {
+  "t": "2026-11-06T09:22:08",
+  "m": "POST",
+  "path": "cartProduct",
+  "data": {
+   "idx_eventProduct": "326465"
+  },
+  "status": 200,
+  "len": 78131
+ },
+ {
+  "t": "2026-11-06T09:22:10",
+  "m": "POST",
+  "path": "cartProduct",
+  "data": {
+   "idx_eventProduct": "331198"
+  },
+  "status": 200,
+  "len": 79361
+ },
+ {
+  "t": "2026-11-06T09:22:12",
+  "m": "POST",
+  "path": "cartProduct",
+  "data": {
+   "idx_eventProduct": "333028"
+  },
+  "status": 200,
+  "len": 77337
+ },
+ {
+  "t": "2026-11-06T09:22:15",
+  "m": "POST",
+  "path": "cartProduct",
+  "data": {
+   "idx_eventProduct": "331828"
+  },
+  "status": 200,
+  "len": 79470
+ },
+ {
+  "t": "2026-11-06T09:22:18",
+  "m": "POST",
+  "path": "cartProduct",
+  "data": {
+   "idx_eventProduct": "331891"
+  },
+  "status": 200,
+  "len": 78923
+ },
+ {
+  "t": "2026-11-06T09:22:20",
+  "m": "POST",
+  "path": "cartProduct",
+  "data": {
+   "idx_eventProduct": "292620"
+  },
+  "status": 200,
+  "len": 76707
+ },
+ {
+  "t": "2026-11-06T09:22:22",
+  "m": "POST",
+  "path": "cartProduct",
+  "data": {
+   "idx_eventProduct": "332521"
+  },
+  "status": 200,
+  "len": 76890
+ },
+ {
+  "t": "2026-11-06T09:22:25",
+  "m": "POST",
+  "path": "cartProduct",
+  "data": {
+   "idx_eventProduct": "327851"
+  },
+  "status": 200,
+  "len": 75815
+ },
+ {
+  "t": "2026-11-06T09:22:28",
+  "m": "POST",
+  "path": "cartProduct",
+  "data": {
+   "idx_eventProduct": "322055"
+  },
+  "status": 200,
+  "len": 76749
+ },
+ {
+  "t": "2026-11-06T09:22:30",
+  "m": "POST",
+  "path": "cartProduct",
+  "data": {
+   "idx_eventProduct": "327788"
+  },
+  "status": 200,
+  "len": 75510
+ },
+ {
+  "t": "2026-11-06T09:22:32",
+  "m": "POST",
+  "path": "cartProduct",
+  "data": {
+   "idx_eventProduct": "311557"
+  },
+  "status": 200,
+  "len": 77110
+ },
+ {
+  "t": "2026-11-06T09:22:35",
+  "m": "POST",
+  "path": "cartProduct",
+  "data": {
+   "idx_eventProduct": "311746"
+  },
+  "status": 200,
+  "len": 77919
+ },
+ {
+  "t": "2026-11-06T09:22:38",
+  "m": "POST",
+  "path": "cartProduct",
+  "data": {
+   "idx_eventProduct": "332080"
+  },
+  "status": 200,
+  "len": 77763
+ },
+ {
+  "t": "2026-11-06T09:22:40",
+  "m": "POST",
+  "path": "cartProduct",
+  "data": {
+   "idx_eventProduct": "327284"
+  },
+  "status": 200,
+  "len": 76880
+ },
+ {
+  "t": "2026-11-06T09:22:43",
+  "m": "POST",
+  "path": "cartProduct",
+  "data": {
+   "idx_eventProduct": "328862"
+  },
+  "status": 200,
+  "len": 77101
+ },
+ {
+  "t": "2026-11-06T09:22:46",
+  "m": "POST",
+  "path": "cartProduct",
+  "data": {
+   "idx_eventProduct": "332710"
+  },
+  "status": 200,
+  "len": 75928
+ },
+ {
+  "t": "2026-11-06T09:22:48",
+  "m": "POST",
+  "path": "cartProduct",
+  "data": {
+   "idx_eventProduct": "331009"
+  },
+  "status": 200,
+  "len": 75766
+ },
+ {
+  "t": "2026-11-06T09:22:50",
+  "m": "POST",
+  "path": "cartProduct",
+  "data": {
+   "idx_eventProduct": "332332"
+  },
+  "status": 200,
+  "len": 76129
+ },
+ {
+  "t": "2026-11-06T09:22:53",
+  "m": "POST",
+  "path": "cartProduct",
+  "data": {
+   "idx_eventProduct": "331765"
+  },
+  "status": 200,
+  "len": 78842
+ },
+ {
+  "t": "2026-11-06T09:22:56",
+  "m": "POST",
+  "path": "cartProduct",
+  "data": {
+   "idx_eventProduct": "331324"
+  },
+  "status": 200,
+  "len": 77892
+ },
+ {
+  "t": "2026-11-06T09:22:59",
+  "m": "POST",
+  "path": "cartProduct",
+  "data": {
+   "idx_eventProduct": "332395"
+  },
+  "status": 200,
+  "len": 77216
+ },
+ {
+  "t": "2026-11-06T09:23:01",
+  "m": "POST",
+  "path": "cartProduct",
+  "data": {
+   "idx_eventProduct": "332269"
+  },
+  "status": 200,
+  "len": 78584
+ },
+ {
+  "t": "2026-11-06T09:23:04",
+  "m": "POST",
+  "path": "cartProduct",
+  "data": {
+   "idx_eventProduct": "325268"
+  },
+  "status": 200,
+  "len": 78193
+ },
+ {
+  "t": "2026-11-06T09:23:06",
+  "m": "POST",
+  "path": "cartProduct",
+  "data": {
+   "idx_eventProduct": "320284"
+  },
+  "status": 200,
+  "len": 76678
+ },
+ {
+  "t": "2026-11-06T09:23:09",
+  "m": "POST",
+  "path": "cartProduct",
+  "data": {
+   "idx_eventProduct": "309658"
+  },
+  "status": 200,
+  "len": 76314
+ },
+ {
+  "t": "2026-11-06T09:23:11",
+  "m": "POST",
+  "path": "cartProduct",
+  "data": {
+   "idx_eventProduct": "328229"
+  },
+  "status": 200,
+  "len": 75996
+ },
+ {
+  "t": "2026-11-06T09:23:14",
+  "m": "POST",
+  "path": "cartProduct",
+  "data": {
+   "idx_eventProduct": "330253"
+  },
+  "status": 200,
+  "len": 77382
+ },
+ {
+  "t": "2026-11-06T09:23:16",
+  "m": "POST",
+  "path": "cartProduct",
+  "data": {
+   "idx_eventProduct": "327095"
+  },
+  "status": 200,
+  "len": 77194
+ },
+ {
+  "t": "2026-11-06T09:23:19",
+  "m": "POST",
+  "path": "cartProduct",
+  "data": {
+   "idx_eventProduct": "279057"
+  },
+  "status": 200,
+  "len": 76745
+ },
+ {
+  "t": "2026-11-06T09:23:21",
+  "m": "POST",
+  "path": "cartProduct",
+  "data": {
+   "idx_eventProduct": "330316"
+  },
+  "status": 200,
+  "len": 77676
+ },
+ {
+  "t": "2026-11-06T09:23:23",
+  "m": "POST",
+  "path": "cartProduct",
+  "data": {
+   "idx_eventProduct": "332899"
+  },
+  "status": 200,
+  "len": 77481
+ },
+ {
+  "t": "2026-11-06T09:23:26",
+  "m": "POST",
+  "path": "cartProduct",
+  "data": {
+   "idx_eventProduct": "328481"
+  },
+  "status": 200,
+  "len": 79154
+ },
+ {
+  "t": "2026-11-06T09:23:28",
+  "m": "POST",
+  "path": "cartProduct",
+  "data": {
+   "idx_eventProduct": "329686"
+  },
+  "status": 200,
+  "len": 76778
+ },
+ {
+  "t": "2026-11-06T09:23:31",
+  "m": "POST",
+  "path": "cartProduct",
+  "data": {
+   "idx_eventProduct": "329749"
+  },
+  "status": 200,
+  "len": 76384
+ },
+ {
+  "t": "2026-11-06T09:23:33",
+  "m": "POST",
+  "path": "cartProduct",
+  "data": {
+   "idx_eventProduct": "330064"
+  },
+  "status": 200,
+  "len": 76743
+ },
+ {
+  "t": "2026-11-06T09:23:35",
+  "m": "POST",
+  "path": "cartProduct",
+  "data": {
+   "idx_eventProduct": "329875"
+  },
+  "status": 200,
+  "len": 77553
+ },
+ {
+  "t": "2026-11-06T09:23:38",
+  "m": "POST",
+  "path": "cartProduct",
+  "data": {
+   "idx_eventProduct": "329812"
+  },
+  "status": 200,
+  "len": 76775
+ },
+ {
+  "t": "2026-11-06T09:23:41",
+  "m": "POST",
+  "path": "cartProduct",
+  "data": {
+   "idx_eventProduct": "332773"
+  },
+  "status": 200,
+  "len": 76371
+ },
+ {
+  "t": "2026-11-06T09:23:43",
+  "m": "POST",
+  "path": "cartProduct",
+  "data": {
+   "idx_eventProduct": "332584"
+  },
+  "status": 200,
+  "len": 82623
+ },
+ {
+  "t": "2026-11-06T09:23:45",
+  "m": "POST",
+  "path": "cartProduct",
+  "data": {
+   "idx_eventProduct": "333091"
+  },
+  "status": 200,
+  "len": 76693
+ },
+ {
+  "t": "2026-11-06T09:23:48",
+  "m": "POST",
+  "path": "cartProduct",
+  "data": {
+   "idx_eventProduct": "328925"
+  },
+  "status": 200,
+  "len": 76549
+ },
+ {
+  "t": "2026-11-06T09:23:51",
+  "m": "POST",
+  "path": "cartProduct",
+  "data": {
+   "idx_eventProduct": "326528"
+  },
+  "status": 200,
+  "len": 76405
+ },
+ {
+  "t": "2026-11-06T09:23:54",
+  "m": "POST",
+  "path": "cartProduct",
+  "data": {
+   "idx_eventProduct": "280321"
+  },
+  "status": 200,
+  "len": 77202
+ },
+ {
+  "t": "2026-11-06T09:23:56",
+  "m": "POST",
+  "path": "cartProduct",
+  "data": {
+   "idx_eventProduct": "328418"
+  },
+  "status": 200,
+  "len": 77859
+ },
+ {
+  "t": "2026-11-06T09:23:59",
+  "m": "POST",
+  "path": "cartProduct",
+  "data": {
+   "idx_eventProduct": "308015"
+  },
+  "status": 200,
+  "len": 77481
+ },
+ {
+  "t": "2026-11-06T09:24:01",
+  "m": "POST",
+  "path": "cartProduct",
+  "data": {
+   "idx_eventProduct": "244498"
+  },
+  "status": 200,
+  "len": 76825
+ },
+ {
+  "t": "2026-11-06T09:24:03",
+  "m": "POST",
+  "path": "cartProduct",
+  "data": {
+   "idx_eventProduct": "320158"
+  },
+  "status": 200,
+  "len": 76901
+ },
+ {
+  "t": "2026-11-06T09:24:06",
+  "m": "POST",
+  "path": "cartProduct",
+  "data": {
+   "idx_eventProduct": "280924"
+  },
+  "status": 200,
+  "len": 76789
+ },
+ {
+  "t": "2026-11-06T09:24:08",
+  "m": "POST",
+  "path": "cartProduct",
+  "data": {
+   "idx_eventProduct": "234364"
+  },
+  "status": 200,
+  "len": 76939
+ },
+ {
+  "t": "2026-11-06T09:24:10",
+  "m": "POST",
+  "path": "cartProduct",
+  "data": {
+   "idx_eventProduct": "324008"
+  },
+  "status": 200,
+  "len": 76306
+ },
+ {
+  "t": "2026-11-06T09:24:13",
+  "m": "POST",
+  "path": "cartProduct",
+  "data": {
+   "idx_eventProduct": "311809"
+  },
+  "status": 200,
+  "len": 77221
+ },
+ {
+  "t": "2026-11-06T09:24:16",
+  "m": "POST",
+  "path": "cartProduct",
+  "data": {
+   "idx_eventProduct": "332647"
+  },
+  "status": 200,
+  "len": 75612
+ },
+ {
+  "t": "2026-11-06T09:24:18",
+  "m": "POST",
+  "path": "cartProduct",
+  "data": {
+   "idx_eventProduct": "293638"
+  },
+  "status": 200,
+  "len": 76539
+ },
+ {
+  "t": "2026-11-06T09:24:21",
+  "m": "POST",
+  "path": "cartProduct",
+  "data": {
+   "idx_eventProduct": "276039"
+  },
+  "status": 200,
+  "len": 77257
+ },
+ {
+  "t": "2026-11-06T09:24:23",
+  "m": "POST",
+  "path": "cartProduct",
+  "data": {
+   "idx_eventProduct": "234301"
+  },
+  "status": 200,
+  "len": 77223
+ },
+ {
+  "t": "2026-11-06T09:24:26",
+  "m": "POST",
+  "path": "cartProduct",
+  "data": {
+   "idx_eventProduct": "333280"
+  },
+  "status": 200,
+  "len": 80056
+ },
+ {
+  "t": "2026-11-06T09:24:29",
+  "m": "POST",
+  "path": "cartProduct",
+  "data": {
+   "idx_eventProduct": "333154"
+  },
+  "status": 200,
+  "len": 78792
+ },
+ {
+  "t": "2026-11-06T09:24:32",
+  "m": "POST",
+  "path": "cartProduct",
+  "data": {
+   "idx_eventProduct": "333217"
+  },
+  "status": 200,
+  "len": 78914
+ },
+ {
+  "t": "2026-11-06T09:24:34",
+  "m": "POST",
+  "path": "cartProduct",
+  "data": {
+   "idx_eventProduct": "225209"
+  },
+  "status": 200,
+  "len": 78427
+ },
+ {
+  "t": "2026-11-06T09:24:39",
+  "m": "POST",
+  "path": "cartProduct",
+  "data": {
+   "idx_eventProduct": "243104"
+  },
+  "status": 200,
+  "len": 77492
+ },
+ {
+  "t": "2026-11-06T09:24:40",
+  "m": "POST",
+  "path": "cartProduct",
+  "data": {
+   "idx_eventProduct": "292493"
+  },
+  "status": 200,
+  "len": 76469
+ },
+ {
+  "t": "2026-11-06T09:24:42",
+  "m": "POST",
+  "path": "cartProduct",
+  "data": {
+   "idx_eventProduct": "292556"
+  },
+  "status": 200,
+  "len": 75890
+ },
+ {
+  "t": "2026-11-06T09:24:44",
+  "m": "POST",
+  "path": "cartProduct",
+  "data": {
+   "idx_eventProduct": "225217"
+  },
+  "status": 200,
+  "len": 78173
+ },
+ {
+  "t": "2026-11-06T09:24:47",
+  "m": "POST",
+  "path": "cartProduct",
+  "data": {
+   "idx_eventProduct": "225212"
+  },
+  "status": 200,
+  "len": 77397
+ },
+ {
+  "t": "2026-11-06T09:24:49",
+  "m": "POST",
+  "path": "cartProduct",
+  "data": {
+   "idx_eventProduct": "330946"
+  },
+  "status": 200,
+  "len": 75765
+ },
+ {
+  "t": "2026-11-06T09:24:52",
+  "m": "POST",
+  "path": "cartProduct",
+  "data": {
+   "idx_eventProduct": "274453"
+  },
+  "status": 200,
+  "len": 77330
+ },
+ {
+  "t": "2026-11-06T09:24:54",
+  "m": "POST",
+  "path": "cartProduct",
+  "data": {
+   "idx_eventProduct": "225256"
+  },
+  "status": 200,
+  "len": 77057
+ }
+]

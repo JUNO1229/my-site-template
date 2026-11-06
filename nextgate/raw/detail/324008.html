@@ -878,27 +878,27 @@ function submitNotice(count)
 														
 															<span class="x" onclick="submitNotice(1)">
 																<input type="hidden" value="1">
-																<a href="javascript:void(0)" data-name="n1" >장암 아일랜드 워터파크 재 판매 안내</a>
+																<a href="javascript:void(0)" data-name="n1" >→ 종이티켓 주문시 필독사항[남산전망대 PKG 및 블루오션레지던스 호텔 숙박권] </a>
 															</span>
 														
 															<span class="x" onclick="submitNotice(2)">
 																<input type="hidden" value="2">
-																<a href="javascript:void(0)" data-name="n1" >※※※※ 넥스트에너지 운영시간 [2/28 토 부터  ~ 3/28 월 까지]</a>
+																<a href="javascript:void(0)" data-name="n1" >※ 2025년 넥스트에너지 고객센터 운영시간 안내</a>
 															</span>
 														
 															<span class="x" onclick="submitNotice(3)">
 																<input type="hidden" value="3">
-																<a href="javascript:void(0)" data-name="n1" >※※※※구정 연휴 기간 넥스트에너지 운영시간 [2/14 토 부터  ~ 2/18 수 까지]</a>
+																<a href="javascript:void(0)" data-name="n1" >※ 게시판 문의를 통한 환불신청 불가</a>
 															</span>
 														
 															<span class="x" onclick="submitNotice(4)">
 																<input type="hidden" value="4">
-																<a href="javascript:void(0)" data-name="n1" >※※※※추석연휴기간 넥스트에너지 운영시간</a>
+																<a href="javascript:void(0)" data-name="n1" >취소 · 환불 시 고객센터로 문의(02-536-0836) 및 환불금  입금 안내</a>
 															</span>
 														
 															<span class="x" onclick="submitNotice(5)">
 																<input type="hidden" value="5">
-																<a href="javascript:void(0)" data-name="n1" >※ 파라다이스 스파도고 모바일티켓  판매 개시</a>
+																<a href="javascript:void(0)" data-name="n1" >***** 취소/환불 규정안내(남산케이블카+전망대 종이티켓 유효기간 25/08/31 상품)</a>
 															</span>
 														
 													</div>
@@ -941,13 +941,13 @@ function submitNotice(count)
 				            
 								<li class="li_item" onclick="categorySearch('삼성미라클안과')" >삼성미라클안과</li>
 							
-								<li class="li_item" onclick="categorySearch('테마파크')" >테마파크</li>
-							
-								<li class="li_item" onclick="categorySearch('공연')" >공연</li>
+								<li class="li_item" onclick="categorySearch('워터파크')" >워터파크</li>
 							
 								<li class="li_item" onclick="categorySearch('숙박')" >숙박</li>
 							
-								<li class="li_item" onclick="categorySearch('워터파크')" >워터파크</li>
+								<li class="li_item" onclick="categorySearch('테마파크')" >테마파크</li>
+							
+								<li class="li_item" onclick="categorySearch('공연')" >공연</li>
 							
 								<li class="li_item" onclick="categorySearch('서울베스트의료의원')" >서울베스트의료의원</li>
 							
@@ -1022,10 +1022,10 @@ function submitNotice(count)
 	                <p class="tit_01">푸른 남해 바다가 보이는 남해 양떼목장!</p>
 	                <p class="detail_tit">[남해] 양떼목장 양모리 학교</p>
 	                <p class="pre_price">정상가 <span style="text-decoration:line-through">7,000원</span></p>
-	                <p class="detail_price">판매가 5,650원<span style="font-weight:400;font-size:18px;color:#333333;letter-spacing:-0.02em;margin:0 20px;">(대인 이용권 남해 양떼목장(~10/31) 기준)</span></p>
+	                <p class="detail_price">판매가 5,650원<span style="font-weight:400;font-size:18px;color:#333333;letter-spacing:-0.02em;margin:0 20px;">(대인 이용권 남해 양떼목장(~27/02/28) 기준)</span></p>
 <!-- 	                 option_hide-->
 	                <div id="normal_option" class=" "> 
-	                	<p class="option">유효기간 | 2026-05-08 ~ 2026-10-31</p>
+	                	<p class="option">유효기간 | 2026-05-08 ~ 2027-02-28</p>
 	                	
 		                <!-- 구매 -->
 		                <form action="cartOrder" id="orderDirect" method="post">
@@ -1043,7 +1043,7 @@ function submitNotice(count)
 													data-discount="19" 
 													data-min_ticket_unit="1"
 													value="5650">
-														대인 이용권 남해 양떼목장(~10/31)
+														대인 이용권 남해 양떼목장(~27/02/28)
 											</option>
 										
 											<option data-id="4122140" 
@@ -1051,7 +1051,7 @@ function submitNotice(count)
 													data-discount="6" 
 													data-min_ticket_unit="1"
 													value="3750">
-														소인 이용권 남해 양떼목장(~10/31)
+														소인 이용권 남해 양떼목장(~27/02/28)
 											</option>
 										
 			                        </select>
@@ -1145,6 +1145,20 @@ function submitNotice(count)
 							
 						</ul>
 					
+						<div class="accordion" onclick="categorySearch('워터파크')" >워터파크</div>
+						<ul>	
+							
+								<li><a href="javascript:categorySubSearch('워터파크', '워터파크')" >워터파크</a></li>
+							
+						</ul>
+					
+						<div class="accordion" onclick="categorySearch('숙박')" >숙박</div>
+						<ul>	
+							
+								<li><a href="javascript:categorySubSearch('숙박', '숙박')" >숙박</a></li>
+							
+						</ul>
+					
 						<div class="accordion" onclick="categorySearch('테마파크')" >테마파크</div>
 						<ul>	
 							
@@ -1164,20 +1178,6 @@ function submitNotice(count)
 								<li><a href="javascript:categorySubSearch('공연', '콘서트')" >콘서트</a></li>
 							
 								<li><a href="javascript:categorySubSearch('공연', '뮤지컬')" >뮤지컬</a></li>
-							
-						</ul>
-					
-						<div class="accordion" onclick="categorySearch('숙박')" >숙박</div>
-						<ul>	
-							
-								<li><a href="javascript:categorySubSearch('숙박', '숙박')" >숙박</a></li>
-							
-						</ul>
-					
-						<div class="accordion" onclick="categorySearch('워터파크')" >워터파크</div>
-						<ul>	
-							
-								<li><a href="javascript:categorySubSearch('워터파크', '워터파크')" >워터파크</a></li>
 							
 						</ul>
 					
@@ -1881,7 +1881,7 @@ function submitNotice(count)
 		            <div class="contents_box">
 		                <section>
 		                    <h3 style="margin-top: 0;">▷ 상품 기본정보</h3>
-		                    <p>[필독!! 발송정보]<br><br>◇ 바로 발송 가능 상품 : `결제(입금) 완료` 건에 한해서 모바일 이용권이 20분이내 휴대폰 번호로 발송(미수신 시 휴대폰 차단 기능 확인!!)<br>◇ 수신 후 바로 사용 가능 : 모바일 이용권 수신 후 바로 사용 가능, 결제 내역으로는 이용 불가합니다.<br>　<span style="background-color: rgb(0, 255, 255);"><strong><u>※ 카카오톡발송채널 : 엘에스컴퍼니</u></strong></span><br><br><br>[필독!! 이용정보]<br><br>※ 당일 구매/사용 가능(방문 1시간 전 구매 필수)<br><br>※ 대인,소인 구분하여 구매 부탁드립니다.(주중/주말 공통)<br><br>◆ 유효 기간 : ~26/10/31(토) 까지<br>◆ 이용 업체 : 남해 양떼목장 양모리 학교<br>◆ 운영 일정 : 이용업체 홈페이지 참조 필수<br><br><br><br>◆ 구매 수량 : 1인당 10매까지 구입 가능<br>◆ 이용 방법 : 모바일 이용권 현장 매표소 제시 후 이용 가능(재발송 가능 상품)<br>◆ 권종 구분 : 주중/주말, 대인/소인 구분하여 1인 1매 <br>◆ 추가 할인 : 해당 상품은 할인 가격으로 판매되는 상품으로 추가 할인을 받으실 수 없습니다.<br>◆ 이용 업체에 대한 전반적인 이용 정보(운영 사항, 유의 사항, 안전 점검, 편의 시설 등)는 꼭 방문 전 홈페이지를 확인하시길 바랍니다.</p>
+		                    <p>[필독!! 발송정보]<br><br>◇ 바로 발송 가능 상품 : `결제(입금) 완료` 건에 한해서 모바일 이용권이 20분이내 휴대폰 번호로 발송(미수신 시 휴대폰 차단 기능 확인!!)<br>◇ 수신 후 바로 사용 가능 : 모바일 이용권 수신 후 바로 사용 가능, 결제 내역으로는 이용 불가합니다.<br>　<span style="background-color: rgb(0, 255, 255);"><strong><u>※ 카카오톡발송채널 : 엘에스컴퍼니</u></strong></span><br><br><br>[필독!! 이용정보]<br><br>※ 당일 구매/사용 가능(방문 1시간 전 구매 필수)<br><br>※ 대인,소인 구분하여 구매 부탁드립니다.(주중/주말 공통)<br><br>◆ 유효 기간 : ~ 27년 2월 28일 까지<br><br>◆ 이용 업체 : 남해 양떼목장 양모리 학교<br>◆ 운영 일정 : 이용업체 홈페이지 참조 필수<br><br><br><br>◆ 구매 수량 : 1인당 10매까지 구입 가능<br>◆ 이용 방법 : 모바일 이용권 현장 매표소 제시 후 이용 가능(재발송 가능 상품)<br>◆ 권종 구분 : 주중/주말, 대인/소인 구분하여 1인 1매 <br>◆ 추가 할인 : 해당 상품은 할인 가격으로 판매되는 상품으로 추가 할인을 받으실 수 없습니다.<br>◆ 이용 업체에 대한 전반적인 이용 정보(운영 사항, 유의 사항, 안전 점검, 편의 시설 등)는 꼭 방문 전 홈페이지를 확인하시길 바랍니다.</p>
 		                </section>             
 		                <section>
 		                    <h3 id="details_tab02">▷ 취소˙환불규정을 확인하세요!</h3>

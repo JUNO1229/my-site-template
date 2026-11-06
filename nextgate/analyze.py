@@ -78,9 +78,9 @@ def sido_of(region, address):
     return list(dict.fromkeys(out))
 
 
-def load():
-    prods = list(csv.DictReader(open(DATA / "nextgate_products.csv", encoding="utf-8-sig")))
-    opts = list(csv.DictReader(open(DATA / "nextgate_options.csv", encoding="utf-8-sig")))
+def load(prod_csv=DATA / "nextgate_products.csv", opt_csv=DATA / "nextgate_options.csv"):
+    prods = list(csv.DictReader(open(prod_csv, encoding="utf-8-sig")))
+    opts = list(csv.DictReader(open(opt_csv, encoding="utf-8-sig")))
     for p in prods:
         for k in ("list_price", "sale_price", "discount_pct", "max_qty", "option_count"):
             p[k] = int(p[k]) if p[k] not in ("", None) else None
@@ -256,6 +256,7 @@ def main():
                      fmt(min(ds), "%") if ds else "해당 옵션 없음", fmt(round(st.mean(ds), 1), "%") if ds else "-",
                      fmt(max(ds), "%") if ds else "-",
                      (fmt(round(st.mean(ds) - p["discount_pct"], 1), "%p") if ds else "-")])
+    aw_rows = rows
     A(f"{len(rows)}개. '대인·주말'은 대인(또는 대소공통) 권종 중 주말 또는 주중+주말 옵션.")
     A("")
     A(table(["카테고리", "상품", "대표 기준", "대표 할인율", "대인·주말 옵션 수", "최소", "평균", "최대", "평균-대표 차이"], rows))
@@ -277,7 +278,7 @@ def main():
         reason = []
         if re.fullmatch(r"\d{4}-\d{2}-01", vf or "") and re.fullmatch(r"\d{4}-\d{2}-\d{2}", vt or ""):
             f, t = date.fromisoformat(vf), date.fromisoformat(vt)
-            if f.month == t.month and (t + timedelta(days=1)).day == 1:
+            if (f.year, f.month) == (t.year, t.month) and (t + timedelta(days=1)).day == 1:
                 reason.append(f"유효기간 {vf}~{vt} (한 달)")
         if re.search(r"\d+월\s*\d+일[^\n]{0,15}(?:구매\s*사이트\s*)?(?:open|오픈)|매월|월\s*단위|월별\s*(?:판매|오픈)",
                      p["notice_text"], re.I):
@@ -288,7 +289,7 @@ def main():
             if o["start_div"] != "구매일" and o["end_div"] != "구매일" and \
                     re.fullmatch(r"\d{4}-\d{2}-01", o["start_date"] or "") and re.fullmatch(r"\d{4}-\d{2}-\d{2}", o["end_date"] or ""):
                 f, t = date.fromisoformat(o["start_date"]), date.fromisoformat(o["end_date"])
-                if f.month == t.month and t.day >= 28:
+                if (f.year, f.month) == (t.year, t.month) and t.day >= 28:
                     mo.append(f"{f.month}월")
         if mo and not reason:
             reason.append(f"옵션 {len(mo)}개가 {', '.join(dict.fromkeys(mo))} 한 달 단위")
@@ -308,7 +309,9 @@ def main():
         A("")
     A(f"### 30일 안에 끝나는 상품 ({today.isoformat()} 기준): {len(soon)}개")
     A("")
-    A(f"종료일이 수집일({today.isoformat()})과 같은 상품 {sum(1 for _, d in soon if d == 0)}개는 다음 날부터 기간 경과 상태가 됨. 유효기간 종료 = 옵션 종료일 중 가장 늦은 날.")
+    same_day = sum(1 for _, d in soon if d == 0)
+    A((f"종료일이 수집일({today.isoformat()})과 같은 상품 {same_day}개는 다음 날부터 기간 경과 상태가 됨. " if same_day else "")
+      + "유효기간 종료 = 옵션 종료일 중 가장 늦은 날.")
     A("")
     if soon:
         A(table(["카테고리", "상품", "종료일", "남은 일수"],
@@ -405,8 +408,11 @@ def main():
     A("")
 
     md = implications(md, prods, priced, groups, mat, focus, ch, wtop, by_pid)
+    diff = compare(prods, opts, today)
+    if diff:
+        md += [""] + diff["md"]
     (OUT / "report.md").write_text("\n".join(md))
-    ctx = dict(prods=prods, opts=opts, priced=priced, groups=groups, cats1=cats1, mat=mat, focus=focus, low=low,
+    ctx = dict(diff=diff, aw_rows=aw_rows, by_pid=by_pid, sido_cnt=sido_cnt, prods=prods, opts=opts, priced=priced, groups=groups, cats1=cats1, mat=mat, focus=focus, low=low,
                ch=ch, wp=wp, wtop=wtop, today=today, expired=expired, soon=soon, monthly=monthly, exp_opts=exp_opts)
     build_xlsx(prods, opts, focus, wp, wtop)
     return ctx
@@ -423,7 +429,7 @@ def implications(md, prods, priced, groups, mat, focus, ch, wtop, by_pid):
     L.append(f"- **테마파크 {fmt(tp, '%')} · 아쿠아리움 {fmt(aq, '%')} · 워터파크 {fmt(wp, '%')}**: 넥스트에너지 중간값. "
              "직계약 할인율이 이 값 이상이면 넥스트에너지 동일 카테고리 상품의 절반 이상보다 유리함 → 영업 제안의 최저선으로 사용 (제안).")
     wp_hi = sum(1 for p in groups[("워터파크", "워터파크")] if p["discount_pct"] >= 40)
-    L.append(f"- 워터파크는 17개 중 {wp_hi}개가 40% 이상 → 워터파크는 '시설 직계약 원가'가 아니면 가격으로 이기기 어려움. "
+    L.append(f"- 워터파크는 {len(groups[('워터파크', '워터파크')])}개 중 {wp_hi}개가 40% 이상 → 워터파크는 '시설 직계약 원가'가 아니면 가격으로 이기기 어려움. "
              f"크루즈({fmt(cr, '%')})·액티비티({fmt(ac, '%')})는 기준선이 낮아 진입 여지가 큼.")
     L.append("")
     L.append("### 넥스트에너지가 비어 있는 지역·카테고리")
@@ -432,11 +438,17 @@ def implications(md, prods, priced, groups, mat, focus, ch, wtop, by_pid):
     cn = [p for p in focus if "충남" in p["sido"]]
     honam = sum(mat["호남"].values())
     cn_cat = Counter(c[0] for p in cn for c in p["cats"])
-    L.append(f"- **전북 0개, 호남 전체 {honam}개**(전남 화순·여수만). 전북은 경쟁 상품이 없는 공백 시장.")
+    honam_regions = list(dict.fromkeys(p["region"] for p in prods if "호남" in p["gwon"]))
+    cn_regions = list(dict.fromkeys(re.split(r"[/,]", p["region"])[-1] for p in cn if p["region"]))
+    cn_missing = [c for c in ("공연", "전시", "레져") if not cn_cat.get(c)]
+    L.append(f"- **전북 {len(jb)}개, 호남 전체 {honam}개**({'·'.join(honam_regions)}만). "
+             + ("전북은 경쟁 상품이 없는 공백 시장." if not jb else ""))
     L.append(f"- **충남 {len(cn)}개**: " + ", ".join(f"{k} {v}개" for k, v in cn_cat.most_common())
-             + ". 아산·예산·태안·천안에 몰려 있고 공연·전시·레져는 없음.")
+             + f". {'·'.join(cn_regions)}에 몰려 있고" + (f" {'·'.join(cn_missing)}는 없음." if cn_missing else "."))
     only_sudo = [c for c in ("공연", "전시") if all(g == "수도권" for g in mat if mat[g].get(c))]
-    L.append(f"- 공연·전시는 수도권에만 있음. 수집된 15개 소분류에 스키·눈썰매·골프·캠핑·영화 소분류는 없음 (추정: 겨울 시즌 상품 공백).")
+    n_sub = len({c for p in prods for c in p["cats"]})
+    L.append(f"- {'·'.join(only_sudo)}는 수도권에만 있음. " if only_sudo else "- ")
+    L[-1] += (f"수집된 {n_sub}개 소분류에 스키·눈썰매·골프·캠핑·영화 소분류는 없음 (추정: 겨울 시즌 상품 공백).")
     L.append("")
     L.append("### 발권 대행사를 거치는 상품 중 직계약 후보")
     L.append("")
@@ -444,16 +456,79 @@ def implications(md, prods, priced, groups, mat, focus, ch, wtop, by_pid):
     dino = [p for p in ls if "공룡월드" in p["name"]]
     L.append(f"- **엘에스컴퍼니 {len(ls)}개({len(ls) / len(prods) * 100:.0f}%)**: 넥스트에너지 최대 의존 대행사, 대부분 테마파크. "
              f"그중 공룡월드 {len(dino)}곳(평균 할인율 {st.mean(p['discount_pct'] for p in dino):.1f}%)은 "
-             "할인율이 낮고 충남(아산·천안) 지점이 있어 체인 단위 직계약 1순위 후보.")
+             f"할인율이 낮고 충남({'·'.join(p['region'] for p in dino if '충남' in p['sido'])}) 지점이 있어 체인 단위 직계약 1순위 후보.")
     pl = ch.get("플레이스토리", [])
-    L.append(f"- **플레이스토리 {len(pl)}개**: 리솜 3곳(스플라스·포레스트·아일랜드)과 하이원 워터월드. "
-             "충남 리솜 2곳(예산 스플라스 32%, 태안 아일랜드 14%)은 할인율이 낮아 직계약 시 가격 우위 가능.")
+    pl_cn = [p for p in pl if "충남" in p["sido"]]
+    L.append(f"- **플레이스토리 {len(pl)}개**: {', '.join(p['name'] for p in pl)}. "
+             + (f"충남 {len(pl_cn)}곳(" + ", ".join(f"{p['region']} {p['name'].split()[0]} {fmt(p['discount_pct'], '%')}" for p in pl_cn)
+                + ")은 할인율이 낮아 직계약 시 가격 우위 가능." if pl_cn else ""))
     nb = ch.get("놀이의발견", [])
-    L.append(f"- **놀이의발견 {len(nb)}개**: 웅진플레이도시·경주 뽀로로아쿠아빌리지 워터파크. 과거 상위 워터파크(웅진)가 대행사를 거침.")
+    if nb:
+        L.append(f"- **놀이의발견 {len(nb)}개**: {', '.join(p['name'] for p in nb)}. "
+                 + ("과거 상위 워터파크(웅진)가 대행사를 거침." if any("웅진" in p["name"] for p in nb) else ""))
     miss = [n for n, h in wtop if not h]
-    L.append(f"- 과거 매출 상위 워터파크 중 **{', '.join(miss)} 미판매** → 현재 넥스트에너지 채널이 비어 있어 우선 접촉 대상. "
-             "파라다이스 스파도고는 시설 자체 채널로 발송 중(이미 직접 거래 구조).")
+    para = dict(wtop).get("파라다이스 스파도고", [])
+    self_ch = bool(para) and all("파라다이스" in (q["issue_channel"] or "") for q in para)
+    L.append((f"- 과거 매출 상위 워터파크 중 **{', '.join(miss)} 미판매** → 현재 넥스트에너지 채널이 비어 있어 우선 접촉 대상. "
+              if miss else "- 과거 매출 상위 워터파크 10곳 모두 판매 중. ")
+             + ("파라다이스 스파도고는 시설 자체 채널로 발송 중(이미 직접 거래 구조)." if self_ch else ""))
     return md[:md.index("<!-- IMPLICATIONS -->")] + L
+
+
+def compare(prods, opts, today):
+    """직전 수집본(data/archive/nextgate_products_YYYYMMDD.csv) 대비 변동. 없으면 None."""
+    arch = sorted((DATA / "archive").glob("nextgate_products_*.csv"))
+    arch = [a for a in arch if a.stem[-8:] < today.strftime("%Y%m%d")]
+    if not arch:
+        return None
+    pc = arch[-1]
+    oc = pc.with_name(pc.name.replace("products", "options"))
+    old_p, old_o = load(pc, oc)
+    old_day = date.fromisoformat(min(p["collected_at"][:10] for p in old_p))
+    om = {p["product_id"]: p for p in old_p}
+    nm = {p["product_id"]: p for p in prods}
+    # 상품 ID가 바뀌어 다시 올라온 경우를 같은 상품으로 본다 (지역+상품명 일치)
+    key = lambda p: (p["region"], p["name"])
+    ok = {key(p): p for p in old_p}
+    nk = {key(p): p for p in prods}
+    added = [p for p in prods if key(p) not in ok]
+    removed = [p for p in old_p if key(p) not in nk]
+    kept = [(ok[key(p)], p) for p in prods if key(p) in ok]
+    changed = [(o, n) for o, n in kept
+               if (o["discount_pct"], o["sale_price"], o["list_price"]) != (n["discount_pct"], n["sale_price"], n["list_price"])]
+    new_id = [(o, n) for o, n in kept if o["product_id"] != n["product_id"]]
+    L = [f"## 8. 직전 수집({old_day.isoformat()}) 대비 변동", ""]
+    L.append(f"상품 {len(old_p)}개 → {len(prods)}개 ({len(prods) - len(old_p):+d}), "
+             f"옵션 {len(old_o)}개 → {len(opts)}개 ({len(opts) - len(old_o):+d}). "
+             f"같은 상품 판정 = 지역 태그 + 상품명 일치 (상품 ID가 바뀐 {len(new_id)}개 포함).")
+    L.append("")
+    L.append(f"### 새로 올라온 상품: {len(added)}개")
+    L.append("")
+    if added:
+        L.append(table(["카테고리", "상품", "판매가", "할인율", "발송채널"],
+                       [[p["cat2"], f"[{p['region']}] {p['name']}", fmt(p["sale_price"], "원"), fmt(p["discount_pct"], "%"),
+                         p["issue_channel"] or p["issue_medium"] or "-"] for p in added]))
+        L.append("")
+    L.append(f"### 판매 종료(목록에서 빠진) 상품: {len(removed)}개")
+    L.append("")
+    if removed:
+        L.append(table(["카테고리", "상품", "직전 판매가", "직전 할인율", "직전 유효기간 종료"],
+                       [[p["cat2"], f"[{p['region']}] {p['name']}", fmt(p["sale_price"], "원"), fmt(p["discount_pct"], "%"),
+                         p["valid_to"] or "-"] for p in removed]))
+        L.append("")
+    L.append(f"### 대표가격·할인율이 바뀐 상품: {len(changed)}개")
+    L.append("")
+    if changed:
+        L.append(table(["카테고리", "상품", "직전 (판매가 / 할인율)", "현재 (판매가 / 할인율)", "할인율 변화"],
+                       [[n["cat2"], f"[{n['region']}] {n['name']}",
+                         f"{fmt(o['sale_price'], '원')} / {fmt(o['discount_pct'], '%')}",
+                         f"{fmt(n['sale_price'], '원')} / {fmt(n['discount_pct'], '%')}",
+                         (f"{n['discount_pct'] - o['discount_pct']:+d}%p" if None not in (n["discount_pct"], o["discount_pct"]) else "-")]
+                        for o, n in sorted(changed, key=lambda x: (x[1]["discount_pct"] or 0) - (x[0]["discount_pct"] or 0), reverse=True)]))
+        L.append("")
+        L.append("※ 대표가격은 첫 번째 옵션 기준이라, 옵션 순서·시즌 권종이 바뀌면 같은 시설이라도 값이 달라짐.")
+        L.append("")
+    return dict(md=L, old_day=old_day, old_p=old_p, old_o=old_o, added=added, removed=removed, changed=changed, new_id=new_id)
 
 
 # ---------- 엑셀 ----------

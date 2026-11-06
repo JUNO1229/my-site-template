@@ -7,7 +7,7 @@
 
 사용
   python3 collect.py samples   # 샘플 4개 상세 + 테마파크 목록 → samples/
-  python3 collect.py full      # 전체 목록 + 소분류 18개 + 상세 전체 → raw/
+  python3 collect.py full      # 전체 목록 + 소분류 전체 + 상세 전체 → raw/
 """
 import json
 import random
