@@ -11,7 +11,13 @@ function pool() {
 }
 async function ready() {
   if (!usingPg) return
-  g.__init ??= pool().query('create table if not exists kv(key text primary key, val jsonb not null)')
+  g.__init ??= pool()
+    .query('create table if not exists kv(key text primary key, val jsonb not null)')
+    .catch(async (e) => {
+      // 동시 최초 요청이 테이블을 함께 만들다 충돌할 수 있다. 이미 있으면 정상.
+      const ok = await pool().query("select 1 from pg_tables where tablename='kv'").then((r) => r.rowCount! > 0).catch(() => false)
+      if (!ok) { g.__init = undefined; throw e }
+    })
   await g.__init
 }
 
