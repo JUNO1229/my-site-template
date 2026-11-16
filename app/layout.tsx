@@ -1,85 +1,21 @@
-import type React from "react"
-import type { Metadata } from "next"
-import { ThemeProvider } from "@/components/theme-provider"
-import { InlineEditorProvider } from "@/contexts/inline-editor-context"
-import { SiteTitle } from "@/components/site-title"
-import { getMetadata } from "@/lib/metadata"
-import "./globals.css"
-
-const metadataInfo = getMetadata()
+import type { Metadata, Viewport } from 'next'
+import './globals.css'
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'),
-  title: metadataInfo.siteTitle,
-  description: "창의적인 아이디어로 웹 경험을 디자인합니다.",
-  keywords: ["포트폴리오", "개발자", "프론트엔드", "웹개발"],
-  authors: [{ name: "당신의 이름" }],
-  openGraph: {
-    type: "website",
-    locale: "ko_KR",
-    url: "https://your-domain.com",
-    title: "나의 포트폴리오",
-    description: "창의적인 아이디어로 웹 경험을 디자인합니다.",
-    siteName: "나의 포트폴리오",
-    images: [
-      {
-        url: "/api/og-image", // 동적 OG 이미지 API
-        width: 1200,
-        height: 630,
-        alt: "프로필 이미지",
-      },
-    ],
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "나의 포트폴리오",
-    description: "창의적인 아이디어로 웹 경험을 디자인합니다.",
-    images: ["/api/og-image"],
-  },
-  robots: {
-    index: true,
-    follow: true,
-    googleBot: {
-      index: true,
-      follow: true,
-      "max-video-preview": -1,
-      "max-image-preview": "large",
-      "max-snippet": -1,
-    },
-  },
+  title: { default: '프레스노트', template: '%s | 프레스노트' },
+  description: '현장에서 보낸 사진과 메모가 당일 기사로. 제보부터 게재까지 프레스노트.',
 }
+export const viewport: Viewport = { width: 'device-width', initialScale: 1, themeColor: '#0F2A4A' }
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode
-}>) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="ko" suppressHydrationWarning>
+    <html lang="ko">
       <head>
-        <link 
-          rel="stylesheet" 
-          as="style" 
-          crossOrigin="anonymous"
-          href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" 
-        />
-        {/* 카카오톡 공유 최적화 */}
-        <meta property="og:image:width" content="1200" />
-        <meta property="og:image:height" content="630" />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
+        <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=Noto+Serif+KR:wght@600;800&display=swap" rel="stylesheet" />
       </head>
-      <body className="font-pretendard" suppressHydrationWarning>
-        <ThemeProvider 
-          attribute="class" 
-          defaultTheme="system" 
-          enableSystem
-          disableTransitionOnChange
-        >
-          <InlineEditorProvider>
-            <SiteTitle />
-            {children}
-          </InlineEditorProvider>
-        </ThemeProvider>
-      </body>
+      <body className="min-h-dvh">{children}</body>
     </html>
   )
 }
