@@ -23,6 +23,8 @@ PRIORITY = {"verified_official": 3, "public_data": 2, "third_party_recheck": 1, 
 
 def city_key(org: str) -> str:
     """'경기도 수원시 권선구 녹지공원과' -> '경기도 수원시' (부서·구 단위 중복 병합용)."""
+    if ingest_parks.is_agency(org):  # 공단·공사는 지자체 부서와 병합하지 않는다
+        return str(org)
     t = str(org).split()
     if len(t) >= 2 and re.search(r"(시|군|구)$", t[1]):
         return " ".join(t[:2])

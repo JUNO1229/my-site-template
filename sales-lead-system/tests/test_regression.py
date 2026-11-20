@@ -68,3 +68,10 @@ def test_sido_is_valid_and_agencies_classified(db):
     sido = dict(db.execute("SELECT name, sido FROM leads WHERE name IN ('기장군도시관리공단','부산관광공사','인천시설공단','울산시설공단')").fetchall())
     assert sido == {"기장군도시관리공단": "부산광역시", "부산관광공사": "부산광역시", "인천시설공단": "인천광역시", "울산시설공단": "울산광역시"}
     assert kinds["경기도 수원시"] == "공원 관리기관"
+
+
+def test_agency_not_merged_with_city_and_city_hall_stays_municipal(db):
+    kinds = dict(db.execute("SELECT name, facility_kind FROM leads WHERE lead_type='public_org'").fetchall())
+    assert kinds["경기도 과천시청"] == "공원 관리기관"
+    assert kinds["경기도 과천시 시설관리공단"] == "시설관리 기관"
+    assert kinds["대구광역시청(대구시설공단)"] == "공원 관리기관"

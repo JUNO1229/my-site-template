@@ -7,7 +7,8 @@ import pandas as pd
 from common import read_public_csv, load_config
 
 CFG = load_config()["parks"]
-AGENCY_RX = re.compile(CFG["agency_pattern"])  # 공단·공사·재단 등 시설관리 기관(지자체 본청·부서와 구분)
+AGENCY_RX = re.compile(CFG["agency_pattern"])
+NOT_AGENCY_RX = re.compile(CFG["agency_exclude"])  # 시청·군청 등 지자체 본청은 괄호 안 공단 표기가 있어도 지자체  # 공단·공사·재단 등 시설관리 기관(지자체 본청·부서와 구분)
 WATER_PAT = CFG["water_pattern"]  # '분수','계류','실개천'은 조경 시설이라 제외
 BIG_TYPES = CFG["big_types"]
 FAC_COLS = ["공원보유시설(운동시설)", "공원보유시설(유희시설)", "공원보유시설(편익시설)",
@@ -18,6 +19,10 @@ SIDO_ALIAS = {"강원도": "강원특별자치도", "전라북도": "전북특�
 VALID_SIDO = {"서울특별시", "부산광역시", "대구광역시", "인천광역시", "광주광역시", "대전광역시", "울산광역시", "세종특별자치시",
               "경기도", "강원특별자치도", "충청북도", "충청남도", "전북특별자치도", "전라남도", "경상북도", "경상남도",
               "제주특별자치도", "전남광주통합특별시"}
+
+
+def is_agency(org) -> bool:
+    return bool(AGENCY_RX.search(str(org))) and not NOT_AGENCY_RX.search(str(org))
 
 
 def norm_sido(token):
@@ -57,7 +62,7 @@ def main(src, outdir):
     for org, g in d.groupby("org"):
         top = g.sort_values("a", ascending=False).iloc[0]
         ph = g["전화번호"].dropna()
-        rows.append(dict(sido=sido_of(g), org=org, kind="시설관리 기관" if AGENCY_RX.search(org) else "공원 관리기관", phone=ph.mode().iloc[0] if len(ph) else "",
+        rows.append(dict(sido=sido_of(g), org=org, kind="시설관리 기관" if is_agency(org) else "공원 관리기관", phone=ph.mode().iloc[0] if len(ph) else "",
                          n=len(g), big=int(g.big.sum()), water=int(g.water.sum()),
                          play=int(g.play.sum()), ha=round(g.a.sum() / 10000, 1), top=top["공원명"]))
     G = pd.DataFrame(rows)
