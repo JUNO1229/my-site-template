@@ -31,7 +31,7 @@ with tab_list:
     df = L.list_leads(db, grades, sidos, kinds, stages, {"전체": None, "있음": True, "없음": False}[ph], text, mobile)
     st.caption(f"{len(df)}건")
     show = df.assign(stage=df.stage.map(L.STAGE_KO), phone_confidence=df.phone_confidence.map(CONF_KO)).drop(columns=["lead_type"])
-    sel = st.dataframe(show, hide_index=True, on_select="rerun", selection_mode="single-row", use_container_width=True,
+    sel = st.dataframe(show, hide_index=True, on_select="rerun", selection_mode="single-row", width="stretch",
                        column_config={"id": None, "grade": "필요도", "sido": "시도", "name": "시설·기관명", "facility_kind": "유형",
                                       "operating_status": "영업상태", "score": "점수", "stage": "영업단계",
                                       "next_action_on": "다음 조치일", "phone": "대표전화", "phone_confidence": "신뢰도"})
@@ -90,6 +90,6 @@ with tab_list:
 with tab_queue:
     q = L.enrichment_queue(db)
     st.write(f"전화번호 없는 A/B 리드 {len(q)}건 — 공식 사이트에서 사람이 확인 후 [리드 목록]에서 연락처를 추가하세요. (봇 차단 사이트는 우회 금지)")
-    st.dataframe(q[["grade", "sido", "name", "facility_kind", "stage"]], hide_index=True, use_container_width=True)
+    st.dataframe(q[["grade", "sido", "name", "facility_kind", "stage"]], hide_index=True, width="stretch")
     st.markdown("**확인 실패 이력**")
     st.dataframe(pd.read_sql("SELECT * FROM unresolved_contacts", db), hide_index=True)
