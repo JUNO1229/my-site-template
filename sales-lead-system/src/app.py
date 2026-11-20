@@ -7,6 +7,7 @@ import streamlit as st
 import leaddb as L
 import enrich as E
 import dispatch as D
+import analysis as AN
 
 DB = os.environ.get("LEADS_DB", os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "data", "leads.db"))
 CONF_KO = {"verified_official": "공식 확인", "public_data": "공공데이터", "third_party_recheck": "제3자(재확인)", "unknown": "미상"}
@@ -17,7 +18,7 @@ if not os.path.exists(DB):
     st.stop()
 db = L.connect(DB)
 
-tab_list, tab_queue, tab_review, tab_send, tab_alert = st.tabs(["리드 목록", "연락처 보강 큐", "후보 검수", "발송·이력", "후속 알림"])
+tab_list, tab_queue, tab_review, tab_send, tab_alert, tab_an = st.tabs(["리드 목록", "연락처 보강 큐", "후보 검수", "발송·이력", "후속 알림", "분석·확대"])
 
 with tab_list:
     all_ = L.list_leads(db, include_mobile=True)
@@ -174,3 +175,22 @@ with tab_alert:
     st.write(f"후속 조치 {len(f)}건 (기한 경과·오늘·7일 이내)")
     st.dataframe(f.assign(stage=f.stage.map(L.STAGE_KO))[["alert", "grade", "name", "stage", "next_action", "next_action_on", "owner"]],
                  hide_index=True, width="stretch")
+
+with tab_an:
+    st.subheader("유형별 커버리지 (확대 우선순위)")
+    st.dataframe(AN.kind_coverage(db), hide_index=True, width="stretch")
+    st.caption("새 대상(캠핑장·수목원·동물원·박물관·해수욕장·축제)은 CSV 를 data/raw/extra/ 에 넣고 build_master.py 재실행 — 설정: config/sources.yaml")
+    st.subheader("영업 진행 현황 (등급 × 단계)")
+    st.dataframe(AN.funnel(db), width="stretch")
+    st.subheader("영업 포인트 — 모두의 플랫폼 연계")
+    sm = AN.points_summary(db)
+    st.dataframe(sm, hide_index=True) if len(sm) else st.info("아직 등록된 영업 포인트가 없습니다.")
+    ao = L.list_leads(db, grades=["A", "B"])
+    am = {f"[{r.grade}] {r.name}": int(r.id) for r in ao.itertuples() if r.stage != "do_not_contact"}
+    if am:
+        pk = st.selectbox("제안을 볼 리드", list(am), key="ansp")
+        for i, sg in enumerate(AN.suggest_points(db, am[pk])):
+            x, y = st.columns([5, 1])
+            x.write(f"`{sg['category']}` {sg['point']}")
+            if y.button("추가", key=f"sg{i}"):
+                L.add_sales_point(db, am[pk], sg["point"], sg["category"]); st.rerun()

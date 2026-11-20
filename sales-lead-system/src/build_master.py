@@ -13,6 +13,7 @@ import pandas as pd
 
 import ingest_parks
 import ingest_themeparks
+import ingest_extra
 from common import load_config
 
 ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..")
@@ -137,6 +138,41 @@ def build(db_path: str):
             tel = r.get("tel")
             if isinstance(tel, str) and tel:
                 add_contact(lid, tel, "public_data", note="공공데이터 인허가 전화번호" + (" (지역번호 확인필요)" if "확인필요" in tel else ""))
+
+    # 2-b) Phase 5 확대 대상 (config/sources.yaml, 파일이 있는 것만)
+    scfg = load_config("sources.yaml")
+    for src_cfg in scfg["sources"]:
+        ex = ingest_extra.load_source(src_cfg, scfg)
+        if ex is None:
+            continue
+        sid = src(f"확대 대상: {src_cfg['kind']}", None, f"data/raw/extra/{src_cfg['file']}", len(ex))
+        for r in ex.to_dict("records"):
+            key = (norm_name(r["name"]), norm_name(r["address"] or ""))
+            if key in seen:
+                continue
+            seen.add(key)
+            lid = add_lead(lead_type="private_facility" if src_cfg["kind"] != "지자체 축제" else "public_org",
+                           name=r["name"], sido=r["sido"], address=r["address"], facility_kind=r["facility_kind"],
+                           operating_status="영업중", area_m2=r["area_m2"], grade=r["grade"], grade_reason=r["grade_reason"],
+                           source_file_id=sid, source_key=r["source_key"])
+            add_contact(lid, r["tel"], "public_data", note="공공데이터 전화번호" + (" (지역번호 확인필요)" if "확인필요" in r["tel"] else ""))
+        print(f"확대 대상 {src_cfg['kind']}: {len(ex)}건")
+
+    # 2-c) 방문객 통계 → 등급 상향
+    vis = ingest_extra.load_visitors(scfg)
+    if vis is not None:
+        names = pd.read_sql("SELECT id,name,grade FROM leads", db)
+        nmap = {norm_name(r.name): (r.id, r.grade) for r in names.itertuples()}
+        for v in vis.to_dict("records"):
+            hit = nmap.get(norm_name(v["name"]))
+            n = pd.to_numeric(v.get("visitors"), errors="coerce")
+            if not hit or pd.isna(n):
+                continue
+            db.execute("INSERT INTO visitor_stats(lead_id,year,visitors,source_name) VALUES(?,?,?,?)", (hit[0], v.get("year"), int(n), v["name"]))
+            ng = ingest_extra.upgraded(hit[1], n, scfg["visitors"]["upgrade"])
+            if ng != hit[1]:
+                db.execute("UPDATE leads SET grade=?, grade_reason=grade_reason||' / 방문객 '||?||'명(상향)' WHERE id=?", (ng, int(n), hit[0]))
+                nmap[norm_name(v["name"])] = (hit[0], ng)
 
     # 3) 수동 확인 연락처 — 매핑 규칙으로 lead 와 연결, 우선순위가 높으면 덮어씀
     vmap = pd.read_csv(f"{MANUAL}/verified_contact_map.csv", dtype=str).set_index("facility")["lead_name_regex"].to_dict()

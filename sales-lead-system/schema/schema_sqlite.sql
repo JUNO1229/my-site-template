@@ -43,3 +43,5 @@ CREATE TABLE dispatches (
   document_id INT REFERENCES documents(id), channel TEXT NOT NULL CHECK (channel IN ('call','web_form','post','email','sms','fax')),
   to_value TEXT, sent_on TEXT NOT NULL, sent_by TEXT, note TEXT, consent_verified INT DEFAULT 0,
   created_at TEXT DEFAULT CURRENT_TIMESTAMP);
+-- Phase 5: 방문객 통계 (data/raw/visitors.csv 에서 재생성)
+CREATE TABLE visitor_stats (id INTEGER PRIMARY KEY, lead_id INT REFERENCES leads(id) ON DELETE CASCADE, year INT, visitors INT, source_name TEXT);
