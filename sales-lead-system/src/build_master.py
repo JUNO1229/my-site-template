@@ -36,7 +36,7 @@ def merge_orgs(o: pd.DataFrame) -> pd.DataFrame:
     for key, g in o.groupby("key"):
         main = g.sort_values("n", ascending=False).iloc[0]
         rows.append(dict(
-            sido=main.sido, name=key, phone=main.phone if isinstance(main.phone, str) else "",
+            sido=main.sido, kind=main.kind, name=key, phone=main.phone if isinstance(main.phone, str) else "",
             n=g.n.sum(), big=g.big.sum(), water=g.water.sum(), play=g.play.sum(), ha=round(g.ha.sum(), 1),
             top=main.top, depts=" / ".join(g.org.tolist()) if len(g) > 1 else ""))
     M = pd.DataFrame(rows)
@@ -103,7 +103,7 @@ def build(db_path: str):
         reason = f"공원 {r.n}곳, 대형 {r.big}곳, 물놀이 관련 {r.water}곳, 유희시설 {r.play}곳"
         if r.depts:
             reason += f" (병합 부서: {r.depts})"
-        lid = add_lead(lead_type="public_org", name=r.name, sido=r.sido, facility_kind="공원 관리기관",
+        lid = add_lead(lead_type="public_org", name=r.name, sido=r.sido, facility_kind=r.kind,
                        operating_status="영업중", area_m2=r.ha * 10000, grade=r.g, grade_reason=reason,
                        score=float(r.score), source_file_id=s_parks, source_key=r.name)
         add_contact(lid, r.phone, "public_data", note="공원 관리기관 대표번호(데이터 최빈값)", dept=r.name)

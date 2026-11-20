@@ -56,3 +56,15 @@ def test_verified_contacts_linked(db):
 def test_contacts_have_provenance(db):
     assert db.execute("SELECT COUNT(*) FROM contacts WHERE confidence IS NULL").fetchone()[0] == 0
     assert db.execute("SELECT COUNT(*) FROM contacts WHERE confidence='verified_official' AND (source_url IS NULL OR verified_on IS NULL)").fetchone()[0] == 0
+
+
+def test_sido_is_valid_and_agencies_classified(db):
+    from ingest_parks import VALID_SIDO
+    bad = db.execute("SELECT DISTINCT sido FROM leads").fetchall()
+    assert all(s in VALID_SIDO for (s,) in bad), bad
+    kinds = dict(db.execute("SELECT name, facility_kind FROM leads WHERE lead_type='public_org'").fetchall())
+    for n in ("기장군도시관리공단", "부산관광공사", "인천시설공단", "울산시설공단"):
+        assert kinds[n] == "시설관리 기관"
+    sido = dict(db.execute("SELECT name, sido FROM leads WHERE name IN ('기장군도시관리공단','부산관광공사','인천시설공단','울산시설공단')").fetchall())
+    assert sido == {"기장군도시관리공단": "부산광역시", "부산관광공사": "부산광역시", "인천시설공단": "인천광역시", "울산시설공단": "울산광역시"}
+    assert kinds["경기도 수원시"] == "공원 관리기관"

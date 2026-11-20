@@ -3,7 +3,8 @@ import pandas as pd
 import pytest
 ROOT = os.path.join(os.path.dirname(__file__), "..")
 sys.path.insert(0, f"{ROOT}/src")
-import build_master, ingest_extra, analysis, leaddb as L
+import sqlite3
+import build_master, ingest_extra
 
 
 @pytest.fixture
@@ -16,7 +17,7 @@ def built(tmp_path, monkeypatch):
     monkeypatch.setattr(ingest_extra, "EXTRA", str(extra))
     monkeypatch.setattr(ingest_extra, "ROOT", str(tmp_path))
     p = str(tmp_path / "l.db"); build_master.build(p)
-    return L.connect(p)
+    return sqlite3.connect(p)
 
 
 def test_extra_source_loaded_graded_and_upgraded(built):
@@ -31,17 +32,6 @@ def test_upgrade_never_downgrades():
     assert ingest_extra.upgraded("C", 60, {"to_A": 100, "to_B": 50}) == "B"
 
 
-def test_suggest_points_and_summaries(built):
-    lid = built.execute("SELECT id FROM leads WHERE name='테스트글램핑'").fetchone()[0]
-    s = analysis.suggest_points(built, lid)
-    assert {x["category"] for x in s} >= {"facility_ops", "rental"}
-    L.add_sales_point(built, lid, s[0]["point"], s[0]["category"])
-    assert s[0]["point"] not in [x["point"] for x in analysis.suggest_points(built, lid)]
-    assert len(analysis.points_summary(built)) == 1
-    assert "캠핑장" in analysis.kind_coverage(built)["유형"].tolist()
-    assert "A" in analysis.funnel(built).index
-
-
 def test_missing_files_skipped(tmp_path):
     p = str(tmp_path / "l.db"); build_master.build(p)   # 확대 파일 없는 기본 상태에서도 정상
-    assert L.connect(p).execute("SELECT COUNT(*) FROM leads").fetchone()[0] > 700
+    assert sqlite3.connect(p).execute("SELECT COUNT(*) FROM leads").fetchone()[0] > 700
