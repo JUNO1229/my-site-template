@@ -5,6 +5,7 @@ import datetime as dt
 import pandas as pd
 import streamlit as st
 import leaddb as L
+import enrich as E
 
 DB = os.environ.get("LEADS_DB", os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "data", "leads.db"))
 CONF_KO = {"verified_official": "공식 확인", "public_data": "공공데이터", "third_party_recheck": "제3자(재확인)", "unknown": "미상"}
@@ -15,7 +16,7 @@ if not os.path.exists(DB):
     st.stop()
 db = L.connect(DB)
 
-tab_list, tab_queue = st.tabs(["리드 목록", "연락처 보강 큐"])
+tab_list, tab_queue, tab_review = st.tabs(["리드 목록", "연락처 보강 큐", "후보 검수"])
 
 with tab_list:
     all_ = L.list_leads(db, include_mobile=True)
@@ -93,3 +94,43 @@ with tab_queue:
     st.dataframe(q[["grade", "sido", "name", "facility_kind", "stage"]], hide_index=True, width="stretch")
     st.markdown("**확인 실패 이력**")
     st.dataframe(pd.read_sql("SELECT * FROM unresolved_contacts", db), hide_index=True)
+
+with tab_queue:
+    st.divider()
+    st.subheader("공식 사이트로 후보 수집")
+    st.caption("robots.txt 를 준수하며, 차단·접속 실패는 우회하지 않고 '차단' 후보로 남겨 수동 확인합니다. 수집 결과는 검수 전까지 연락처에 반영되지 않습니다.")
+    opts = {f"[{r.grade}] {r.name} ({r.sido})": int(r.id) for r in q.itertuples()}
+    if opts:
+        pick = st.selectbox("리드", list(opts))
+        url = st.text_input("공식 사이트 URL (https://...)")
+        a, b = st.columns(2)
+        if a.button("사이트에서 번호 후보 수집") and url.startswith("http"):
+            res = E.collect_from_site(db, opts[pick], url)
+            st.success(f"후보 {len(res['phones'])}건 수집") if res["status"] == "ok" else st.warning("차단/접속 실패 — 수동 확인 목록에 기록됨")
+        with b.popover("수동 후보 등록"):
+            mv = st.text_input("번호(조직 대표번호만)"); ms = st.text_input("출처 URL"); md = st.text_input("부서")
+            if st.button("후보 등록") and mv:
+                try:
+                    E.add_candidate(db, opts[pick], "phone", mv, ms or None, md or None)
+                    st.success("등록됨")
+                except ValueError as e:
+                    st.error(str(e))
+
+with tab_review:
+    c = E.pending(db)
+    st.write(f"검수 대기 {len(c)}건")
+    reviewer = st.text_input("검수자")
+    for r in c.itertuples():
+        with st.container(border=True):
+            st.write(f"**[{r.grade}] {r.name}** · {r.channel}: `{r.value}` · 상태: {r.status}")
+            st.caption(f"출처: {r.source_url or '-'} · {r.note or ''}")
+            if r.status == "pending":
+                x1, x2, x3 = st.columns(3)
+                if x1.button("공식 확인 승인", key=f"o{r.id}"):
+                    try: E.approve(db, r.id, reviewer, True); st.rerun()
+                    except ValueError as e: st.error(str(e))
+                if x2.button("제3자(재확인) 승인", key=f"t{r.id}"):
+                    try: E.approve(db, r.id, reviewer, False); st.rerun()
+                    except ValueError as e: st.error(str(e))
+                if x3.button("반려", key=f"r{r.id}"):
+                    E.reject(db, r.id, reviewer or "-"); st.rerun()

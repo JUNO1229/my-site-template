@@ -19,3 +19,4 @@ python -m pytest tests -q           # 기준 산출물 회귀 + DB 규칙 테스
 - 시·군 단위 부서 중복 병합(332 → 약 303 기관), 허가·일반 파일 동일 시설 병합
 - 재실행해도 영업 단계·영업 포인트 입력은 이름+주소 기준으로 보존됨
 - 리드 관리 UI: `streamlit run src/app.py` (필터·상세·영업 단계·영업 포인트·CSV/Excel 내보내기·보강 큐)
+- 연락처 보강(Phase 3): UI 의 "연락처 보강 큐"에서 공식 URL 로 후보 수집 → "후보 검수" 탭에서 사람이 승인해야 contacts 반영 (robots.txt 준수, 차단은 우회 안 함, 휴대폰 번호 거부). 일괄 등록: data/manual/enrichment_candidates.csv (`enrich.import_candidates_csv`)

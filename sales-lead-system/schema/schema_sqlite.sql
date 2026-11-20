@@ -26,3 +26,11 @@ CREATE TABLE water_parks (
   id INTEGER PRIMARY KEY, lead_id INT REFERENCES leads(id) ON DELETE CASCADE,
   park_name TEXT, park_kind TEXT, address TEXT, area_m2 REAL);
 CREATE TABLE unresolved_contacts (facility TEXT, reason TEXT, next_step TEXT);
+-- Phase 3: 연락처 보강 후보 (사람 검수 후에만 contacts 로 반영)
+CREATE TABLE enrichment_candidates (
+  id INTEGER PRIMARY KEY, lead_id INT REFERENCES leads(id) ON DELETE CASCADE,
+  channel TEXT NOT NULL CHECK (channel IN ('phone','homepage')),
+  value TEXT NOT NULL, dept TEXT, note TEXT, source_url TEXT, found_by TEXT DEFAULT 'manual',
+  found_on TEXT DEFAULT CURRENT_DATE,
+  status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending','approved','rejected','blocked')),
+  reviewer TEXT, reviewed_on TEXT, review_note TEXT, approved_confidence TEXT, UNIQUE (lead_id, channel, value));

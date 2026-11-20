@@ -58,11 +58,13 @@ def build(db_path: str):
         orgs, water = pd.read_csv(f"{tmp}/orgs_from_parks.csv"), pd.read_csv(f"{tmp}/water_parks.csv")
         gen, per = pd.read_csv(f"{tmp}/general.csv", dtype=str), pd.read_csv(f"{tmp}/permit.csv", dtype=str)
 
-    saved_outreach = saved_points = None
+    saved_outreach = saved_points = saved_cands = None
     if os.path.exists(db_path):  # 사용자 입력(영업 단계·영업 포인트)은 재생성 후에도 이름+주소로 복원
         old = sqlite3.connect(db_path)
         saved_outreach = pd.read_sql("SELECT l.name,l.address,o.* FROM outreach o JOIN leads l ON l.id=o.lead_id", old)
         saved_points = pd.read_sql("SELECT l.name,l.address,s.point,s.category,s.found_on FROM sales_points s JOIN leads l ON l.id=s.lead_id", old)
+        has = old.execute("SELECT 1 FROM sqlite_master WHERE name='enrichment_candidates'").fetchone()  # 구버전 DB 호환
+        saved_cands = None if not has else pd.read_sql("SELECT l.name,l.address,e.channel,e.value,e.dept,e.note,e.source_url,e.found_by,e.found_on,e.status,e.reviewer,e.reviewed_on,e.review_note,e.approved_confidence FROM enrichment_candidates e JOIN leads l ON l.id=e.lead_id", old)
         old.close()
         os.remove(db_path)
     db = sqlite3.connect(db_path)
@@ -164,6 +166,17 @@ def build(db_path: str):
         for p in saved_points.to_dict("records"):
             db.execute("INSERT INTO sales_points(lead_id,point,category,found_on) SELECT id,?,?,? FROM leads WHERE name=? AND address IS ?",
                        (p["point"], p["category"], p["found_on"], p["name"], p["address"]))
+    if saved_cands is not None:
+        for e in saved_cands.to_dict("records"):
+            db.execute("""INSERT OR IGNORE INTO enrichment_candidates(lead_id,channel,value,dept,note,source_url,found_by,found_on,status,reviewer,reviewed_on,review_note,approved_confidence)
+                          SELECT id,?,?,?,?,?,?,?,?,?,?,?,? FROM leads WHERE name=? AND address IS ?""",
+                       (e["channel"], e["value"], e["dept"], e["note"], e["source_url"], e["found_by"], e["found_on"], e["status"],
+                        e["reviewer"], e["reviewed_on"], e["review_note"], e["approved_confidence"], e["name"], e["address"]))
+            if e["status"] == "approved":  # 승인된 연락처는 contacts 에 재반영(우선순위 규칙 유지)
+                conf = e["approved_confidence"] or "third_party_recheck"
+                db.execute("""INSERT OR IGNORE INTO contacts(lead_id,channel,value,note,dept,confidence,source_url,verified_on)
+                              SELECT id,?,?,?,?,?,?,? FROM leads WHERE name=? AND address IS ?""",
+                           (e["channel"], e["value"], e["note"], e["dept"], conf, e["source_url"], e["reviewed_on"], e["name"], e["address"]))
     db.commit()
     stats = dict(
         leads=db.execute("SELECT lead_type, grade, COUNT(*) FROM leads GROUP BY 1,2").fetchall(),
