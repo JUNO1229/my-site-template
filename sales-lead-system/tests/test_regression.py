@@ -75,3 +75,9 @@ def test_agency_not_merged_with_city_and_city_hall_stays_municipal(db):
     assert kinds["경기도 과천시청"] == "공원 관리기관"
     assert kinds["경기도 과천시 시설관리공단"] == "시설관리 기관"
     assert kinds["대구광역시청(대구시설공단)"] == "공원 관리기관"
+
+
+def test_jeonnam_merged_into_gwangju_special_city(db):
+    sidos = {s for (s,) in db.execute("SELECT DISTINCT sido FROM leads").fetchall()}
+    assert "전라남도" not in sidos and "광주광역시" not in sidos
+    assert db.execute("SELECT sido FROM leads WHERE name='전라남도 광양시'").fetchone() == ("전남광주통합특별시",)

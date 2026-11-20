@@ -5,7 +5,7 @@
 import re
 import sys
 import pandas as pd
-from common import read_public_csv, normalize_phone, load_config
+from common import read_public_csv, normalize_phone, load_config, alias_sido
 
 CFG = load_config()["themeparks"]
 MOBILE_PAT, BRAND_PAT, WATER_NAME = CFG["mobile_pattern"], CFG["brand_pattern"], CFG["water_name"]
@@ -32,7 +32,7 @@ def main(src, out, permit=False):
     o["tel"] = o["전화번호"].map(normalize_phone)
     o["addr"] = o["도로명주소"].fillna(o["지번주소"])
     o["name"] = o["사업장명"].str.strip()
-    o["sido"] = o["addr"].str.split().str[0].fillna("미확인")
+    o["sido"] = o["addr"].str.split().str[0].fillna("미확인").map(alias_sido)
     o["type"] = o["name"].map(classify)
     o["mobile"] = o["name"].str.contains(MOBILE_PAT, na=False) & (not permit)
 

@@ -4,7 +4,7 @@
 import re
 import sys
 import pandas as pd
-from common import read_public_csv, load_config
+from common import read_public_csv, load_config, SIDO_ALIAS
 
 CFG = load_config()["parks"]
 AGENCY_RX = re.compile(CFG["agency_pattern"])
@@ -15,9 +15,8 @@ FAC_COLS = ["공원보유시설(운동시설)", "공원보유시설(유희시설
             "공원보유시설(교양시설)", "공원보유시설(기타시설)"]
 
 
-SIDO_ALIAS = {"강원도": "강원특별자치도", "전라북도": "전북특별자치도"}
-VALID_SIDO = {"서울특별시", "부산광역시", "대구광역시", "인천광역시", "광주광역시", "대전광역시", "울산광역시", "세종특별자치시",
-              "경기도", "강원특별자치도", "충청북도", "충청남도", "전북특별자치도", "전라남도", "경상북도", "경상남도",
+VALID_SIDO = {"서울특별시", "부산광역시", "대구광역시", "인천광역시", "대전광역시", "울산광역시", "세종특별자치시",
+              "경기도", "강원특별자치도", "충청북도", "충청남도", "전북특별자치도", "경상북도", "경상남도",
               "제주특별자치도", "전남광주통합특별시"}
 
 
