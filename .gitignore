@@ -27,3 +27,8 @@ yarn-error.log*
 next-env.d.ts
 # python
 __pycache__/
+
+# 생성물
+sales-lead-system/data/leads.db
+__pycache__/
+.pytest_cache/

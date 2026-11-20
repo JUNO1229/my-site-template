@@ -1,0 +1,171 @@
+"""모든 리드 소스(도시공원 관리기관·일반 테마파크·허가 테마파크)를 SQLite leads/contacts 로 적재한다.
+- 원본(data/raw)은 수정하지 않으며, DB 는 언제든 재생성 가능.
+- 중복 병합: 지자체 부서 중복(시·군 단위), 허가 파일과 일반 파일의 동일 시설
+- 연락처 우선순위: verified_official > public_data > third_party_recheck
+실행: python src/build_master.py [--db data/leads.db]
+"""
+import argparse
+import os
+import re
+import sqlite3
+import tempfile
+import pandas as pd
+
+import ingest_parks
+import ingest_themeparks
+from common import load_config
+
+ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..")
+RAW, MANUAL = f"{ROOT}/data/raw", f"{ROOT}/data/manual"
+PRIORITY = {"verified_official": 3, "public_data": 2, "third_party_recheck": 1, "unknown": 0}
+
+
+def city_key(org: str) -> str:
+    """'경기도 수원시 권선구 녹지공원과' -> '경기도 수원시' (부서·구 단위 중복 병합용)."""
+    t = str(org).split()
+    if len(t) >= 2 and re.search(r"(시|군|구)$", t[1]):
+        return " ".join(t[:2])
+    return str(org)
+
+
+def merge_orgs(o: pd.DataFrame) -> pd.DataFrame:
+    o = o.copy()
+    o["key"] = o["org"].map(city_key)
+    rows = []
+    for key, g in o.groupby("key"):
+        main = g.sort_values("n", ascending=False).iloc[0]
+        rows.append(dict(
+            sido=main.sido, name=key, phone=main.phone if isinstance(main.phone, str) else "",
+            n=g.n.sum(), big=g.big.sum(), water=g.water.sum(), play=g.play.sum(), ha=round(g.ha.sum(), 1),
+            top=main.top, depts=" / ".join(g.org.tolist()) if len(g) > 1 else ""))
+    M = pd.DataFrame(rows)
+    M["g"] = M.apply(ingest_parks.grade, axis=1)
+    c = load_config()["parks"]["score"]
+    M["score"] = (M.big.clip(upper=c["big_cap"]) + c["water_weight"] * M.water.clip(upper=c["water_cap"])
+                  + c["play_weight"] * M.play.clip(upper=c["play_cap"]) + c["parks_weight"] * M.n.clip(upper=c["parks_cap"]))
+    return M
+
+
+def norm_name(s: str) -> str:
+    return re.sub(r"\(주\)|\(유\)|주식회사|\s", "", str(s))
+
+
+def build(db_path: str):
+    with tempfile.TemporaryDirectory() as tmp:
+        ingest_parks.main(f"{RAW}/parks_national_std.csv", tmp)
+        ingest_themeparks.main(f"{RAW}/themepark_general.csv", f"{tmp}/general.csv")
+        ingest_themeparks.main(f"{RAW}/themepark_permit.csv", f"{tmp}/permit.csv", permit=True)
+        orgs, water = pd.read_csv(f"{tmp}/orgs_from_parks.csv"), pd.read_csv(f"{tmp}/water_parks.csv")
+        gen, per = pd.read_csv(f"{tmp}/general.csv", dtype=str), pd.read_csv(f"{tmp}/permit.csv", dtype=str)
+
+    if os.path.exists(db_path):
+        os.remove(db_path)
+    db = sqlite3.connect(db_path)
+    db.execute("PRAGMA foreign_keys=ON")
+    db.executescript(open(f"{ROOT}/schema/schema_sqlite.sql", encoding="utf-8").read())
+
+    def src(name, pid, path, n):
+        return db.execute("INSERT INTO source_files(name,portal_id,file_path,row_count) VALUES(?,?,?,?)",
+                          (name, pid, path, n)).lastrowid
+
+    s_parks = src("전국도시공원정보표준데이터", "15012890", "data/raw/parks_national_std.csv", 18376)
+    s_gen = src("문화_일반테마파크업", "15124678", "data/raw/themepark_general.csv", len(gen))
+    s_per = src("허가 테마파크 대형 시설", None, "data/raw/themepark_permit.csv", len(per))
+
+    def add_lead(**k):
+        cols = ",".join(k)
+        cur = db.execute(f"INSERT OR IGNORE INTO leads({cols}) VALUES({','.join('?' * len(k))})", list(k.values()))
+        if cur.rowcount == 0:
+            return db.execute("SELECT id FROM leads WHERE name=? AND address IS ?", (k["name"], k.get("address"))).fetchone()[0]
+        return cur.lastrowid
+
+    def add_contact(lead_id, value, conf, note=None, source_url=None, verified_on=None, dept=None):
+        if not value or str(value) == "nan":
+            return
+        db.execute("INSERT OR IGNORE INTO contacts(lead_id,channel,value,note,dept,confidence,source_url,verified_on) "
+                   "VALUES(?,?,?,?,?,?,?,?)", (lead_id, "phone", value, note, dept, conf, source_url, verified_on))
+
+    # 1) 공공기관(도시공원 관리기관) — 시·군 단위 병합
+    lead_by_name, orgs_ids = {}, {}
+    M = merge_orgs(orgs)
+    for r in M.itertuples():
+        reason = f"공원 {r.n}곳, 대형 {r.big}곳, 물놀이 관련 {r.water}곳, 유희시설 {r.play}곳"
+        if r.depts:
+            reason += f" (병합 부서: {r.depts})"
+        lid = add_lead(lead_type="public_org", name=r.name, sido=r.sido, facility_kind="공원 관리기관",
+                       operating_status="영업중", area_m2=r.ha * 10000, grade=r.g, grade_reason=reason,
+                       score=float(r.score), source_file_id=s_parks, source_key=r.name)
+        add_contact(lid, r.phone, "public_data", note="공원 관리기관 대표번호(데이터 최빈값)", dept=r.name)
+        orgs_ids[r.name] = lid
+
+    # 물놀이 관련 공원 → 관리기관 lead 에 연결
+    for w in water.itertuples():
+        lid = orgs_ids.get(city_key(w.org))
+        if lid:
+            db.execute("INSERT INTO water_parks(lead_id,park_name,park_kind,address,area_m2) VALUES(?,?,?,?,?)",
+                       (lid, w.공원명, w.공원구분, w.addr, None if pd.isna(w.a) else float(w.a)))
+
+    # 2) 민간 시설 — 허가 대형 우선, 일반 파일과 동일 시설은 병합
+    seen = set()
+    for df, sid, permit in ((per, s_per, True), (gen, s_gen, False)):
+        for r in df.to_dict("records"):
+            key = (norm_name(r["name"]), norm_name(r["addr"]))
+            if key in seen:
+                continue
+            seen.add(key)
+            status = "휴업" if permit and r.get("영업상태명") == "휴업" else "영업중"
+            fa = float(r["fa"]) if r.get("fa") not in (None, "", "nan") and pd.notna(r.get("fa")) else None
+            nr = int(float(r["n"])) if pd.notna(r.get("n")) else None
+            lid = add_lead(lead_type="private_facility", name=r["name"], sido=r["sido"], address=r["addr"],
+                           facility_kind=r["type"], operating_status=status,
+                           closed_from=r.get("휴업시작일자") if pd.notna(r.get("휴업시작일자")) else None,
+                           closed_until=r.get("휴업종료일자") if pd.notna(r.get("휴업종료일자")) else None,
+                           area_m2=fa, ride_count=nr, grade=r["grade"],
+                           grade_reason=f"{r['type']}, 시설면적 {fa or '-'}㎡, 놀이시설 {nr or '-'}종",
+                           is_mobile_or_event=int(bool(re.search(load_config()['themeparks']['mobile_pattern'], r["name"]))) if not permit else 0,
+                           source_file_id=sid, source_key=r["name"])
+            tel = r.get("tel")
+            if isinstance(tel, str) and tel:
+                add_contact(lid, tel, "public_data", note="공공데이터 인허가 전화번호" + (" (지역번호 확인필요)" if "확인필요" in tel else ""))
+
+    # 3) 수동 확인 연락처 — 매핑 규칙으로 lead 와 연결, 우선순위가 높으면 덮어씀
+    vmap = pd.read_csv(f"{MANUAL}/verified_contact_map.csv", dtype=str).set_index("facility")["lead_name_regex"].to_dict()
+    leads = pd.read_sql("SELECT id,name FROM leads", db)
+    unmatched = []
+    for v in pd.read_csv(f"{MANUAL}/verified_contacts.csv", dtype=str).fillna("").to_dict("records"):
+        rx = vmap.get(v["facility"])
+        ids = leads[leads.name.str.contains(rx, regex=True)].id.tolist() if rx else []
+        if not ids:
+            unmatched.append(v["facility"])
+            continue
+        for lid in ids:
+            db.execute("DELETE FROM contacts WHERE lead_id=? AND channel='phone' AND value=?", (lid, v["phone"]))
+            add_contact(lid, v["phone"], v["status"], note=v["phone_note"] or None, source_url=v["source"], verified_on=v["verified_on"])
+    for u in pd.read_csv(f"{MANUAL}/unresolved_contacts.csv", dtype=str).to_dict("records"):
+        db.execute("INSERT INTO unresolved_contacts VALUES(?,?,?)", (u["facility"], u["reason"], u["next_step"]))
+
+    # 4) 수동 등급 보정(규칙보다 우선)
+    for o in pd.read_csv(f"{MANUAL}/grade_overrides.csv", dtype=str).to_dict("records"):
+        db.execute("UPDATE leads SET grade=?, grade_reason=grade_reason||' / 수동보정: '||?, grade_overridden=1 WHERE name=?",
+                   (o["grade"], o["reason"], o["name"]))
+
+    db.execute("INSERT INTO outreach(lead_id) SELECT id FROM leads")
+    db.commit()
+    stats = dict(
+        leads=db.execute("SELECT lead_type, grade, COUNT(*) FROM leads GROUP BY 1,2").fetchall(),
+        contacts=db.execute("SELECT confidence, COUNT(*) FROM contacts GROUP BY 1").fetchall(),
+        unmatched_verified=unmatched)
+    db.close()
+    return stats
+
+
+def main():
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--db", default=f"{ROOT}/data/leads.db")
+    a = ap.parse_args()
+    for k, v in build(a.db).items():
+        print(k, v)
+
+
+if __name__ == "__main__":
+    main()
