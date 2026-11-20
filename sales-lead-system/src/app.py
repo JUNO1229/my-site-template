@@ -6,6 +6,7 @@ import pandas as pd
 import streamlit as st
 import leaddb as L
 import enrich as E
+import dispatch as D
 
 DB = os.environ.get("LEADS_DB", os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "data", "leads.db"))
 CONF_KO = {"verified_official": "공식 확인", "public_data": "공공데이터", "third_party_recheck": "제3자(재확인)", "unknown": "미상"}
@@ -16,7 +17,7 @@ if not os.path.exists(DB):
     st.stop()
 db = L.connect(DB)
 
-tab_list, tab_queue, tab_review = st.tabs(["리드 목록", "연락처 보강 큐", "후보 검수"])
+tab_list, tab_queue, tab_review, tab_send, tab_alert = st.tabs(["리드 목록", "연락처 보강 큐", "후보 검수", "발송·이력", "후속 알림"])
 
 with tab_list:
     all_ = L.list_leads(db, include_mobile=True)
@@ -134,3 +135,42 @@ with tab_review:
                     except ValueError as e: st.error(str(e))
                 if x3.button("반려", key=f"r{r.id}"):
                     E.reject(db, r.id, reviewer or "-"); st.rerun()
+
+with tab_send:
+    st.caption("발송을 기록·검증합니다(자동 전송 없음). 이메일·문자·팩스는 수신 동의가 확인된 리드만, 최초 접촉은 전화·문의폼·우편을 권장합니다. 연락 금지 리드는 모든 채널이 차단됩니다.")
+    with st.expander("자료 등록(소개서·도입제안서)"):
+        dn, dk, dv = st.text_input("자료명"), st.selectbox("종류", ["intro", "proposal", "other"]), st.text_input("버전", "v1")
+        up = st.file_uploader("파일(선택)")
+        if st.button("자료 저장") and dn:
+            path = None
+            if up:
+                import tempfile
+                t = os.path.join(tempfile.mkdtemp(), up.name); open(t, "wb").write(up.getvalue()); path = t
+            D.register_document(db, dn, dk, path, dv); st.rerun()
+    docs = D.documents(db)
+    st.dataframe(docs[["name", "kind", "version", "file_path"]] if len(docs) else docs, hide_index=True)
+    leads_all = L.list_leads(db, grades=["A", "B"])
+    lo = {f"[{r.grade}] {r.name} ({L.STAGE_KO[r.stage]})": int(r.id) for r in leads_all.itertuples() if r.stage != "do_not_contact"}
+    if lo and len(docs):
+        pick = st.selectbox("대상 리드", list(lo), key="sp")
+        c1, c2, c3 = st.columns(3)
+        ch = c1.selectbox("채널", ["call", "web_form", "post", "email", "sms", "fax"])
+        dsel = c2.selectbox("자료", docs.id.tolist(), format_func=lambda i: docs.set_index("id").name[i])
+        by = c3.text_input("발송자")
+        to, nt = st.text_input("수신처(조직 연락처)"), st.text_input("메모", key="dn")
+        b1, b2 = st.columns(2)
+        if b1.button("발송/접촉 기록", type="primary"):
+            try:
+                D.log_dispatch(db, lo[pick], int(dsel), ch, by, to or None, nt or None); st.success("기록됨 · 후속 조치일 +7일"); 
+            except (D.DispatchBlocked, ValueError) as e:
+                st.error(str(e))
+        if b2.button("수신 거부 처리(영구 차단)"):
+            D.record_opt_out(db, lo[pick]); st.warning("연락 금지로 전환됨"); st.rerun()
+    st.markdown("**발송 이력**")
+    st.dataframe(D.history(db), hide_index=True, width="stretch")
+
+with tab_alert:
+    f = D.followups(db)
+    st.write(f"후속 조치 {len(f)}건 (기한 경과·오늘·7일 이내)")
+    st.dataframe(f.assign(stage=f.stage.map(L.STAGE_KO))[["alert", "grade", "name", "stage", "next_action", "next_action_on", "owner"]],
+                 hide_index=True, width="stretch")

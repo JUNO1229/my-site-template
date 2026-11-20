@@ -32,3 +32,5 @@ __pycache__/
 sales-lead-system/data/leads.db
 __pycache__/
 .pytest_cache/
+sales-lead-system/data/documents/*
+!sales-lead-system/data/documents/.gitkeep

@@ -34,3 +34,12 @@ CREATE TABLE enrichment_candidates (
   found_on TEXT DEFAULT CURRENT_DATE,
   status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending','approved','rejected','blocked')),
   reviewer TEXT, reviewed_on TEXT, review_note TEXT, approved_confidence TEXT, UNIQUE (lead_id, channel, value));
+-- Phase 4: 발송 지원 (자료 등록·발송 이력·동의 검증). 실제 이메일/문자 자동발송은 하지 않는다.
+CREATE TABLE documents (
+  id INTEGER PRIMARY KEY, name TEXT NOT NULL, kind TEXT NOT NULL CHECK (kind IN ('intro','proposal','other')),
+  file_path TEXT, version TEXT, created_at TEXT DEFAULT CURRENT_DATE, UNIQUE (name, version));
+CREATE TABLE dispatches (
+  id INTEGER PRIMARY KEY, lead_id INT REFERENCES leads(id) ON DELETE CASCADE,
+  document_id INT REFERENCES documents(id), channel TEXT NOT NULL CHECK (channel IN ('call','web_form','post','email','sms','fax')),
+  to_value TEXT, sent_on TEXT NOT NULL, sent_by TEXT, note TEXT, consent_verified INT DEFAULT 0,
+  created_at TEXT DEFAULT CURRENT_TIMESTAMP);
