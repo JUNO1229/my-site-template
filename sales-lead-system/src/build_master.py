@@ -58,7 +58,12 @@ def build(db_path: str):
         orgs, water = pd.read_csv(f"{tmp}/orgs_from_parks.csv"), pd.read_csv(f"{tmp}/water_parks.csv")
         gen, per = pd.read_csv(f"{tmp}/general.csv", dtype=str), pd.read_csv(f"{tmp}/permit.csv", dtype=str)
 
-    if os.path.exists(db_path):
+    saved_outreach = saved_points = None
+    if os.path.exists(db_path):  # 사용자 입력(영업 단계·영업 포인트)은 재생성 후에도 이름+주소로 복원
+        old = sqlite3.connect(db_path)
+        saved_outreach = pd.read_sql("SELECT l.name,l.address,o.* FROM outreach o JOIN leads l ON l.id=o.lead_id", old)
+        saved_points = pd.read_sql("SELECT l.name,l.address,s.point,s.category,s.found_on FROM sales_points s JOIN leads l ON l.id=s.lead_id", old)
+        old.close()
         os.remove(db_path)
     db = sqlite3.connect(db_path)
     db.execute("PRAGMA foreign_keys=ON")
@@ -150,6 +155,15 @@ def build(db_path: str):
                    (o["grade"], o["reason"], o["name"]))
 
     db.execute("INSERT INTO outreach(lead_id) SELECT id FROM leads")
+    if saved_outreach is not None:
+        for o in saved_outreach.to_dict("records"):
+            db.execute("""UPDATE outreach SET stage=?,last_action=?,next_action=?,next_action_on=?,consent_for_email=?,owner=?,memo=?,updated_at=?
+                          WHERE lead_id=(SELECT id FROM leads WHERE name=? AND address IS ?)""",
+                       (o["stage"], o["last_action"], o["next_action"], o["next_action_on"], o["consent_for_email"],
+                        o["owner"], o["memo"], o["updated_at"], o["name"], o["address"]))
+        for p in saved_points.to_dict("records"):
+            db.execute("INSERT INTO sales_points(lead_id,point,category,found_on) SELECT id,?,?,? FROM leads WHERE name=? AND address IS ?",
+                       (p["point"], p["category"], p["found_on"], p["name"], p["address"]))
     db.commit()
     stats = dict(
         leads=db.execute("SELECT lead_type, grade, COUNT(*) FROM leads GROUP BY 1,2").fetchall(),
