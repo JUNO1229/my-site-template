@@ -2,7 +2,7 @@
 import os
 import re
 import pandas as pd
-from common import read_public_csv, normalize_phone, load_config
+from common import read_public_csv, normalize_phone, load_config, alias_sido
 
 ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..")
 EXTRA = f"{ROOT}/data/raw/extra"
@@ -38,7 +38,7 @@ def load_source(src, cfg):
         addr = r[cols["addr"]] if cols["addr"] and pd.notna(r[cols["addr"]]) else None
         area = pd.to_numeric(r[cols["area"]], errors="coerce") if cols["area"] else None
         g, why = grade_for(src, name, None if area is None or pd.isna(area) else float(area))
-        out.append(dict(name=name, address=addr, sido=str(addr).split()[0] if addr else "미확인",
+        out.append(dict(name=name, address=addr, sido=alias_sido(str(addr).split()[0]) if addr else "미확인",
                         facility_kind=src["kind"], area_m2=None if area is None or pd.isna(area) else float(area),
                         grade=g, grade_reason=f"{src['kind']}: {why}", source_key=src["id"],
                         tel=normalize_phone(r[cols["phone"]]) if cols["phone"] else ""))

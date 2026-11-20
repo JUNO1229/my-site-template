@@ -38,3 +38,11 @@ def load_config(name: str = "grading.yaml") -> dict:
     path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "config", name)
     with open(path, encoding="utf-8") as f:
         return yaml.safe_load(f)
+
+
+# 원본 표기 차이 정리: 구 명칭/통합 이전 명칭을 현행 시도명으로 통일
+SIDO_ALIAS = {"강원도": "강원특별자치도", "전라북도": "전북특별자치도", "전라남도": "전남광주통합특별시", "광주광역시": "전남광주통합특별시"}
+
+
+def alias_sido(s):
+    return SIDO_ALIAS.get(s, s)

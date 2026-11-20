@@ -56,3 +56,28 @@ def test_verified_contacts_linked(db):
 def test_contacts_have_provenance(db):
     assert db.execute("SELECT COUNT(*) FROM contacts WHERE confidence IS NULL").fetchone()[0] == 0
     assert db.execute("SELECT COUNT(*) FROM contacts WHERE confidence='verified_official' AND (source_url IS NULL OR verified_on IS NULL)").fetchone()[0] == 0
+
+
+def test_sido_is_valid_and_agencies_classified(db):
+    from ingest_parks import VALID_SIDO
+    bad = db.execute("SELECT DISTINCT sido FROM leads").fetchall()
+    assert all(s in VALID_SIDO for (s,) in bad), bad
+    kinds = dict(db.execute("SELECT name, facility_kind FROM leads WHERE lead_type='public_org'").fetchall())
+    for n in ("기장군도시관리공단", "부산관광공사", "인천시설공단", "울산시설공단"):
+        assert kinds[n] == "시설관리 기관"
+    sido = dict(db.execute("SELECT name, sido FROM leads WHERE name IN ('기장군도시관리공단','부산관광공사','인천시설공단','울산시설공단')").fetchall())
+    assert sido == {"기장군도시관리공단": "부산광역시", "부산관광공사": "부산광역시", "인천시설공단": "인천광역시", "울산시설공단": "울산광역시"}
+    assert kinds["경기도 수원시"] == "공원 관리기관"
+
+
+def test_agency_not_merged_with_city_and_city_hall_stays_municipal(db):
+    kinds = dict(db.execute("SELECT name, facility_kind FROM leads WHERE lead_type='public_org'").fetchall())
+    assert kinds["경기도 과천시청"] == "공원 관리기관"
+    assert kinds["경기도 과천시 시설관리공단"] == "시설관리 기관"
+    assert kinds["대구광역시청(대구시설공단)"] == "공원 관리기관"
+
+
+def test_jeonnam_merged_into_gwangju_special_city(db):
+    sidos = {s for (s,) in db.execute("SELECT DISTINCT sido FROM leads").fetchall()}
+    assert "전라남도" not in sidos and "광주광역시" not in sidos
+    assert db.execute("SELECT sido FROM leads WHERE name='전라남도 광양시'").fetchone() == ("전남광주통합특별시",)
