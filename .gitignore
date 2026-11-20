@@ -34,3 +34,6 @@ __pycache__/
 .pytest_cache/
 sales-lead-system/data/documents/*
 !sales-lead-system/data/documents/.gitkeep
+
+# 시드 생성물(공공데이터 가공본, 재생성 가능)
+sales-lead-system/data/seed/
