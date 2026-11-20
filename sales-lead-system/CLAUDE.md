@@ -15,7 +15,7 @@
 ## 이미 있는 것
 - data/raw/*.csv : 공공데이터포털 원본 3종 (cp949)
 - src/*.py : 원본 → 리드 정제·등급 산출 스크립트 (실행 확인됨, 결과는 data/processed/ref_*.csv 와 동일)
-- schema/schema.sql : 초기 DB 스키마
+- 웹앱 스키마는 루트 db/schema.sql (schema/ 는 중간 산출물용)
 - data/manual/verified_contacts.csv : 사람이 공식 사이트에서 확인한 연락처(출처·확인일 포함)
 - data/manual/unresolved_contacts.csv : 못 찾은 곳과 다음 조치
 
@@ -24,7 +24,7 @@
 - 모든 연락처에 출처(source)와 확인일, 신뢰도(confidence)를 붙인다. 제3자 여행정보 사이트 번호는 third_party_recheck.
 - 원본 데이터는 수정하지 않고 data/raw 에 보존. 가공 결과는 재생성 가능해야 한다.
 - 등급 규칙은 하드코딩하지 말고 설정 파일로 분리(docs/03 참고).
-- 구글 시트/아티팩트는 현재 수동 복사본이다. 단일 원본(DB)을 만들고 시트는 내보내기로 둔다.
+- 단일 원본은 웹앱의 Postgres. 이 폴더는 데이터 정제·시드 생성용(Python)
 
 ## 참고 산출물 (Claude 대화에서 만든 것)
 - 발송 대상 시트(6탭): https://claude.ai/artifact/GPT5VzbhhZWxdWq5WEPkrq

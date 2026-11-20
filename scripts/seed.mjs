@@ -1,17 +1,14 @@
 // 시드 적재 (멱등, 사용자 입력 보존): npm run db:seed -- [path/to/seed.json]
 // - 리드는 (name,address) 기준 upsert. 수동 보정(grade_overridden)된 등급은 덮어쓰지 않는다.
 // - 연락처는 신뢰도가 더 높을 때만 갱신. outreach/영업포인트/후보/발송 이력은 건드리지 않는다.
-import pg from "pg"
+import { connect } from "./db-client.mjs"
 import { readFileSync } from "fs"
-const url = process.env.DATABASE_URL
-if (!url) { console.error("DATABASE_URL 필요"); process.exit(1) }
 const file = process.argv[2] ?? "sales-lead-system/data/seed/seed.json"
 const data = JSON.parse(readFileSync(file, "utf8"))
-const c = new pg.Client({ connectionString: url, ssl: url.includes("localhost") ? undefined : { rejectUnauthorized: false } })
-await c.connect()
+const c = await connect()
 const rank = (x) => `CASE ${x} WHEN 'verified_official' THEN 3 WHEN 'public_data' THEN 2 WHEN 'third_party_recheck' THEN 1 ELSE 0 END`
 try {
-  await c.query("BEGIN")
+  if (!c.http) await c.query("BEGIN") // HTTP 모드는 문장 단위 실행(멱등이라 재실행 안전)
   const src = {}
   for (const s of data.sources) {
     const r = await c.query(`INSERT INTO source_files(name,portal_id,file_path,row_count) VALUES($1,$2,$3,$4)
@@ -47,6 +44,6 @@ try {
   }
   for (const u of data.unresolved)
     await c.query(`INSERT INTO unresolved_contacts(facility,reason,next_step) VALUES($1,$2,$3) ON CONFLICT (facility) DO UPDATE SET reason=EXCLUDED.reason, next_step=EXCLUDED.next_step`, [u.facility, u.reason, u.next_step])
-  await c.query("COMMIT")
+  if (!c.http) await c.query("COMMIT")
   console.log(`seeded leads=${n}`)
-} catch (e) { await c.query("ROLLBACK"); throw e } finally { await c.end() }
+} catch (e) { if (!c.http) await c.query("ROLLBACK"); throw e } finally { await c.end() }
