@@ -1,0 +1,14 @@
+facility,phone,phone_note,source,verified_on,status
+에버랜드·캐리비안베이,031-320-5000,고객센터(유료 09~18시),everland.com 하단 고객센터 표기,2026-11-20,verified_official
+롯데월드 어드벤처 부산,1661-2000,,adventurebusan.lotteworld.com 하단 전화 표기,2026-11-20,verified_official
+롯데월드 어드벤처 서울,1661-2000,,롯데월드 공통 번호(부산 사이트 기준),2026-11-20,verified_official
+하이원리조트(추추파크 포함),1588-7789,리조트 대표번호,high1.com 하단 대표번호,2026-11-20,verified_official
+용평리조트(워터파크·팡팡유니버스),1588-0009,예약; 현장 033-335-5757,yongpyong.co.kr 하단,2026-11-20,verified_official
+한화리조트(거제 벨버디어),1588-2299,한화리조트 대표번호,hanwharesort.co.kr 하단,2026-11-20,verified_official
+오크밸리(바운스 퍼니팩토리),1588-7676,예약·문의,oakvalley.co.kr 상단/하단,2026-11-20,verified_official
+육림랜드,033-252-7225,,제3자 여행정보 사이트 기재,2026-11-20,third_party_recheck
+오션700(알펜시아),033-339-0000,,제3자 여행정보 사이트 기재 / 공식사이트 접속 실패,2026-11-20,third_party_recheck
+캐리비안베이(참고),1599-8370,NOL 고객센터 표기 추정,제3자 검색 결과,2026-11-20,third_party_recheck
+비발디파크 오션월드(소노),1588-4888,소노호텔앤리조트 대표 추정,제3자 검색 결과; 공식사이트 푸터 번호 미노출,2026-11-20,third_party_recheck
+서울어린이대공원(서울시설공단 운영팀),02-450-9311,,공공데이터 전화번호,2026-11-20,public_data
+서울시 한강사업본부(공원기획과),02-3780-0841,연도별 0842/0844 상이,제3자 검색 결과,2026-11-20,third_party_recheck

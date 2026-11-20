@@ -1,0 +1,27 @@
+# Phase 5 확대 대상. 파일을 data/raw/extra/ 에 넣고 빌드하면 자동 반영 (파일 없으면 건너뜀).
+# columns: 실제 파일 컬럼명 후보(앞에서부터 첫 일치 사용). 컬럼명은 내려받은 파일에 맞게 조정하세요.
+defaults:
+  columns:
+    name: [사업장명, 시설명, 명칭, 야영장명, 캠핑장명, 수목원명, 동물원명, 박물관명, 해수욕장명, 축제명, 관광지명]
+    addr: [도로명주소, 소재지도로명주소, 지번주소, 소재지지번주소, 주소, 개최장소]
+    phone: [전화번호, 대표전화, 연락처, 문의전화]
+    status: [영업상태명, 운영상태]
+    area: [시설면적, 면적, 부지면적]
+  status_ok: ["영업/정상", "운영", "정상", "영업중"]
+sources:
+  - {id: camping,   file: camping.csv,   kind: 캠핑장,   base: C, A_area: 100000, B_area: 10000, A_name: "글램핑|오토캠핑|워터|물놀이"}
+  - {id: arboretum, file: arboretum.csv, kind: 수목원,   base: B, A_area: 500000, B_area: 50000, A_name: "국립|테마|정원"}
+  - {id: zoo,       file: zoo.csv,       kind: 동물원,   base: A, A_area: 0,      B_area: 0,     A_name: ""}
+  - {id: museum,    file: museum.csv,    kind: 박물관,   base: C, A_area: 30000,  B_area: 5000,  A_name: "국립|어린이|과학"}
+  - {id: beach,     file: beach.csv,     kind: 해수욕장, base: B, A_area: 0,      B_area: 0,     A_name: "대천|해운대|경포|광안리|속초"}
+  - {id: festival,  file: festival.csv,  kind: 지자체 축제, base: B, A_area: 0,    B_area: 0,     A_name: "물|워터|불꽃|어린이|가족"}
+  # 지자체 물놀이장(운영주체·담당부서)은 별도 파일 추가 시 kind 를 '물놀이장' 으로, base: A 로 등록
+visitors:           # data/raw/visitors.csv (name,year,visitors) — 관광지 입장객 통계 등
+  file: visitors.csv
+  upgrade: {to_A: 1000000, to_B: 100000}   # 연 방문객 이상이면 등급 상향(하향은 하지 않음)
+sales_point_rules:  # 모두의 플랫폼 연계 영업 포인트 제안 규칙 (시설 유형별)
+  - {match: "물놀이|워터|해수욕장", category: safety,       point: "다중 물놀이시설 미아·안전 관리 — 미아방지 QR 밴드 + 시설 운영 연계"}
+  - {match: "테마파크|리조트|동물원|수목원", category: ticketing, point: "유료 입장·티켓 통합 — 모두의티켓 연계(통합 발권·키오스크)"}
+  - {match: "테마파크|캠핑장|리조트", category: facility_ops, point: "시설운영(예약·체크인·부대시설) 통합 — 모두의 플랫폼 시설운영"}
+  - {match: "공원|축제|해수욕장", category: parking, point: "대형 인파 행사·주차 혼잡 — 주차/동선 관리 연계 검토"}
+  - {match: "레저|테마파크|캠핑장|물놀이", category: rental, point: "장비·보관함·튜브 대여 — 대여·결제 연계"}
