@@ -1,7 +1,7 @@
 import { q } from "./db"
 import type { Lead } from "./domain"
 
-export type Profile = { keywords: string[]; regions: string[]; tags: string[]; note: string }
+export type Profile = { keywords: string[]; regions: string[]; tags: string[]; note: string; summary?: string }
 
 // 내장 규칙: 프로젝트 문구에서 주제를 감지 → 검색 키워드·대상 태그로 변환
 const TOPICS: { re: RegExp; label: string; kw: string[]; tags: string[]; coastal?: boolean }[] = [
@@ -18,8 +18,11 @@ const isCoastal = (sido?: string | null) => !!sido && COASTAL.some((c) => sido.s
 const uniq = (a: string[]) => [...new Set(a.map((x) => x.trim()).filter(Boolean))]
 
 export function analyzeByRules(text: string, sidos: string[], validTags: string[]): Profile {
-  const hits = TOPICS.filter((t) => t.re.test(text))
-  const regions = sidos.filter((s) => text.includes(s.slice(0, 2)) && s.length > 1)
+  // 긴 문서(업로드)는 한두 번 언급된 단어에 흔들리지 않도록 반복 횟수 기준을 높인다
+  const need = text.length > 1500 ? 3 : 1
+  const count = (re: RegExp) => (text.match(new RegExp(re.source, "g")) ?? []).length
+  const hits = TOPICS.filter((t) => count(t.re) >= need)
+  const regions = sidos.filter((s) => s.length > 1 && text.split(s.slice(0, 2)).length - 1 >= (need > 1 ? 2 : 1))
   const tags = uniq(hits.flatMap((t) => t.tags)).filter((t) => validTags.includes(t))
   return { keywords: uniq(hits.flatMap((t) => t.kw)), regions, tags,
     note: hits.length ? `감지된 주제: ${hits.map((h) => h.label).join(", ")}${hits.some((h) => h.coastal) ? " (해안 지역 가점)" : ""}` : "감지된 주제가 없습니다. 키워드를 직접 입력하세요." }
@@ -31,13 +34,13 @@ export async function analyzeByAI(text: string, sidos: string[], validTags: stri
     const r = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST", headers: { "x-api-key": process.env.ANTHROPIC_API_KEY, "anthropic-version": "2023-06-01", "content-type": "application/json" },
       body: JSON.stringify({ model: process.env.OCR_MODEL || "claude-haiku-5-5", max_tokens: 700, messages: [{ role: "user", content:
-        `영업 프로젝트 개요를 읽고, 영업 대상 기관·시설을 찾기 위한 프로필을 JSON 한 개로만 출력하라.\n프로젝트: ${text}\n\n` +
-        `키: keywords(기관명·주소·업종에서 검색할 한국어 키워드 3~10개), regions(아래 시도 중 관련된 것), tags(아래 태그 중 영업 대상에 맞는 것), note(분석 근거 한 문장).\n시도: ${sidos.join(", ")}\n태그: ${validTags.join(", ")}` }] }) })
+        `영업 프로젝트 개요를 읽고, 영업 대상 기관·시설을 찾기 위한 프로필을 JSON 한 개로만 출력하라.\n프로젝트: ${text.slice(0, 12000)}\n\n` +
+        `키: summary(개요 2~3문장 요약), keywords(기관명·주소·업종에서 검색할 한국어 키워드 3~10개), regions(아래 시도 중 관련된 것), tags(아래 태그 중 영업 대상에 맞는 것), note(분석 근거 한 문장).\n시도: ${sidos.join(", ")}\n태그: ${validTags.join(", ")}` }] }) })
     if (!r.ok) return null
     const t: string = (await r.json() as any).content?.[0]?.text ?? ""
     const j = JSON.parse(t.match(/\{[\s\S]*\}/)![0])
     return { keywords: uniq(j.keywords ?? []), regions: uniq(j.regions ?? []).filter((s) => sidos.includes(s)),
-      tags: uniq(j.tags ?? []).filter((x) => validTags.includes(x)), note: `AI 분석: ${j.note ?? ""}` }
+      tags: uniq(j.tags ?? []).filter((x) => validTags.includes(x)), note: `AI 분석: ${j.note ?? ""}`, summary: typeof j.summary === "string" ? j.summary : undefined }
   } catch { return null }
 }
 

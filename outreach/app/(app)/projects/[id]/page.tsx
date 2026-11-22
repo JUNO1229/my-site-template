@@ -5,6 +5,7 @@ import { SEL } from "@/lib/queries"
 import { recommendFor } from "@/lib/recommend"
 import { saveProject } from "@/app/actions"
 import ProjectTargets from "@/components/ProjectTargets"
+import DocUpload from "@/components/DocUpload"
 import Recommendations from "@/components/Recommendations"
 
 export default async function Project({ params }: { params: Promise<{ id: string }> }) {
@@ -28,7 +29,7 @@ export default async function Project({ params }: { params: Promise<{ id: string
         <form action={save} className="grid gap-3 md:grid-cols-2">
           <div><label className="label">프로젝트명</label><input name="name" defaultValue={p.name} className="input" /></div>
           <div><label className="label">상품/서비스</label><input name="product" defaultValue={p.product ?? ""} className="input" /></div>
-          <div className="md:col-span-2"><label className="label">개요</label><textarea name="overview" rows={4} defaultValue={p.overview ?? ""} className="input" placeholder="사업 목적, 영업 대상 유형, 대상 지역 등" /></div>
+          <div className="md:col-span-2"><label className="label">방법 1. 개요 직접 입력</label><textarea name="overview" rows={4} defaultValue={p.overview ?? ""} className="input" placeholder="사업 목적, 영업 대상 유형, 대상 지역 등" /></div>
           <div className="md:col-span-2 rounded bg-indigo-50 p-3 text-sm">
             <div className="mb-2 text-xs text-indigo-800">{p.analysis_note ?? "아직 분석 전입니다."} — 아래 항목은 직접 고칠 수 있습니다(쉼표 구분).</div>
             <div className="grid gap-2 md:grid-cols-3">
@@ -40,6 +41,7 @@ export default async function Project({ params }: { params: Promise<{ id: string
             <button className="btn" name="intent" value="save">프로필 저장 → 추천 갱신</button>
             <button className="btn-ghost" name="intent" value="analyze">개요로 다시 분석</button></div>
         </form>
+        <DocUpload projectId={p.id} names={p.doc_names ?? []} />
       </section>
 
       <section className="card space-y-2">

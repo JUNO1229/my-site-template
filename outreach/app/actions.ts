@@ -6,6 +6,7 @@ import { COOKIE, createSession, passwordOk } from "@/lib/auth"
 import { q } from "@/lib/db"
 import { CHANNELS, dedupeKey, eligibility, isEmail, normEmail, normPhone, recommend, type Channel, type Lead } from "@/lib/domain"
 import { allMatchingIds, type Filter } from "@/lib/queries"
+import { extractDocText } from "@/lib/docs"
 import { analyzeByAI, analyzeByRules } from "@/lib/recommend"
 import { ocrCard, sendEmail, sendSms, type CardFields } from "@/lib/providers"
 
@@ -122,17 +123,46 @@ export async function createProject(f: FormData) {
   redirect(`/projects/${p.id}`)
 }
 const list = (f: FormData, k: string) => (s(f, k) ?? "").split(/[,，]/).map((x) => x.trim()).filter(Boolean)
-/** 개요 수정 + (reanalyze 이면) 개요로부터 프로필 재분석, 아니면 입력한 프로필 저장 */
+const analysisText = (name: string, product: string | null, overview: string | null, doc: string | null) =>
+  [name, product, overview, doc].filter(Boolean).join("\n")
+
+/** 개요 수정 + (analyze) 개요·업로드 문서로 프로필 재분석 / (save) 입력한 프로필 저장 */
 export async function saveProject(projectId: number, f: FormData) {
   const overview = s(f, "overview"), name = s(f, "name") ?? "", product = s(f, "product")
   if (f.get("intent") === "analyze") {
-    const pr = await computeProfile([name, product, overview].filter(Boolean).join(" "))
+    const [d] = await q<{ doc_text: string | null }>(`SELECT doc_text FROM projects WHERE id=$1`, [projectId])
+    const pr = await computeProfile(analysisText(name, product, overview, d?.doc_text ?? null))
     await q(`UPDATE projects SET name=$2,product=$3,overview=$4,keywords=$5,regions=$6,target_tags=$7,analysis_note=$8 WHERE id=$1`,
       [projectId, name, product, overview, pr.keywords, pr.regions, pr.tags, pr.note])
   } else
     await q(`UPDATE projects SET name=$2,product=$3,overview=$4,keywords=$5,regions=$6,target_tags=$7,analysis_note='직접 수정' WHERE id=$1`,
       [projectId, name, product, overview, list(f, "keywords"), list(f, "regions"), list(f, "target_tags")])
   revalidatePath(`/projects/${projectId}`)
+}
+
+/** 사업계획서·공고문 등 파일을 올려 텍스트를 추출하고 바로 분석. 개요가 비어 있으면 요약을 개요로 채운다. */
+export async function uploadDocs(projectId: number, f: FormData): Promise<{ ok: boolean; message: string }> {
+  const files = (f.getAll("files") as File[]).filter((x) => x && x.size)
+  if (!files.length) return { ok: false, message: "파일을 선택하세요" }
+  if (files.length > 5) return { ok: false, message: "한 번에 5개까지 올릴 수 있습니다" }
+  if (files.reduce((n, x) => n + x.size, 0) > 4.4 * 1024 * 1024) return { ok: false, message: "파일 합계는 4MB 이하여야 합니다 (큰 PDF는 일부 페이지만 나눠 올리세요)" }
+  const parts: string[] = [], names: string[] = [], errs: string[] = []
+  for (const file of files) {
+    try { const text = await extractDocText(file); if (text.trim()) { parts.push(`[${file.name}]\n${text}`); names.push(file.name) } else errs.push(`${file.name}: 글자를 찾지 못했습니다(스캔 이미지일 수 있음)`) }
+    catch (e: any) { errs.push(`${file.name}: ${e.message}`) }
+  }
+  if (!parts.length) return { ok: false, message: errs.join(" / ") }
+  const [p] = await q<any>(`SELECT * FROM projects WHERE id=$1`, [projectId]); if (!p) return { ok: false, message: "프로젝트 없음" }
+  const doc = [p.doc_text, ...parts].filter(Boolean).join("\n\n").slice(0, 200_000)
+  const pr = await computeProfile(analysisText(p.name, p.product, p.overview, doc))
+  const overview = p.overview?.trim() ? p.overview : (pr.summary ?? doc.replace(/\s+/g, " ").slice(0, 400))
+  await q(`UPDATE projects SET doc_text=$2, doc_names=$3, overview=$4, keywords=$5, regions=$6, target_tags=$7, analysis_note=$8 WHERE id=$1`,
+    [projectId, doc, [...(p.doc_names ?? []), ...names], overview, pr.keywords, pr.regions, pr.tags, `문서 ${names.length}건 분석 · ${pr.note}`])
+  revalidatePath(`/projects/${projectId}`)
+  return { ok: true, message: `${names.length}개 파일을 분석했습니다.${errs.length ? " 실패: " + errs.join(" / ") : ""}` }
+}
+export async function clearDocs(projectId: number) {
+  await q(`UPDATE projects SET doc_text=NULL, doc_names='{}' WHERE id=$1`, [projectId]); revalidatePath(`/projects/${projectId}`)
 }
 async function attach(projectId: number, ids: number[]) {
   if (!ids.length) return 0

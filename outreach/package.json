@@ -11,6 +11,7 @@
     "db:seed-public": "node scripts/seed-public.mjs"
   },
   "dependencies": {
+    "mammoth": "^1.13.0",
     "next": "15.5.29",
     "papaparse": "^5.5.3",
     "pg": "^8.23.1",
@@ -18,6 +19,7 @@
     "react": "^19",
     "react-dom": "^19",
     "read-excel-file": "^5.8.8",
+    "unpdf": "^1.9.1",
     "zod": "3.25.67"
   },
   "devDependencies": {
