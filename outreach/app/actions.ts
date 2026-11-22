@@ -6,6 +6,7 @@ import { COOKIE, createSession, passwordOk } from "@/lib/auth"
 import { q } from "@/lib/db"
 import { CHANNELS, dedupeKey, eligibility, isEmail, normEmail, normPhone, recommend, type Channel, type Lead } from "@/lib/domain"
 import { allMatchingIds, type Filter } from "@/lib/queries"
+import { analyzeByAI, analyzeByRules } from "@/lib/recommend"
 import { ocrCard, sendEmail, sendSms, type CardFields } from "@/lib/providers"
 
 const s = (f: FormData, k: string) => { const v = String(f.get(k) ?? "").trim(); return v || null }
@@ -106,10 +107,32 @@ export async function addTagsToLeads(ids: number[], tagsText: string) {
 }
 
 // ───────── 프로젝트 ─────────
+async function computeProfile(text: string) {
+  const sidos = (await q<{ v: string }>(`SELECT DISTINCT sido v FROM leads WHERE sido IS NOT NULL`)).map((r) => r.v)
+  const tags = (await q<{ name: string }>(`SELECT name FROM tags`)).map((r) => r.name)
+  return (await analyzeByAI(text, sidos, tags)) ?? analyzeByRules(text, sidos, tags)
+}
 export async function createProject(f: FormData) {
   const name = s(f, "name"); if (!name) return
-  const [p] = await q<{ id: number }>(`INSERT INTO projects(name,product,description) VALUES($1,$2,$3) RETURNING id`, [name, s(f, "product"), s(f, "description")])
+  const overview = s(f, "overview"), product = s(f, "product")
+  const pr = await computeProfile([name, product, overview].filter(Boolean).join(" "))
+  const [p] = await q<{ id: number }>(
+    `INSERT INTO projects(name,product,description,overview,keywords,regions,target_tags,analysis_note) VALUES($1,$2,$3,$4,$5,$6,$7,$8) RETURNING id`,
+    [name, product, s(f, "description"), overview, pr.keywords, pr.regions, pr.tags, pr.note])
   redirect(`/projects/${p.id}`)
+}
+const list = (f: FormData, k: string) => (s(f, k) ?? "").split(/[,，]/).map((x) => x.trim()).filter(Boolean)
+/** 개요 수정 + (reanalyze 이면) 개요로부터 프로필 재분석, 아니면 입력한 프로필 저장 */
+export async function saveProject(projectId: number, f: FormData) {
+  const overview = s(f, "overview"), name = s(f, "name") ?? "", product = s(f, "product")
+  if (f.get("intent") === "analyze") {
+    const pr = await computeProfile([name, product, overview].filter(Boolean).join(" "))
+    await q(`UPDATE projects SET name=$2,product=$3,overview=$4,keywords=$5,regions=$6,target_tags=$7,analysis_note=$8 WHERE id=$1`,
+      [projectId, name, product, overview, pr.keywords, pr.regions, pr.tags, pr.note])
+  } else
+    await q(`UPDATE projects SET name=$2,product=$3,overview=$4,keywords=$5,regions=$6,target_tags=$7,analysis_note='직접 수정' WHERE id=$1`,
+      [projectId, name, product, overview, list(f, "keywords"), list(f, "regions"), list(f, "target_tags")])
+  revalidatePath(`/projects/${projectId}`)
 }
 async function attach(projectId: number, ids: number[]) {
   if (!ids.length) return 0

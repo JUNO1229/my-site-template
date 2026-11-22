@@ -50,3 +50,10 @@ CREATE TABLE IF NOT EXISTS dispatches (
   view_count INT NOT NULL DEFAULT 0, first_viewed_at TIMESTAMPTZ,
   sent_at TIMESTAMPTZ NOT NULL DEFAULT now());
 CREATE INDEX IF NOT EXISTS dispatches_proj_idx ON dispatches(project_id, lead_id);
+
+-- 프로젝트 개요/분석 프로필 (추천 영업처 산출 기준)
+ALTER TABLE projects ADD COLUMN IF NOT EXISTS overview TEXT;
+ALTER TABLE projects ADD COLUMN IF NOT EXISTS keywords TEXT[] NOT NULL DEFAULT '{}';
+ALTER TABLE projects ADD COLUMN IF NOT EXISTS regions TEXT[] NOT NULL DEFAULT '{}';
+ALTER TABLE projects ADD COLUMN IF NOT EXISTS target_tags TEXT[] NOT NULL DEFAULT '{}';
+ALTER TABLE projects ADD COLUMN IF NOT EXISTS analysis_note TEXT;
