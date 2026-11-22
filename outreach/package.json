@@ -1,0 +1,36 @@
+{
+  "name": "modoopass-outreach",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "typecheck": "tsc --noEmit",
+    "db:migrate": "node scripts/migrate.mjs"
+  },
+  "dependencies": {
+    "next": "15.5.29",
+    "papaparse": "^5.5.3",
+    "pg": "^8.23.1",
+    "qrcode": "^1.5.4",
+    "react": "^19",
+    "react-dom": "^19",
+    "read-excel-file": "^5.8.8",
+    "zod": "3.25.67"
+  },
+  "devDependencies": {
+    "@neondatabase/serverless": "^1.2.1",
+    "@tailwindcss/postcss": "^4.1.9",
+    "@types/node": "^22.17.2",
+    "@types/papaparse": "^5.3.16",
+    "@types/pg": "^8.23.1",
+    "@types/qrcode": "^1.5.5",
+    "@types/react": "^19.1.11",
+    "@types/react-dom": "^19.1.7",
+    "postcss": "^8.5",
+    "tailwindcss": "^4.1.9",
+    "typescript": "^5",
+    "undici": "^8.13.0"
+  }
+}
