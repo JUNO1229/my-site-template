@@ -155,7 +155,7 @@ export async function uploadDocs(projectId: number, f: FormData): Promise<{ ok: 
   const [p] = await q<any>(`SELECT * FROM projects WHERE id=$1`, [projectId]); if (!p) return { ok: false, message: "프로젝트 없음" }
   const doc = [p.doc_text, ...parts].filter(Boolean).join("\n\n").slice(0, 200_000)
   const pr = await computeProfile(analysisText(p.name, p.product, p.overview, doc))
-  const overview = p.overview?.trim() ? p.overview : (pr.summary ?? doc.replace(/\s+/g, " ").slice(0, 400))
+  const overview = p.overview?.trim() ? p.overview : (pr.summary ?? doc.replace(/\[[^\]\n]+\]\n/g, "").replace(/\s+/g, " ").trim().slice(0, 400))
   await q(`UPDATE projects SET doc_text=$2, doc_names=$3, overview=$4, keywords=$5, regions=$6, target_tags=$7, analysis_note=$8 WHERE id=$1`,
     [projectId, doc, [...(p.doc_names ?? []), ...names], overview, pr.keywords, pr.regions, pr.tags, `문서 ${names.length}건 분석 · ${pr.note}`])
   revalidatePath(`/projects/${projectId}`)
