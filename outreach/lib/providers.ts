@@ -49,3 +49,15 @@ export async function ocrCard(base64: string, mediaType: string): Promise<CardFi
   const m = t.match(/\{[\s\S]*\}/)
   return m ? JSON.parse(m[0]) : {}
 }
+
+/** 스캔(이미지) PDF → 텍스트. Claude 가 PDF 페이지 이미지를 직접 읽는다. 키가 없으면 null. */
+export async function ocrPdf(buf: Buffer): Promise<string | null> {
+  if (!providerStatus().ocr) return null
+  const r = await fetch("https://api.anthropic.com/v1/messages", {
+    method: "POST", headers: { "x-api-key": process.env.ANTHROPIC_API_KEY!, "anthropic-version": "2023-06-01", "content-type": "application/json" },
+    body: JSON.stringify({ model: process.env.OCR_MODEL || "claude-haiku-5-5", max_tokens: 16000, messages: [{ role: "user", content: [
+      { type: "document", source: { type: "base64", media_type: "application/pdf", data: buf.toString("base64") } },
+      { type: "text", text: "이 스캔 문서의 모든 페이지의 글자를 순서대로 그대로 옮겨 적어라. 표는 행 단위로 한 줄씩. 설명·요약·머리말 없이 본문 텍스트만 출력." }] }] }) })
+  if (!r.ok) throw new Error(`OCR 실패 (HTTP ${r.status})`)
+  return ((await r.json()) as any).content?.map((c: any) => c.text ?? "").join("\n") ?? ""
+}

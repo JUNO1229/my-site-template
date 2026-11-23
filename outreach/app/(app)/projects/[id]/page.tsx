@@ -8,6 +8,7 @@ import ProjectTargets from "@/components/ProjectTargets"
 import DocUpload from "@/components/DocUpload"
 import Recommendations from "@/components/Recommendations"
 
+export const maxDuration = 60 // 스캔 PDF OCR 등 서버 액션 허용 시간
 export default async function Project({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
   const [p] = await q<any>(`SELECT * FROM projects WHERE id=$1`, [Number(id)]); if (!p) notFound()
