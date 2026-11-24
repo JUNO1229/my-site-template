@@ -245,3 +245,10 @@ button:not([class]):hover{background:var(--tint)}button:not([class]):active{tran
 .datebar{display:flex;align-items:center;gap:8px}.datebar b{min-width:84px;text-align:center}
 .datebar button{width:40px;padding:0;border-radius:50%;background:var(--surface);box-shadow:var(--sh-card)}
 .kpis+.hint{margin:12px 0}.qinput{height:44px;min-width:200px}
+/* 환자명부: 제목행 고정 + 내용만 스크롤, 치료정보 축소·참고사항 확대(전체 내용 표시) */
+.tblwrap.fixhead{max-height:calc(100dvh - 258px);min-height:280px;overflow:auto;overscroll-behavior:contain}
+.tblwrap.fixhead .tbl th{position:sticky;top:0;z-index:3;background:var(--surface);box-shadow:0 1px 0 var(--hair),0 6px 10px -8px rgba(110,79,168,.25)}
+.tblwrap.fixhead .tbl.compact th,.tblwrap.fixhead .tbl.compact td{padding-left:10px;padding-right:10px}
+.tbl.compact td.plan{white-space:normal;width:30%;min-width:180px;line-height:1.45;overflow-wrap:anywhere;word-break:keep-all}
+.tbl.compact td.notes{white-space:normal;width:42%;min-width:250px;line-height:1.45;overflow-wrap:anywhere;word-break:keep-all}
+@media(max-width:960px){.tblwrap.fixhead{max-height:calc(100dvh - 416px)}}
