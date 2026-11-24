@@ -1,0 +1,34 @@
+:root{--bg:#f4f6f8;--fg:#1f2937;--mut:#6b7280;--card:#fff;--bd:#e5e7eb;--pri:#2563eb;--ok:#059669;--warn:#d97706;--bad:#dc2626}
+@media(prefers-color-scheme:dark){:root{--bg:#0f172a;--fg:#e5e7eb;--mut:#94a3b8;--card:#1e293b;--bd:#334155}}
+*{box-sizing:border-box}body{margin:0;font:14px/1.4 system-ui,"Noto Sans KR",sans-serif;background:var(--bg);color:var(--fg)}
+main{padding:16px;max-width:1800px;margin:0 auto}
+.nav{display:flex;gap:20px;align-items:center;padding:0 16px;background:var(--card);border-bottom:1px solid var(--bd);overflow-x:auto}
+.brand{font-weight:700;white-space:nowrap}.nav nav{display:flex}.nav a{padding:14px 12px;color:var(--mut);text-decoration:none;white-space:nowrap}.nav a.on{color:var(--pri);border-bottom:2px solid var(--pri)}
+.toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:12px}.toolbar h2{margin:0 8px 0 0;font-size:18px}
+button,input,select{font:inherit;color:inherit;background:var(--card);border:1px solid var(--bd);border-radius:6px;padding:6px 10px}
+button{cursor:pointer}button.primary{background:var(--pri);color:#fff;border-color:var(--pri)}button.danger{color:var(--bad);border-color:var(--bad)}
+.datebar{display:flex;gap:6px;align-items:center}.seg{display:flex}.seg button{border-radius:0}.seg button.on{background:var(--pri);color:#fff}
+.hint{color:var(--mut);font-size:12px;margin:4px 0}
+.kpis{display:flex;gap:10px;margin-bottom:12px;flex-wrap:wrap}.kpi{background:var(--card);border:1px solid var(--bd);border-radius:8px;padding:8px 16px;color:var(--mut)}
+.kpi b{font-size:22px;color:var(--fg);margin-right:6px}.kpi.s-예약 b{color:var(--warn)}.kpi.s-완료 b{color:var(--ok)}.kpi.s-취소 b{color:var(--mut)}.kpi.bad{border-color:var(--bad)}.kpi.bad b{color:var(--bad)}
+.rooms,.week{display:grid;gap:10px;overflow-x:auto}.week{grid-template-columns:repeat(5,minmax(190px,1fr))}
+.room{background:var(--card);border:1px solid var(--bd);border-top:4px solid;border-radius:8px;display:flex;flex-direction:column;min-height:300px}
+.room header{display:flex;justify-content:space-between;align-items:center;padding:10px;border-bottom:1px solid var(--bd)}.room header small{display:block;color:var(--mut)}
+.mini{font-size:12px;color:var(--mut)}.list{padding:8px;display:flex;flex-direction:column;gap:6px;flex:1;overflow:auto;max-height:70vh}.empty{color:var(--mut);text-align:center;margin:20px 0}
+.add{margin:8px;border-style:dashed;color:var(--mut)}
+.appt{display:grid;grid-template-columns:auto 1fr auto;gap:2px 8px;text-align:left;border-left:4px solid var(--warn);padding:6px 8px}
+.appt .t{font-weight:700}.appt .i,.appt .st{font-size:12px;color:var(--mut)}.appt .st{text-align:right}
+.s-완료.appt,.appt.s-완료{border-left-color:var(--ok)}.appt.s-취소{border-left-color:#9ca3af;opacity:.55;text-decoration:line-through}.appt.conflict{outline:2px solid var(--bad)}
+.badge{padding:2px 8px;border-radius:10px;font-size:12px;background:var(--bd)}.badge.s-완료{color:var(--ok)}.badge.s-예약{color:var(--warn)}
+.tl{display:grid;gap:1px;background:var(--bd);border:1px solid var(--bd);overflow-x:auto}.tl>.h,.tl .hr,.tl .cell{background:var(--card);padding:6px}
+.tl .h{text-align:center;font-size:12px;position:sticky;top:0}.tl .hr{color:var(--mut);font-size:12px}.tl .cell{min-height:64px;display:flex;flex-direction:column;gap:4px}.tl .appt{grid-template-columns:auto 1fr}.tl .appt .i,.tl .appt .st{display:none}
+.tbl{width:100%;border-collapse:collapse;background:var(--card)}.tbl th,.tbl td{padding:8px 10px;border-bottom:1px solid var(--bd);text-align:left}.tbl th{background:var(--bg);color:var(--mut)}
+.overlay{position:fixed;inset:0;background:#0007;display:grid;place-items:center;padding:16px;z-index:10}.modal{background:var(--card);border-radius:10px;padding:20px;width:min(520px,100%);max-height:92vh;overflow:auto;display:flex;flex-direction:column;gap:10px}
+.modal h3{margin:0}label{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--mut);flex:1}.row{display:flex;gap:10px}.actions{display:flex;gap:8px;margin-top:6px}
+.chips{display:flex;flex-wrap:wrap;gap:4px}.chip{padding:3px 8px;font-size:12px}.chip.on{background:var(--pri);color:#fff}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:8px;padding:12px;margin-bottom:10px;display:flex;flex-direction:column;gap:8px}.row.sub{padding-left:20px}.chk{flex-direction:row;align-items:flex-end;gap:6px}
+.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:1px;background:var(--bd);border:1px solid var(--bd)}.dh{background:var(--bg);text-align:center;padding:6px;font-weight:600}
+.day{background:var(--card);min-height:100px;padding:4px}.day.out{opacity:.4}.day.today{outline:2px solid var(--pri)}.dn{font-size:12px;color:var(--mut)}.ev{font-size:12px;padding:2px 4px;margin-top:2px;border-radius:4px;background:#fef3c7;color:#92400e}.ev.s-완료{background:#d1fae5;color:#065f46}
+.print-title{display:none}
+@media print{.nav,.no-print{display:none}.print-title{display:block}body{background:#fff;color:#000}}
+@media(max-width:700px){main{padding:8px}.row{flex-direction:column}}
