@@ -15,7 +15,7 @@ export default function Shell({ children }: { children: React.ReactNode }) {
   const path = usePathname(); const router = useRouter();
   const { me, db, ready } = useStore(); const { openAppt, theme, toggleTheme } = useUi();
   const [drawer, setDrawer] = useState(false); const [bell, setBell] = useState(false);
-  const search = useRef<HTMLInputElement>(null); const bellRef = useRef<HTMLDivElement>(null);
+  const bellRef = useRef<HTMLDivElement>(null);
   const today = todayStr(); const now = useNow(); const nowMin = now.getHours() * 60 + now.getMinutes();
   const appts = useAppts(today, today);
   const canNew = !!me && me.role !== "viewer";
@@ -23,8 +23,7 @@ export default function Shell({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const k = (e: KeyboardEvent) => {
       const t = e.target as HTMLElement; const typing = /INPUT|SELECT|TEXTAREA/.test(t.tagName);
-      if (e.key === "/" && !typing) { e.preventDefault(); search.current?.focus(); }
-      else if (e.key.toLowerCase() === "n" && !typing && canNew && !e.metaKey && !e.ctrlKey) { e.preventDefault(); openAppt({ date: todayStr() }); }
+      if (e.key.toLowerCase() === "n" && !typing && canNew && !e.metaKey && !e.ctrlKey) { e.preventDefault(); openAppt({ date: todayStr() }); }
       else if (e.key === "Escape") { setDrawer(false); setBell(false); }
     };
     const click = (e: MouseEvent) => { if (bell && !bellRef.current?.contains(e.target as Node)) setBell(false); };
@@ -50,10 +49,6 @@ export default function Shell({ children }: { children: React.ReactNode }) {
   const tabs: [string, string, string][] = [["/patients", "환자명부", "users"], ["/", "치료실 통합모니터링", "activity"], ["/rooms", "치료실", "grid"], ["/calendar", "캘린더", "calendar"]];
   const on = (h: string) => (h === "/" ? path === "/" : path.startsWith(h));
   const logout = async () => { await api("/api/auth/logout", "POST").catch(() => {}); location.href = "/login"; };
-  const submitSearch = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault(); const q = (new FormData(e.currentTarget).get("q") as string).trim();
-    router.push(`/patients${q ? `?q=${encodeURIComponent(q)}` : ""}`); setTimeout(() => window.dispatchEvent(new CustomEvent("global-search", { detail: q })), 50);
-  };
   const Item = ({ h, t, ic }: { h: string; t: string; ic: string }) => (
     <Link href={h} className={`nav-item ${on(h) ? "on" : ""}`} aria-current={on(h) ? "page" : undefined}><Icon name={ic} filled={false} /><span>{t}</span></Link>);
 
@@ -80,11 +75,7 @@ export default function Shell({ children }: { children: React.ReactNode }) {
             {me && <Avatar name={me.name} size={40} />}
             <div><b>안녕하세요, {me?.name ?? ""}님</b><small><span className="role">{me ? ROLE_LABEL[me.role] : ""} · </span><LiveClock /></small></div>
           </Link>
-          <form className="searchbar" onSubmit={submitSearch} role="search">
-            <Icon name="search" size={18} /><input ref={search} name="q" placeholder="환자 이름·차트번호 검색" aria-label="환자 검색" autoComplete="off" /><kbd>/</kbd>
-          </form>
-          <button className="icon-btn theme-btn" onClick={toggleTheme} aria-label="테마 전환"><Icon name={theme === "dark" ? "sun" : "moon"} /></button>
-          <div className="popwrap" ref={bellRef}>
+          <div className="popwrap" ref={bellRef} style={{ marginLeft: "auto" }}>
             <button className="icon-btn bellbtn" aria-label={`알림 ${alerts.total}건`} aria-expanded={bell} onClick={() => setBell((b) => !b)}>
               <Icon name="bell" />{alerts.total > 0 && <span className="badge-dot">{alerts.total > 9 ? "9+" : alerts.total}</span>}
             </button>

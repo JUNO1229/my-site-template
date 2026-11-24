@@ -91,7 +91,7 @@ export default function PatientHistory() {
               <div className="seg" role="tablist">{([["in", "재원", cnt.in], ["out", "외래", cnt.out], ["ended", "퇴원·종료", cnt.ended]] as const).map(([k, t, n]) =>
                 <button key={k} className={view === k ? "on" : ""} role="tab" aria-selected={view === k} onClick={() => setView(k)}>{t} {n}</button>)}</div>
               {canAmount && item?.amountSum != null && <div className="sumbox" title={`${sel} 기준 재원+외래 계약금액 합계 ${item.amountSum.toLocaleString("ko-KR")}만원`}><small>계약금액 합계액</small><b>{fmtMan(item.amountSum)}</b></div>}
-              <input className="qinput" placeholder="이름·차트번호 검색" value={q} onChange={(e) => setQ(e.target.value)} />
+              <span className="qwrap"><Icon name="search" size={16} /><input className="qinput" placeholder="이름·차트번호 검색" value={q} onChange={(e) => setQ(e.target.value)} /></span>
             </div>
             {err && <p className="err">{err}</p>}
             <div className="tblwrap fixhead">

@@ -423,3 +423,6 @@ button.btn-end,button.btn-restore{display:inline-flex;align-items:center;justify
 .btn-card:disabled{opacity:.5;cursor:not-allowed}
 @media(max-width:900px){.hgrid{grid-template-columns:1fr;grid-template-rows:auto minmax(0,1fr)}.snaplist{display:flex;flex-direction:row;gap:6px;overflow-x:auto;padding:10px}.snaplist section{display:flex;gap:6px;align-items:stretch}.snaplist h4{display:none}.snapitem{min-width:150px;flex:none}}
 .hhead{display:flex;align-items:center;gap:12px;margin:0 0 12px;flex-wrap:wrap}.hhead .hdate{display:block;font-size:17px;font-weight:600}.hhead small{color:var(--text2);font-size:12px}
+
+.qwrap{position:relative;display:inline-flex;align-items:center}.qwrap .ic{position:absolute;left:14px;color:var(--text2);pointer-events:none}.qwrap .qinput{padding-left:38px}
+.todaychip{height:45px;padding:0 16px;font-size:14px}

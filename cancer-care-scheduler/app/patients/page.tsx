@@ -60,10 +60,10 @@ export default function Patients() {
                   </div>
         {editable && <div className="sumbox" title={`현재 환자(재원+외래) ${cur.length}명 · ${totalAmt.toLocaleString("ko-KR")}만원${noAmt ? ` · 계약금액 미입력 ${noAmt}명 제외` : ""}`}><small>계약금액 합계액</small><b>{fmtMan(totalAmt)}</b></div>}
         </div>
-        <input className="qinput" placeholder="이름·차트번호 검색" value={q} onChange={(e) => setQ(e.target.value)} />
+        <span className="qwrap"><Icon name="search" size={16} /><input className="qinput" placeholder="이름·차트번호 검색" value={q} onChange={(e) => setQ(e.target.value)} /></span>
         <div className="toolbtns">{editable && <button className="primary" onClick={() => setEdit(blank)}>+ 환자 등록</button>}
         <button className={`histbtn ${view === "ended" ? "on" : ""}`} aria-pressed={view === "ended"} onClick={() => setView(view === "ended" ? "in" : "ended")}><Icon name="clock" size={17} />이전환자기록</button></div>
-        {view === "in" && canViewSickrooms(me) && <label className="chk vacchk"><input type="checkbox" checked={showVacant} onChange={(e) => setShowVacant(e.target.checked)} />빈병실 포함보기({vacant.length})</label>}</div>
+        {view === "in" && canViewSickrooms(me) && <label className="chk vacchk"><input type="checkbox" checked={showVacant} onChange={(e) => setShowVacant(e.target.checked)} />빈병실 표시({vacant.length})</label>}</div>
       <div className="tblwrap fixhead">
         <table className="tbl compact"><thead><tr><th>병동</th><th>병실</th><th>환자명</th><th>차트번호</th><th>입원일</th><th>{view === "ended" ? "퇴원·종료일" : "퇴원예정"}</th>{editable && <th title="치료계약금액(본인부담, 만원)">계약금액</th>}<th>치료정보</th><th>참고사항</th><th /></tr></thead>
           <tbody>{rows.map((r, i) => r.vacant || !r.p ? (
