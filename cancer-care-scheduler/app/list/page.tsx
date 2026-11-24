@@ -1,6 +1,6 @@
 "use client";
 import { useMemo, useState } from "react";
-import { useStore } from "@/lib/store";
+import { useAppts, useStore } from "@/lib/store";
 import { STATUSES } from "@/lib/types";
 import { addDays, csvEscape, label, pname, todayStr, toMin } from "@/lib/util";
 
@@ -9,12 +9,13 @@ export default function ListPage() {
   const [from, setFrom] = useState(addDays(todayStr(), -7));
   const [to, setTo] = useState(addDays(todayStr(), 14));
   const [kw, setKw] = useState(""); const [room, setRoom] = useState(""); const [st, setSt] = useState("");
-  const rows = useMemo(() => db.appts.filter((a) => {
+  const appts = useAppts(from, to);
+  const rows = useMemo(() => appts.filter((a) => {
     if (a.date < from || a.date > to) return false;
     const it = db.items.find((i) => i.id === a.itemId); const p = db.patients.find((x) => x.id === a.patientId);
     if (room && it?.roomId !== room) return false; if (st && a.status !== st) return false;
     return !kw || `${p?.name}${it?.name}`.includes(kw);
-  }).sort((a, b) => a.date.localeCompare(b.date) || toMin(a.time) - toMin(b.time)), [db, from, to, kw, room, st]);
+  }).sort((a, b) => a.date.localeCompare(b.date) || toMin(a.time) - toMin(b.time)), [appts, db, from, to, kw, room, st]);
   if (!ready) return <p>불러오는 중…</p>;
   const exportCsv = () => {
     const head = ["치료일자", "시작시간", "환자(병동)", "치료실", "치료", "옵션", "상태", "비고"];

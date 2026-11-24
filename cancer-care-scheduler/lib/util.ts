@@ -1,4 +1,4 @@
-import type { DB, Appt, Patient } from "./types";
+import type { Appt, Item, Patient } from "./types";
 
 export const pad = (n: number) => String(n).padStart(2, "0");
 export const ymd = (d: Date) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
@@ -14,19 +14,18 @@ export const todayStr = () => ymd(new Date());
 
 export const pname = (p?: Patient) => (p ? `${p.name}(${p.ward})` : "?");
 
-/** 충돌 검사: 같은 치료항목 동시간 중복, 같은 환자 시간 겹침 */
-export function findConflicts(db: DB, date: string): Map<string, string> {
+/** 충돌 검사: 같은 치료항목 동시간 중복, 같은 환자 시간 겹침 (하루치 스케줄 기준) */
+export function findConflicts(appts: Appt[], items: Item[], date?: string): Map<string, string> {
   const out = new Map<string, string>();
-  const day = db.appts.filter((a) => a.date === date && a.status !== "취소");
-  const dur = (a: Appt) => db.items.find((i) => i.id === a.itemId)?.duration ?? 50;
+  const day = appts.filter((a) => (!date || a.date === date) && a.status !== "취소");
+  const dur = (a: Appt) => items.find((i) => i.id === a.itemId)?.duration ?? 50;
   for (let i = 0; i < day.length; i++) for (let j = i + 1; j < day.length; j++) {
     const a = day[i], b = day[j];
+    if (a.date !== b.date) continue;
     const overlap = toMin(a.time) < toMin(b.time) + dur(b) && toMin(b.time) < toMin(a.time) + dur(a);
     if (!overlap) continue;
     if (a.itemId === b.itemId) { out.set(a.id, "같은 치료항목 시간 중복"); out.set(b.id, "같은 치료항목 시간 중복"); }
-    else if (a.patientId === b.patientId) {
-      out.set(a.id, "환자 다른 치료와 시간 겹침"); out.set(b.id, "환자 다른 치료와 시간 겹침");
-    }
+    else if (a.patientId === b.patientId) { out.set(a.id, "환자 다른 치료와 시간 겹침"); out.set(b.id, "환자 다른 치료와 시간 겹침"); }
   }
   return out;
 }

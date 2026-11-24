@@ -1,0 +1,22 @@
+{
+  "rooms": [
+    { "id": "hf", "name": "고주파치료실", "therapist": "전영균", "active": true, "color": "#e11d48" },
+    { "id": "ds", "name": "도수치료실", "therapist": "김익현", "active": true, "color": "#2563eb" },
+    { "id": "pj", "name": "페인잼머", "therapist": "정은상", "active": true, "color": "#9333ea" },
+    { "id": "lp", "name": "림프", "therapist": "장진희 / 양지연", "active": true, "color": "#059669" },
+    { "id": "pd", "name": "파동", "therapist": "이은영", "active": true, "color": "#d97706" },
+    { "id": "rb", "name": "역박동", "therapist": "박광희", "active": false, "color": "#0891b2" }
+  ],
+  "items": [
+    { "id": "hf-bsd", "roomId": "hf", "name": "BSD", "duration": 60, "slots": ["09:00","10:10","11:20","13:30","14:40","15:50"] },
+    { "id": "hf-e1", "roomId": "hf", "name": "EHY1", "duration": 60, "slots": ["09:20","10:30","13:30","14:40","15:50"] },
+    { "id": "hf-e2", "roomId": "hf", "name": "EHY2", "duration": 60, "slots": ["07:50","09:00","10:10","13:30","14:40"] },
+    { "id": "hf-out", "roomId": "hf", "name": "통원", "duration": 60, "slots": ["09:30","10:40","13:40","14:50"] },
+    { "id": "ds", "roomId": "ds", "name": "도수", "duration": 50, "slots": ["08:40","09:30","10:45","11:20","13:40","14:20","15:00","16:10"] },
+    { "id": "pj", "roomId": "pj", "name": "페인잼머", "duration": 30, "slots": ["09:00","09:40","10:20","11:00","13:30","14:10","14:50","15:30"] },
+    { "id": "lp1", "roomId": "lp", "name": "림프1", "duration": 50, "slots": ["08:40","09:30","10:20","11:10","13:30","14:20","15:10"] },
+    { "id": "lp2", "roomId": "lp", "name": "림프2", "duration": 50, "slots": ["08:40","09:30","10:20","11:10","13:30","14:20","15:10"] },
+    { "id": "pd", "roomId": "pd", "name": "파동", "duration": 50, "slots": ["08:30","09:20","10:10","11:00","13:30","14:20","15:10","16:00"] },
+    { "id": "rb", "roomId": "rb", "name": "역박동", "duration": 40, "slots": ["09:00","10:00","11:00","14:00","15:00"] }
+  ]
+}

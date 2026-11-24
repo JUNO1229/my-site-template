@@ -13,4 +13,4 @@ export interface Appt {
   id: string; patientId: string; date: string; time: string; itemId: string;
   option: string; status: Status; memo: string;
 }
-export interface DB { rooms: Room[]; items: Item[]; patients: Patient[]; appts: Appt[]; version: number }
+export interface DB { rooms: Room[]; items: Item[]; patients: Patient[] }

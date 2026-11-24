@@ -3,15 +3,20 @@ import { useState } from "react";
 import { useStore } from "@/lib/store";
 import { OPTIONS, STATUSES, type Appt } from "@/lib/types";
 import { pname } from "@/lib/util";
+import { canEditRoom } from "@/lib/perm";
 
 export type Draft = Partial<Appt> & { date: string };
 export default function ApptModal({ draft, onClose }: { draft: Draft; onClose: () => void }) {
-  const { db, saveAppt, deleteAppt } = useStore();
-  const [f, setF] = useState<Draft>({ time: "09:00", option: "", status: "예약", memo: "", itemId: db.items[0]?.id, patientId: db.patients[0]?.id, ...draft });
+  const { db, me, saveAppt, deleteAppt } = useStore();
+  const [err, setErr] = useState("");
+  const [f, setF] = useState<Draft>({ time: "09:00", option: "", status: "예약", memo: "", itemId: db.items.find((i) => canEditRoom(me, i.roomId))?.id ?? db.items[0]?.id, patientId: db.patients[0]?.id, ...draft });
   const set = (k: keyof Appt, v: string) => setF((p) => ({ ...p, [k]: v }));
   const item = db.items.find((i) => i.id === f.itemId);
   const patient = db.patients.find((p) => p.id === f.patientId);
-  const submit = () => { if (!f.patientId || !f.itemId || !f.time) return; saveAppt(f as Appt); onClose(); };
+  const writable = canEditRoom(me, item?.roomId);
+  const submit = async () => { if (!f.patientId || !f.itemId || !f.time) return; try { await saveAppt(f as Appt); onClose(); } catch (e) { setErr((e as Error).message); } };
+  const del = async () => { try { await deleteAppt(f.id!); onClose(); } catch (e) { setErr((e as Error).message); } };
+  const itemsAllowed = db.items.filter((i) => canEditRoom(me, i.roomId) || i.id === f.itemId);
   return (
     <div className="overlay" onClick={onClose}>
       <div className="modal" onClick={(e) => e.stopPropagation()}>
@@ -24,8 +29,8 @@ export default function ApptModal({ draft, onClose }: { draft: Draft; onClose: (
           <label>시작시간<input type="time" value={f.time} onChange={(e) => set("time", e.target.value)} /></label>
         </div>
         <label>치료<select value={f.itemId} onChange={(e) => set("itemId", e.target.value)}>
-          {db.rooms.map((r) => <optgroup key={r.id} label={r.name}>
-            {db.items.filter((i) => i.roomId === r.id).map((i) => <option key={i.id} value={i.id}>{i.name}</option>)}</optgroup>)}</select></label>
+          {db.rooms.filter((r) => itemsAllowed.some((i) => i.roomId === r.id)).map((r) => <optgroup key={r.id} label={r.name}>
+            {itemsAllowed.filter((i) => i.roomId === r.id).map((i) => <option key={i.id} value={i.id}>{i.name}</option>)}</optgroup>)}</select></label>
         {item && item.slots.length > 0 && <div className="chips">{item.slots.map((s) =>
           <button key={s} type="button" className={f.time === s ? "chip on" : "chip"} onClick={() => set("time", s)}>{s}</button>)}</div>}
         <div className="row">
@@ -35,11 +40,12 @@ export default function ApptModal({ draft, onClose }: { draft: Draft; onClose: (
             {STATUSES.map((s) => <option key={s}>{s}</option>)}</select></label>
         </div>
         <label>비고<input value={f.memo} onChange={(e) => set("memo", e.target.value)} /></label>
+        {err && <p className="err">{err}</p>}{!writable && <p className="hint">조회 권한만 있어 수정할 수 없습니다.</p>}
         <div className="actions">
-          {f.id && <button className="danger" onClick={() => { deleteAppt(f.id!); onClose(); }}>삭제</button>}
+          {f.id && writable && <button className="danger" onClick={del}>삭제</button>}
           <span style={{ flex: 1 }} />
           <button onClick={onClose}>취소</button>
-          <button className="primary" onClick={submit}>저장</button>
+          {writable && <button className="primary" onClick={submit}>저장</button>}
         </div>
       </div>
     </div>

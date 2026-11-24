@@ -32,3 +32,6 @@ button{cursor:pointer}button.primary{background:var(--pri);color:#fff;border-col
 .print-title{display:none}
 @media print{.nav,.no-print{display:none}.print-title{display:block}body{background:#fff;color:#000}}
 @media(max-width:700px){main{padding:8px}.row{flex-direction:column}}
+.err{color:var(--bad);margin:4px 0}.ok{color:var(--ok);margin:4px 0}
+.who{display:flex;gap:8px;align-items:center;white-space:nowrap}.who a{color:var(--fg);text-decoration:none;font-size:13px}
+.login{margin:12vh auto 0;width:min(380px,92vw)}.login h2{margin:0}
