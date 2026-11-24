@@ -6,6 +6,7 @@ import { usage, type RoomState } from "@/lib/sickroom";
 import { todayStr } from "@/lib/util";
 import type { Sickroom } from "@/lib/types";
 import { PageSkeleton } from "@/components/Ui";
+import DateField from "@/components/DateField";
 import { useToast } from "@/lib/toast";
 
 const blank: Sickroom = { roomNo: "", beds: 1, startDate: "", endDate: "", note: "" };
@@ -56,8 +57,8 @@ export default function Sickrooms() {
           <h3>{edit.isNew ? "병실 등록" : `병실 ${edit.r.roomNo} 수정`}</h3>
           <div className="row"><label>병실번호<input value={edit.r.roomNo} disabled={!edit.isNew} onChange={(e) => set("roomNo", e.target.value)} placeholder="예: 207" /></label>
             <label>병상수<input type="number" min={1} max={30} value={edit.r.beds} onChange={(e) => set("beds", Number(e.target.value))} /></label></div>
-          <div className="row"><label>시작일<input type="date" value={edit.r.startDate} onChange={(e) => set("startDate", e.target.value)} /></label>
-            <label>종료일<input type="date" value={edit.r.endDate} onChange={(e) => set("endDate", e.target.value)} /></label></div>
+          <div className="row"><label>시작일<DateField value={edit.r.startDate} allowClear placeholder="상시(시작일 없음)" onChange={(v) => set("startDate", v)} /></label>
+            <label>종료일<DateField value={edit.r.endDate} allowClear placeholder="상시(종료일 없음)" onChange={(v) => set("endDate", v)} /></label></div>
           <label>비고<input value={edit.r.note} onChange={(e) => set("note", e.target.value)} /></label>
           {err && <p className="err">{err}</p>}
           <div className="actions">{!edit.isNew && <button className="danger" onClick={del}>삭제</button>}<span style={{ flex: 1 }} />

@@ -1,12 +1,13 @@
 "use client";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
+import CalendarPopup from "./CalendarPopup";
 import { Icon } from "./Icons";
 import { addDays, dow, mondayOf, todayStr } from "@/lib/util";
 
 /** C07 가로 데이트 피커 — 선택일만 그라데이션, 좌우 스와이프/←→ 키로 이동 */
 export default function DatePicker({ date, setDate }: { date: string; setDate: (d: string) => void }) {
   const days = Array.from({ length: 7 }, (_, i) => addDays(mondayOf(date), i));
-  const today = todayStr(); const sx = useRef(0); const inp = useRef<HTMLInputElement>(null);
+  const today = todayStr(); const sx = useRef(0); const btn = useRef<HTMLButtonElement>(null); const [open, setOpen] = useState(false);
   useEffect(() => {
     const k = (e: KeyboardEvent) => {
       const t = e.target as HTMLElement; if (/INPUT|SELECT|TEXTAREA/.test(t.tagName) || e.metaKey || e.ctrlKey || e.altKey) return;
@@ -24,8 +25,8 @@ export default function DatePicker({ date, setDate }: { date: string; setDate: (
           <button className="icon-btn" aria-label="이전 주" onClick={() => setDate(addDays(date, -7))}><Icon name="left" /></button>
           <button className="icon-btn" aria-label="다음 주" onClick={() => setDate(addDays(date, 7))}><Icon name="right" /></button>
           {date !== today && <button className="btn-soft" onClick={() => setDate(today)}>오늘</button>}
-          <span className="datepop"><button className="icon-btn" aria-label="날짜 선택" onClick={() => inp.current?.showPicker?.()}><Icon name="calendar" /></button>
-            <input ref={inp} type="date" tabIndex={-1} aria-hidden="true" value={date} onChange={(e) => e.target.value && setDate(e.target.value)} /></span>
+          <button ref={btn} className="icon-btn" aria-label="날짜 선택" aria-haspopup="dialog" aria-expanded={open} onClick={() => setOpen((o) => !o)}><Icon name="calendar" /></button>
+          {open && <CalendarPopup anchor={btn.current} value={date} onPick={setDate} onClose={() => setOpen(false)} />}
         </div>
       </div>
       <div className="dp-row" role="group" aria-label="주간 날짜">

@@ -6,6 +6,7 @@ import { OPTIONS, STATUSES, type Appt } from "@/lib/types";
 import { pname } from "@/lib/util";
 import { canEditRoom } from "@/lib/perm";
 import { Icon } from "./Icons";
+import DateField from "./DateField";
 
 export type Draft = Partial<Appt> & { date: string };
 export default function ApptModal({ draft, onClose }: { draft: Draft; onClose: () => void }) {
@@ -39,7 +40,7 @@ export default function ApptModal({ draft, onClose }: { draft: Draft; onClose: (
             {db.patients.filter((p) => (p.source !== "auto" && p.status !== "discharged") || p.id === f.patientId).map((p) => <option key={p.id} value={p.id}>{pname(p)} · 차트 {p.chartNo || "-"}</option>)}</select></label>
           {patient && (patient.plan || patient.notes) && <p className="hint planhint">{patient.plan}{patient.notes && ` / ${patient.notes}`}</p>}
           <div className="row">
-            <label>치료일자<input type="date" value={f.date} onChange={(e) => set("date", e.target.value)} /></label>
+            <label>치료일자<DateField value={f.date} onChange={(v) => set("date", v)} /></label>
             <label>시작시간<input type="time" value={f.time} onChange={(e) => set("time", e.target.value)} /></label>
           </div>
           <label>치료<select value={f.itemId} onChange={(e) => set("itemId", e.target.value)}>

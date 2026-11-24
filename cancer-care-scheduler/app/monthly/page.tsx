@@ -2,6 +2,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Icon } from "@/components/Icons";
+import CalendarPopup from "@/components/CalendarPopup";
 import { CountUp, PageSkeleton } from "@/components/Ui";
 import { useAppts, useStore } from "@/lib/store";
 import { useUi } from "@/lib/ui";
@@ -23,7 +24,7 @@ export default function Monthly() {
   const [weekend, setWeekend] = useState<boolean | null>(null);
   const [heat, setHeat] = useState(true);
   const [sel, setSel] = useState<string | null>(null);
-  const picker = useRef<HTMLInputElement>(null);
+  const picker = useRef<HTMLButtonElement>(null); const [pickOpen, setPickOpen] = useState(false);
   const today = todayStr();
 
   const first = parse(`${ym}-01`); const [y, m] = ym.split("-").map(Number);
@@ -74,8 +75,8 @@ export default function Monthly() {
           <b className="mtitle">{y}년 {m}월</b>
           <button className="icon-btn" aria-label="다음 달" onClick={() => shift(1)}><Icon name="right" /></button>
           {ym !== today.slice(0, 7) && <button className="btn-soft" onClick={() => { setYm(today.slice(0, 7)); setSel(null); }}>이번 달</button>}
-          <span className="datepop"><button className="icon-btn" aria-label="월 선택" onClick={() => picker.current?.showPicker?.()}><Icon name="calendar" /></button>
-            <input ref={picker} type="month" tabIndex={-1} aria-hidden="true" value={ym} onChange={(e) => { if (e.target.value) { setYm(e.target.value); setSel(null); } }} /></span>
+          <button ref={picker} className="icon-btn" aria-label="월 선택" aria-haspopup="dialog" aria-expanded={pickOpen} onClick={() => setPickOpen((o) => !o)}><Icon name="calendar" /></button>
+          {pickOpen && <CalendarPopup anchor={picker.current} mode="month" value={ym} onPick={(v) => { setYm(v); setSel(null); }} onClose={() => setPickOpen(false)} />}
         </div>
         <span className="spacer" />
         <div className="seg" role="tablist">{([["all", "전체"], ["예약", "예약"], ["완료", "완료"], ["취소", "취소"]] as const).map(([k, t]) =>

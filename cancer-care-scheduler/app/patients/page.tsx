@@ -8,6 +8,7 @@ import { todayStr } from "@/lib/util";
 import { cmpBed, vacantBeds } from "@/lib/sickroom";
 import { PageSkeleton } from "@/components/Ui";
 import PatientDrawer from "@/components/PatientDrawer";
+import DateField from "@/components/DateField";
 import { useToast } from "@/lib/toast";
 
 const blank: Omit<Patient, "id"> = { chartNo: "", name: "", ward: "1", bed: "", admitDate: "", dischargeDate: "", plan: "", notes: "", contractAmount: null };
@@ -66,7 +67,7 @@ export default function Patients() {
         <div className="overlay" onClick={() => !busy && setEnd(null)}><div className="modal" role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()}>
           <h3>{isEnded(end.p) ? "복귀 처리" : "퇴원/종료 처리"}</h3>
           <p>{isEnded(end.p) ? <><b>{end.p.name}</b> 님을 다시 재원·이용중으로 되돌립니다. 퇴원/종료일은 지워집니다.</> : <><b>{end.p.name}</b> 님을 퇴원/종료 처리합니다.{end.p.bed && ` 병실 ${end.p.bed}는 빈병실로 전환됩니다.`} 기존 치료 기록은 그대로 보관되며 "퇴원·종료" 목록에서 복귀할 수 있습니다.</>}</p>
-          {!isEnded(end.p) && <label>퇴원/종료일<input type="date" value={end.date} onChange={(e) => setEnd({ ...end, date: e.target.value })} /></label>}
+          {!isEnded(end.p) && <label>퇴원/종료일<DateField value={end.date} onChange={(v) => setEnd({ ...end, date: v })} /></label>}
           {err && <p className="err">{err}</p>}
           <div className="actions"><span style={{ flex: 1 }} /><button onClick={() => setEnd(null)} disabled={busy}>취소</button>
             <button className="primary" disabled={busy || (!isEnded(end.p) && !end.date)} onClick={async () => {
@@ -82,8 +83,8 @@ export default function Patients() {
           <div className="row"><label>병동<select value={edit.ward} onChange={(e) => set("ward", e.target.value)}>
             {WARDS_LIST.map((w) => <option key={w} value={w}>{w || "(없음)"}</option>)}</select></label>
             <label>병실<input value={edit.bed} onChange={(e) => set("bed", e.target.value)} /></label></div>
-          <div className="row"><label>입원일<input type="date" value={edit.admitDate} onChange={(e) => set("admitDate", e.target.value)} /></label>
-            <label>퇴원(예정)일<input type="date" value={edit.dischargeDate} onChange={(e) => set("dischargeDate", e.target.value)} /></label></div>
+          <div className="row"><label>입원일<DateField value={edit.admitDate} allowClear onChange={(v) => set("admitDate", v)} /></label>
+            <label>퇴원(예정)일<DateField value={edit.dischargeDate} allowClear onChange={(v) => set("dischargeDate", v)} /></label></div>
           <label>치료계약금액(본인부담, 만원 단위)<input type="number" min={0} value={edit.contractAmount ?? ""} onChange={(e) => setEdit((x) => x && { ...x, contractAmount: e.target.value === "" ? null : Number(e.target.value) })} /></label>
           <label>치료정보<input value={edit.plan} onChange={(e) => set("plan", e.target.value)} /></label>
           <label>참고사항<input value={edit.notes} onChange={(e) => set("notes", e.target.value)} /></label>
