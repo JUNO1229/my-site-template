@@ -8,5 +8,5 @@ export const GET = route(async (_r, _c, me) => {
     q("SELECT * FROM rooms ORDER BY sort"), q("SELECT * FROM items ORDER BY sort"),
     q("SELECT * FROM patients ORDER BY name"), q("SELECT * FROM sickrooms ORDER BY room_no"),
   ]);
-  return { me, rooms: rooms.map(mRoom), items: items.map(mItem), sickrooms: sick.map(mSickroom), patients: patients.map((p) => mPatient(p, me.role === "admin" || me.role === "manager")) };
+  return { me, rooms: rooms.map(mRoom), items: items.map(mItem), sickrooms: me.role === "therapist" ? [] : sick.map(mSickroom), patients: patients.map((p) => mPatient(p, me.role === "admin" || me.role === "manager")) };
 }, { allowMustChange: true });

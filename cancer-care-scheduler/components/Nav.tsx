@@ -2,14 +2,14 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useStore } from "@/lib/store";
-import { ROLE_LABEL, isAdmin } from "@/lib/perm";
+import { ROLE_LABEL, canViewSickrooms, isAdmin } from "@/lib/perm";
 import { api } from "@/lib/api";
 
 export default function Nav() {
   const p = usePathname(); const { me } = useStore();
   if (p.startsWith("/login")) return null;
   const tabs = [["/patients", "환자명부"], ["/", "통합 모니터링"], ["/rooms", "치료실별 스케줄"], ["/calendar", "캘린더"], ["/list", "기간별 리스트"],
-    ...(isAdmin(me) ? [["/settings", "치료실 설정"]] : []), ["/sickrooms", "병실관리"],
+    ...(isAdmin(me) ? [["/settings", "치료실 설정"]] : []), ...(canViewSickrooms(me) ? [["/sickrooms", "병실관리"]] : []),
     ...(isAdmin(me) ? [["/admin", "계정·접속기록"]] : [])];
   const logout = async () => { await api("/api/auth/logout", "POST").catch(() => {}); location.href = "/login"; };
   return (

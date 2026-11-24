@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 import { useStore } from "@/lib/store";
-import { canEditPatients, isAdmin } from "@/lib/perm";
+import { canEditPatients, canViewSickrooms, isAdmin } from "@/lib/perm";
 import { WARDS_LIST } from "@/lib/wards";
 import type { Patient } from "@/lib/types";
 import { todayStr } from "@/lib/util";
@@ -31,7 +31,7 @@ export default function Patients() {
     <>
       <div className="toolbar"><h2>환자명부</h2>
         <b>{list.length}명</b>
-        <label className="chk"><input type="checkbox" checked={showVacant} onChange={(e) => setShowVacant(e.target.checked)} />빈병실 포함 보기 (빈 병상 {vacant.length})</label>
+        {canViewSickrooms(me) && <label className="chk"><input type="checkbox" checked={showVacant} onChange={(e) => setShowVacant(e.target.checked)} />빈병실 포함 보기 (빈 병상 {vacant.length})</label>}
         {autoCount > 0 && <label className="chk"><input type="checkbox" checked={past} onChange={(e) => setPast(e.target.checked)} />과거 환자 포함 ({autoCount}명, 스케줄 기록에서 자동 생성)</label>}
         <input placeholder="이름·차트번호 검색" value={q} onChange={(e) => setQ(e.target.value)} />
         {editable && <button className="primary" onClick={() => setEdit(blank)}>+ 환자 등록</button>}</div>

@@ -1,7 +1,7 @@
 "use client";
 import { useMemo, useState } from "react";
 import { useStore } from "@/lib/store";
-import { canEditSickrooms } from "@/lib/perm";
+import { canEditSickrooms, canViewSickrooms } from "@/lib/perm";
 import { usage, type RoomState } from "@/lib/sickroom";
 import { todayStr } from "@/lib/util";
 import type { Sickroom } from "@/lib/types";
@@ -18,6 +18,7 @@ export default function Sickrooms() {
   const today = todayStr();
   const rows = useMemo(() => usage(db.sickrooms, db.patients, today), [db.sickrooms, db.patients, today]);
   if (!ready) return <p>불러오는 중…</p>;
+  if (!canViewSickrooms(me)) return <p className="err">병실관리는 치료실 담당자 계정에서는 사용할 수 없습니다.</p>;
   const active = rows.filter((x) => x.state === "운영중");
   const totals = { rooms: active.length, beds: active.reduce((a, x) => a + x.room.beds, 0), used: active.reduce((a, x) => a + Math.min(x.used, x.room.beds), 0) };
   const list = rows.filter((x) => only === "" || (only === "vacant" && x.state === "운영중" && x.vacant > 0) || (only === "empty" && x.state === "운영중" && x.used === 0) || (only === "ended" && x.state !== "운영중"));

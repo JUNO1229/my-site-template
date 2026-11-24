@@ -14,3 +14,4 @@ export const canEditPatients = (m?: Me | null) => m?.role === "admin" || m?.role
 export const canEditRoom = (m: Me | null | undefined, roomId?: string) =>
   !!m && (m.role === "admin" || m.role === "manager" || (m.role === "therapist" && !!roomId && m.roomIds.includes(roomId)));
 export const canEditSickrooms = (m?: Me | null) => m?.role === "admin" || m?.role === "manager";
+export const canViewSickrooms = (m?: Me | null) => !!m && m.role !== "therapist"; // 치료실 담당자에게는 병실 정보를 제공하지 않음
