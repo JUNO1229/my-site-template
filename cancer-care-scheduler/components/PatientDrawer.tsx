@@ -19,7 +19,7 @@ export default function PatientDrawer({ p, canSeeAmount, canEdit, onClose, onEdi
   const today = todayStr();
   const appts = useAppts(addDays(today, -180), addDays(today, 90), p.id);
   const close = () => { setClosing(true); setTimeout(onClose, 200); };
-  useEffect(() => { const k = (e: KeyboardEvent) => { if (e.key === "Escape") close(); }; document.addEventListener("keydown", k); return () => document.removeEventListener("keydown", k); }); // eslint-disable-line
+  useEffect(() => { const k = (e: KeyboardEvent) => { if (e.key === "Escape" && !document.querySelector(".overlay:not(.drawer-wrap)")) close(); }; document.addEventListener("keydown", k); return () => document.removeEventListener("keydown", k); }); // eslint-disable-line
   const itemOf = (id: string) => db.items.find((i) => i.id === id);
   const roomOf = (id: string) => db.rooms.find((r) => r.id === itemOf(id)?.roomId);
   const sorted = useMemo(() => [...appts].sort((a, b) => a.date.localeCompare(b.date) || toMin(a.time) - toMin(b.time)), [appts]);

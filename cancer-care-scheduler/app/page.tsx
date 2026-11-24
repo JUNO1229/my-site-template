@@ -28,6 +28,7 @@ export default function Monitor() {
   const conflictCount = shown.filter((a) => conflicts.has(a.id)).length; // 선택한 치료실 기준
   const upcoming = shown.filter((a) => a.status === "예약" && (date !== today || toMin(a.time) + dur(a) > nowMin)).slice(0, 6);
 
+  useEffect(() => { const d = new URLSearchParams(location.search).get("date"); if (d && /^\d{4}-\d{2}-\d{2}$/.test(d)) setDate(d); }, []);
   useEffect(() => {
     if (view !== "timeline" || date !== today) return;
     const t = setTimeout(() => document.getElementById("nowline")?.scrollIntoView({ behavior: "smooth", block: "center" }), 350);
