@@ -8,8 +8,9 @@ import { api } from "@/lib/api";
 export default function Nav() {
   const p = usePathname(); const { me } = useStore();
   if (p.startsWith("/login")) return null;
-  const tabs = [["/patients", "환자명부"], ["/", "통합 모니터링"], ["/rooms", "치료실별 스케줄"], ["/sickrooms", "병실관리"], ["/calendar", "캘린더"], ["/list", "기간별 리스트"],
-    ...(isAdmin(me) ? [["/settings", "치료실 설정"], ["/admin", "계정·접속기록"]] : [])];
+  const tabs = [["/patients", "환자명부"], ["/", "통합 모니터링"], ["/rooms", "치료실별 스케줄"], ["/calendar", "캘린더"], ["/list", "기간별 리스트"],
+    ...(isAdmin(me) ? [["/settings", "치료실 설정"]] : []), ["/sickrooms", "병실관리"],
+    ...(isAdmin(me) ? [["/admin", "계정·접속기록"]] : [])];
   const logout = async () => { await api("/api/auth/logout", "POST").catch(() => {}); location.href = "/login"; };
   return (
     <header className="nav">
