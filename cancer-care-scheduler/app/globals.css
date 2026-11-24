@@ -96,7 +96,7 @@ label.chk{flex-direction:row;align-items:center;gap:8px;font-weight:500;flex:non
 .dcell.sel{background:var(--grad-p);color:#fff;box-shadow:var(--sh-acc);animation:pop .22s}.dcell.sel .dw{color:rgba(255,255,255,.8)}.dcell.sel .dn{font-weight:700}
 .dchk{position:absolute;bottom:5px}
 /* ===== 대시보드: 치료실 카드 (C05) ===== */
-.rcards{display:grid;grid-template-columns:repeat(auto-fill,minmax(196px,1fr));gap:16px}
+.rcards{display:grid;grid-template-columns:repeat(auto-fill,minmax(168px,1fr));gap:16px}
 .rcard{position:relative;text-align:left;border:0;border-radius:var(--r-l);padding:16px;color:#fff;min-height:158px;display:flex;flex-direction:column;gap:8px;box-shadow:var(--sh-acc);overflow:hidden;transition:transform .2s,box-shadow .2s,filter .2s;animation:rise .5s both}
 .rcard.g-a{background:var(--grad-p)}.rcard.g-b{background:var(--grad-a);box-shadow:0 10px 24px rgba(238,110,143,.32)}
 .rcard::after{content:"";position:absolute;right:-30px;top:-30px;width:110px;height:110px;border-radius:50%;background:rgba(255,255,255,.12)}

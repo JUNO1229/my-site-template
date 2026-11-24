@@ -25,6 +25,7 @@ export default function Monitor() {
   const shown = roomId ? sorted.filter((a) => itemOf(a)?.roomId === roomId) : sorted;
   const count = (list: Appt[], s: string) => list.filter((a) => a.status === s).length;
   const dur = (a: Appt) => itemOf(a)?.duration ?? 50;
+  const conflictCount = shown.filter((a) => conflicts.has(a.id)).length; // 선택한 치료실 기준
   const upcoming = shown.filter((a) => a.status === "예약" && (date !== today || toMin(a.time) + dur(a) > nowMin)).slice(0, 6);
 
   useEffect(() => {
@@ -73,7 +74,7 @@ export default function Monitor() {
         <div className="kpi s-예약"><b><CountUp value={count(shown, "예약")} /></b>예약</div>
         <div className="kpi s-완료"><b><CountUp value={count(shown, "완료")} /></b>치료완료</div>
         <div className="kpi s-취소"><b><CountUp value={count(shown, "취소")} /></b>예약취소</div>
-        <div className={`kpi ${conflicts.size ? "bad" : ""}`}><b><CountUp value={conflicts.size} /></b>충돌</div>
+        <div className={`kpi ${conflictCount ? "bad" : ""}`}><b><CountUp value={conflictCount} /></b>충돌</div>
       </div>
 
       <div className={`dash ${view === "cards" ? "has-aside" : ""}`}>
