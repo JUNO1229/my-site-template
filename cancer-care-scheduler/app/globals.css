@@ -304,3 +304,5 @@ button.btn-end,button.btn-restore{display:inline-flex;align-items:center;justify
 /* 선택 테두리는 카드 안쪽에 그려 가로 스크롤 영역(overflow)에서 잘리지 않게 한다 */
 .room.sel{box-shadow:inset 0 0 0 2px var(--p1),var(--sh-card)}
 .rcard.sel{outline:none;box-shadow:inset 0 0 0 3px rgba(255,255,255,.95),var(--sh-acc)}
+/* 하단 탭: 긴 이름은 두 줄로 */
+.tabbar .tab{text-align:center;line-height:1.15}.tabbar .tab span{max-width:74px;word-break:keep-all}

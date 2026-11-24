@@ -46,7 +46,7 @@ export default function Shell({ children }: { children: React.ReactNode }) {
     ...(canViewSickrooms(me) ? [["/sickrooms", "병실관리", "bed"] as [string, string, string]] : []),
     ...(isAdmin(me) ? [["/admin", "계정·접속기록", "shield"] as [string, string, string]] : []),
   ];
-  const tabs: [string, string, string][] = [["/patients", "환자명부", "users"], ["/", "모니터링", "activity"], ["/rooms", "치료실", "grid"], ["/calendar", "캘린더", "calendar"]];
+  const tabs: [string, string, string][] = [["/patients", "환자명부", "users"], ["/", "치료실 통합모니터링", "activity"], ["/rooms", "치료실", "grid"], ["/calendar", "캘린더", "calendar"]];
   const on = (h: string) => (h === "/" ? path === "/" : path.startsWith(h));
   const logout = async () => { await api("/api/auth/logout", "POST").catch(() => {}); location.href = "/login"; };
   const submitSearch = (e: React.FormEvent<HTMLFormElement>) => {
