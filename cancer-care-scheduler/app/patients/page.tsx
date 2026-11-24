@@ -4,7 +4,7 @@ import { useStore } from "@/lib/store";
 import { canEditPatients, canViewSickrooms, isAdmin } from "@/lib/perm";
 import { WARDS_LIST } from "@/lib/wards";
 import type { Patient } from "@/lib/types";
-import { fmtMan, todayStr } from "@/lib/util";
+import { todayStr } from "@/lib/util";
 import { cmpBed, vacantBeds } from "@/lib/sickroom";
 import { PageSkeleton } from "@/components/Ui";
 import PatientDrawer from "@/components/PatientDrawer";
@@ -35,10 +35,7 @@ export default function Patients() {
   const isOut = (p: Patient) => p.ward === "외";
   const inN = registry.filter((p) => !isEnded(p) && !isOut(p)).length, outN = registry.filter((p) => !isEnded(p) && isOut(p)).length, endedN = registry.filter(isEnded).length;
   const inView = (p: Patient) => (view === "ended" ? isEnded(p) : !isEnded(p) && (view === "out") === isOut(p));
-  const sumOf = (a: Patient[]) => a.reduce((s, p) => s + (p.contractAmount ?? 0), 0);
-  const inSum = sumOf(registry.filter((p) => !isEnded(p) && !isOut(p))), outSum = sumOf(registry.filter((p) => !isEnded(p) && isOut(p))), endedSum = sumOf(registry.filter(isEnded));
   const list = registry.filter((p) => inView(p) && (!q || p.name.includes(q) || p.chartNo.includes(q)));
-  const listSum = sumOf(list); const noAmt = list.filter((p) => p.contractAmount == null).length;
   const infoP = db.patients.find((p) => p.id === info) ?? null;
   const vacant = vacantBeds(db.sickrooms, db.patients, todayStr());
   type Row = { p?: Patient; bed: string; vacant?: boolean };
@@ -52,10 +49,10 @@ export default function Patients() {
     <>
       <div className="fillpage">
       <div className="toolbar"><h2>환자명부</h2>
-        <div className={`seg ${editable ? "two" : ""}`} role="tablist" aria-label="환자 구분(재원·외래·퇴원종료) 및 계약금액 합계">
-          <button className={view === "in" ? "on" : ""} role="tab" aria-selected={view === "in"} onClick={() => setView("in")}><span>재원 {inN}</span>{editable && <small className="sub">{fmtMan(inSum)}</small>}</button>
-          <button className={view === "out" ? "on" : ""} role="tab" aria-selected={view === "out"} onClick={() => setView("out")}><span>외래 {outN}</span>{editable && <small className="sub">{fmtMan(outSum)}</small>}</button>
-          <button className={view === "ended" ? "on" : ""} role="tab" aria-selected={view === "ended"} onClick={() => setView("ended")}><span>퇴원·종료 {endedN}</span>{editable && <small className="sub">{fmtMan(endedSum)}</small>}</button>
+        <div className="seg" role="tablist">
+          <button className={view === "in" ? "on" : ""} role="tab" aria-selected={view === "in"} onClick={() => setView("in")}>재원 {inN}</button>
+          <button className={view === "out" ? "on" : ""} role="tab" aria-selected={view === "out"} onClick={() => setView("out")}>외래 {outN}</button>
+          <button className={view === "ended" ? "on" : ""} role="tab" aria-selected={view === "ended"} onClick={() => setView("ended")}>퇴원·종료 {endedN}</button>
         </div>
         {view === "in" && canViewSickrooms(me) && <label className="chk"><input type="checkbox" checked={showVacant} onChange={(e) => setShowVacant(e.target.checked)} />빈병실 포함 보기 (빈 병상 {vacant.length})</label>}
         <input className="qinput" placeholder="이름·차트번호 검색" value={q} onChange={(e) => setQ(e.target.value)} />
@@ -68,14 +65,7 @@ export default function Patients() {
             <tr key={p.id} className={`clickable ${isEnded(p) ? "ended" : ""}`} tabIndex={0} onClick={() => setInfo(p.id)} onKeyDown={(e) => { if (e.key === "Enter") setInfo(p.id); }}><td>{p.ward}</td><td>{r.bed}</td><td>{p.name}</td><td>{p.chartNo}</td><td>{p.admitDate}</td><td>{p.dischargeDate}</td>
               {editable && <td style={{ textAlign: "right" }}>{p.contractAmount != null ? `${p.contractAmount.toLocaleString("ko-KR")}만원` : ""}</td>}
               <td className="plan">{p.plan}</td><td className="notes">{p.notes}</td>
-              <td className="rowact" onClick={(e) => e.stopPropagation()}>{editable && (isEnded(p) ? <button className="btn-restore" onClick={() => setEnd({ p, date: todayStr() })}>복귀</button> : <button className="btn-end" onClick={() => setEnd({ p, date: todayStr() })}>퇴원/종료</button>)}{editable && <button onClick={() => setEdit(p)}>수정</button>}</td></tr>); })())}</tbody>
-          {editable && list.length > 0 && (
-            <tfoot><tr>
-              <td colSpan={6} className="sumlabel">합계 · {list.length}명{q && " (검색 결과)"}</td>
-              <td className="sumval" title={`${listSum.toLocaleString("ko-KR")}만원`}>{fmtMan(listSum)}</td>
-              <td colSpan={3} className="sumnote">{noAmt > 0 ? `계약금액 미입력 ${noAmt}명 제외` : `평균 ${fmtMan(Math.round(listSum / list.length))}`}</td>
-            </tr></tfoot>)}
-        </table>
+              <td className="rowact" onClick={(e) => e.stopPropagation()}>{editable && (isEnded(p) ? <button className="btn-restore" onClick={() => setEnd({ p, date: todayStr() })}>복귀</button> : <button className="btn-end" onClick={() => setEnd({ p, date: todayStr() })}>퇴원/종료</button>)}{editable && <button onClick={() => setEdit(p)}>수정</button>}</td></tr>); })())}</tbody></table>
       </div>
       </div>
       {infoP && <PatientDrawer p={infoP} canSeeAmount={editable} canEdit={editable} onClose={() => setInfo(null)} onEdit={(x) => setEdit(x)} onEnd={(x) => setEnd({ p: x, date: todayStr() })} />}
