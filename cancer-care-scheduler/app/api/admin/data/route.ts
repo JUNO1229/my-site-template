@@ -9,6 +9,10 @@ function kstNow() {
 }
 export const POST = route(async (req, _c, me) => {
   const b = await body(req);
+  if (b.action === "purge_auto") {
+    const r = await q("WITH d AS (DELETE FROM patients WHERE source='auto' RETURNING 1) SELECT count(*)::int AS n FROM d");
+    await audit(me.username, "data_purge_auto", `${r[0].n}명`); return { deleted: r[0].n };
+  }
   if (b.action !== "demo" && b.action !== "clear") throw new HttpError(400, "잘못된 요청입니다");
   await q("DELETE FROM appts"); await q("DELETE FROM patients");
   if (b.action === "demo") {

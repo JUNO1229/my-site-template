@@ -15,11 +15,11 @@ export const POST = route(async (req) => {
       contract_amount: Number.isInteger(r.contract_amount) && (r.contract_amount as number) >= 0 ? r.contract_amount : null }));
     const keep = (c: string) => `${c}=CASE WHEN EXCLUDED.${c}<>'' THEN EXCLUDED.${c} ELSE patients.${c} END`;
     const conflict = b.kind === "patients"
-      ? `ON CONFLICT (name,ward) DO UPDATE SET ${["chart_no", "bed", "admit_date", "discharge_date", "plan", "notes"].map(keep).join(",")},contract_amount=COALESCE(EXCLUDED.contract_amount,patients.contract_amount)`
+      ? `ON CONFLICT (name,ward) DO UPDATE SET ${["chart_no", "bed", "admit_date", "discharge_date", "plan", "notes"].map(keep).join(",")},contract_amount=COALESCE(EXCLUDED.contract_amount,patients.contract_amount),source='registry'`
       : "ON CONFLICT (name,ward) DO NOTHING";
     const r = await q(`WITH x AS (SELECT * FROM json_to_recordset($1::json) AS t(name text,ward text,chart_no text,bed text,admit_date text,discharge_date text,plan text,notes text,contract_amount int)),
-      ins AS (INSERT INTO patients(id,chart_no,name,ward,bed,admit_date,discharge_date,plan,notes,contract_amount)
-        SELECT gen_random_uuid()::text,chart_no,name,ward,bed,admit_date,discharge_date,plan,notes,contract_amount FROM x ${conflict} RETURNING (xmax=0) AS inserted)
+      ins AS (INSERT INTO patients(id,chart_no,name,ward,bed,admit_date,discharge_date,plan,notes,contract_amount,source)
+        SELECT gen_random_uuid()::text,chart_no,name,ward,bed,admit_date,discharge_date,plan,notes,contract_amount,'${b.kind === "stubs" ? "auto" : "registry"}' FROM x ${conflict} RETURNING (xmax=0) AS inserted)
       SELECT count(*) FILTER (WHERE inserted)::int AS inserted, count(*) FILTER (WHERE NOT inserted)::int AS updated FROM ins`, [JSON.stringify(data)]);
     return { inserted: r[0].inserted, updated: r[0].updated };
   }

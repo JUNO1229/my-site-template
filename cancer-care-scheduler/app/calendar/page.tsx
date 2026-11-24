@@ -7,7 +7,8 @@ export default function CalendarPage() {
   const { db, ready } = useStore();
   const [pid, setPid] = useState("");
   const [ym, setYm] = useState(todayStr().slice(0, 7));
-  const patient = db.patients.find((p) => p.id === pid) ?? db.patients[0];
+  const current = db.patients.filter((p) => p.source !== "auto");
+  const patient = db.patients.find((p) => p.id === pid) ?? current[0] ?? db.patients[0];
   const first = parse(`${ym}-01`);
   const gridStart = addDays(ymd(first), -((first.getDay() + 6) % 7));
   const appts = useAppts(gridStart, addDays(gridStart, 41), patient?.id ?? "none");
@@ -17,7 +18,7 @@ export default function CalendarPage() {
   return (
     <>
       <div className="toolbar no-print"><h2>환자별 치료캘린더</h2>
-        <select value={patient?.id} onChange={(e) => setPid(e.target.value)}>{db.patients.map((p) => <option key={p.id} value={p.id}>{pname(p)}</option>)}</select>
+        <select value={patient?.id} onChange={(e) => setPid(e.target.value)}>{db.patients.filter((p) => p.source !== "auto").map((p) => <option key={p.id} value={p.id}>{pname(p)}</option>)}</select>
         <div className="datebar"><button onClick={() => shift(-1)}>◀</button><b>{ym}</b><button onClick={() => shift(1)}>▶</button></div>
         <button onClick={() => window.print()}>인쇄</button></div>
       <h3 className="print-title">무등산생태요양병원 {pname(patient)} 님의 {Number(ym.slice(5))}월 치료스케줄</h3>

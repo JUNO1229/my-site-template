@@ -11,13 +11,17 @@ export default function Patients() {
   const [err, setErr] = useState("");
   const editable = canEditPatients(me);
   const [q, setQ] = useState("");
+  const [past, setPast] = useState(false);
   const [edit, setEdit] = useState<(Omit<Patient, "id"> & { id?: string }) | null>(null);
   if (!ready) return <p>불러오는 중…</p>;
-  const list = db.patients.filter((p) => !q || p.name.includes(q) || p.chartNo.includes(q));
+  const autoCount = db.patients.filter((p) => p.source === "auto").length;
+  const list = db.patients.filter((p) => (past || p.source !== "auto") && (!q || p.name.includes(q) || p.chartNo.includes(q)));
   const set = (k: keyof Patient, v: string) => setEdit((e) => e && { ...e, [k]: v });
   return (
     <>
       <div className="toolbar"><h2>환자명부</h2>
+        <b>{list.length}명</b>
+        {autoCount > 0 && <label className="chk"><input type="checkbox" checked={past} onChange={(e) => setPast(e.target.checked)} />과거 환자 포함 ({autoCount}명, 스케줄 기록에서 자동 생성)</label>}
         <input placeholder="이름·차트번호 검색" value={q} onChange={(e) => setQ(e.target.value)} />
         {editable && <button className="primary" onClick={() => setEdit(blank)}>+ 환자 등록</button>}</div>
       <table className="tbl"><thead><tr><th>환자(병동)</th><th>차트번호</th><th>병실</th><th>입원일</th><th>퇴원예정</th>{editable && <th>치료계약금액<br /><small>(본인부담)</small></th>}<th>치료정보</th><th>참고사항</th><th /></tr></thead>

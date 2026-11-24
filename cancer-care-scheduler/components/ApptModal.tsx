@@ -22,7 +22,7 @@ export default function ApptModal({ draft, onClose }: { draft: Draft; onClose: (
       <div className="modal" onClick={(e) => e.stopPropagation()}>
         <h3>{f.id ? "스케줄 수정" : "스케줄 등록"}</h3>
         <label>환자<select value={f.patientId} onChange={(e) => set("patientId", e.target.value)}>
-          {db.patients.map((p) => <option key={p.id} value={p.id}>{pname(p)} · 차트 {p.chartNo}</option>)}</select></label>
+          {db.patients.filter((p) => p.source !== "auto" || p.id === f.patientId).map((p) => <option key={p.id} value={p.id}>{pname(p)} · 차트 {p.chartNo}</option>)}</select></label>
         {patient && <p className="hint">{patient.plan || "치료정보 없음"}{patient.notes && ` / ${patient.notes}`}</p>}
         <div className="row">
           <label>치료일자<input type="date" value={f.date} onChange={(e) => set("date", e.target.value)} /></label>

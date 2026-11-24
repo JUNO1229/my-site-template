@@ -31,6 +31,10 @@ export default function Admin() {
       setEdit(null); load();
     } catch (e) { setErr((e as Error).message); }
   };
+  const purge = async () => {
+    if (!confirm("스케줄 기록에서 자동 생성된 과거 환자와 그 환자의 스케줄을 모두 삭제합니다. 되돌릴 수 없습니다.")) return;
+    try { const r = await api<{ deleted: number }>("/api/admin/data", "POST", { action: "purge_auto" }); await refresh(); setMsg(`자동 생성 환자 ${r.deleted}명과 스케줄을 삭제했습니다`); } catch (e) { setErr((e as Error).message); }
+  };
   const data = async (action: "demo" | "clear") => {
     if (!confirm(action === "clear" ? "모든 환자와 스케줄을 삭제합니다. 되돌릴 수 없습니다." : "현재 환자·스케줄을 삭제하고 가상 데모 데이터로 교체합니다.")) return;
     try { await api("/api/admin/data", "POST", { action }); await refresh(); setMsg(action === "clear" ? "환자·스케줄을 모두 삭제했습니다" : "데모 데이터를 불러왔습니다"); } catch (e) { setErr((e as Error).message); }
@@ -56,7 +60,7 @@ export default function Admin() {
           <tbody>{logs.map((l, i) => (<tr key={i}><td>{fmt(l.ts)}</td><td>{l.username ?? "-"}</td><td>{l.action}</td><td>{l.detail}</td></tr>))}</tbody></table>)}
       {tab === "data" && (<><ImportPanel />
         <div className="card"><p>현재 환자명부와 스케줄은 <b>가상 데모 데이터</b>일 수 있습니다. 실제 운영 전에 삭제하고 시작하세요.</p>
-          <div className="row"><button onClick={() => data("demo")}>데모 데이터로 교체</button><button className="danger" onClick={() => data("clear")}>환자·스케줄 전체 삭제</button></div></div></>)}
+          <div className="row"><button onClick={() => data("demo")}>데모 데이터로 교체</button><button onClick={purge}>명부에 없는 자동 생성 환자·스케줄 정리</button><button className="danger" onClick={() => data("clear")}>환자·스케줄 전체 삭제</button></div></div></>)}
       {edit && (
         <div className="overlay" onClick={() => setEdit(null)}><div className="modal" onClick={(e) => e.stopPropagation()}>
           <h3>{edit.id ? "계정 수정" : "계정 발급"}</h3>

@@ -2,7 +2,7 @@
 export const mRoom = (r: any) => ({ id: r.id, name: r.name, therapist: r.therapist, active: r.active, color: r.color });
 export const mItem = (r: any) => ({ id: r.id, roomId: r.room_id, name: r.name, duration: r.duration, capacity: r.capacity, slots: r.slots });
 export const mPatient = (r: any, withAmount = false) => ({ id: r.id, chartNo: r.chart_no, name: r.name, ward: r.ward, bed: r.bed,
-  admitDate: r.admit_date, dischargeDate: r.discharge_date, plan: r.plan, notes: r.notes,
+  admitDate: r.admit_date, dischargeDate: r.discharge_date, plan: r.plan, notes: r.notes, source: r.source,
   ...(withAmount ? { contractAmount: r.contract_amount } : {}) });
 export const mAppt = (r: any) => ({ id: r.id, patientId: r.patient_id, date: r.appt_date, time: r.appt_time,
   itemId: r.item_id, option: r.opt, status: r.status, memo: r.memo });
