@@ -4,7 +4,7 @@ import { useStore } from "@/lib/store";
 import { canEditPatients, canViewSickrooms, isAdmin } from "@/lib/perm";
 import { WARDS_LIST } from "@/lib/wards";
 import type { Patient } from "@/lib/types";
-import { todayStr } from "@/lib/util";
+import { fmtMan, todayStr } from "@/lib/util";
 import { cmpBed, vacantBeds } from "@/lib/sickroom";
 import { PageSkeleton } from "@/components/Ui";
 import PatientDrawer from "@/components/PatientDrawer";
@@ -36,6 +36,8 @@ export default function Patients() {
   const inN = registry.filter((p) => !isEnded(p) && !isOut(p)).length, outN = registry.filter((p) => !isEnded(p) && isOut(p)).length, endedN = registry.filter(isEnded).length;
   const inView = (p: Patient) => (view === "ended" ? isEnded(p) : !isEnded(p) && (view === "out") === isOut(p));
   const list = registry.filter((p) => inView(p) && (!q || p.name.includes(q) || p.chartNo.includes(q)));
+  // 계약금액 총합계: 현재 환자(재원+외래, 퇴원·종료 제외). 금액을 볼 수 있는 계정(editable)에만 표시
+  const cur = registry.filter((p) => !isEnded(p)); const totalAmt = cur.reduce((s, p) => s + (p.contractAmount ?? 0), 0); const noAmt = cur.filter((p) => p.contractAmount == null).length;
   const infoP = db.patients.find((p) => p.id === info) ?? null;
   const vacant = vacantBeds(db.sickrooms, db.patients, todayStr());
   type Row = { p?: Patient; bed: string; vacant?: boolean };
@@ -54,6 +56,7 @@ export default function Patients() {
           <button className={view === "out" ? "on" : ""} role="tab" aria-selected={view === "out"} onClick={() => setView("out")}>외래 {outN}</button>
           <button className={view === "ended" ? "on" : ""} role="tab" aria-selected={view === "ended"} onClick={() => setView("ended")}>퇴원·종료 {endedN}</button>
         </div>
+        {editable && <div className="sumbox" title={`현재 환자(재원+외래) ${cur.length}명 · ${totalAmt.toLocaleString("ko-KR")}만원${noAmt ? ` · 계약금액 미입력 ${noAmt}명 제외` : ""}`}><small>계약금액 총합계</small><b>{fmtMan(totalAmt)}</b></div>}
         {view === "in" && canViewSickrooms(me) && <label className="chk"><input type="checkbox" checked={showVacant} onChange={(e) => setShowVacant(e.target.checked)} />빈병실 포함 보기 (빈 병상 {vacant.length})</label>}
         <input className="qinput" placeholder="이름·차트번호 검색" value={q} onChange={(e) => setQ(e.target.value)} />
         {editable && <button className="primary" onClick={() => setEdit(blank)}>+ 환자 등록</button>}</div>
