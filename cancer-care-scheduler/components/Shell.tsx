@@ -60,7 +60,7 @@ export default function Shell({ children }: { children: React.ReactNode }) {
     <div className="shell">
       <div className={`scrim ${drawer ? "show" : ""}`} onClick={() => setDrawer(false)} />
       <aside className={`sidebar ${drawer ? "open" : ""}`} aria-label="주 메뉴">
-        <div className="brand"><span className="logo" aria-hidden="true"><Icon name="activity" size={20} /></span><div><b>ResHub-C</b><small>리즈허브-C</small></div></div>
+        <div className="brand"><span className="logo" aria-hidden="true"><Icon name="activity" size={20} /></span><div><b>ResHub-C(리즈허브-C)</b><small>무등산생태요양병원</small></div></div>
         {canNew && <button className="cta side-cta" onClick={() => openAppt({ date: todayStr() })}><Icon name="plus" size={18} />스케줄 등록<kbd>N</kbd></button>}
         <nav>{menu.map(([h, t, ic]) => <Item key={h} h={h} t={t} ic={ic} />)}</nav>
         <div className="side-foot">
