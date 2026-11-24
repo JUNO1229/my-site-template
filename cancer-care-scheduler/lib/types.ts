@@ -8,6 +8,7 @@ export interface Room { id: string; name: string; therapist: string; active: boo
 export interface Patient {
   id: string; chartNo: string; name: string; ward: Ward; bed: string;
   admitDate: string; dischargeDate: string; plan: string; notes: string;
+  status?: "active" | "discharged"; // active=재원/이용중, discharged=퇴원/종료
   source?: "registry" | "auto"; // registry=환자명부 등록, auto=스케줄 기록에서 자동 생성
   contractAmount?: number | null; // 치료계약금액(본인부담금) — 관리자/상담실장에게만 제공
 }

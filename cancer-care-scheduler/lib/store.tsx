@@ -11,6 +11,7 @@ interface Ctx {
   db: DB; me: Me | null; ready: boolean; rev: number; refresh: () => Promise<void>;
   saveAppt: (a: ApptInput) => Promise<void>; deleteAppt: (id: string) => Promise<void>;
   savePatient: (p: PatientInput) => Promise<void>; deletePatient: (id: string) => Promise<void>;
+  setPatientStatus: (id: string, status: "active" | "discharged", date: string) => Promise<void>;
   saveSickroom: (r: Sickroom, isNew: boolean) => Promise<void>; deleteSickroom: (roomNo: string) => Promise<void>;
 }
 const C = createContext<Ctx | null>(null);
@@ -43,6 +44,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     deleteAppt: async (id) => { await api(`/api/appts/${id}`, "DELETE"); await refresh(); },
     savePatient: async (p) => { await (p.id ? api(`/api/patients/${p.id}`, "PUT", p) : api("/api/patients", "POST", p)); await refresh(); },
     deletePatient: async (id) => { await api(`/api/patients/${id}`, "DELETE"); await refresh(); },
+    setPatientStatus: async (id, status, date) => { await api(`/api/patients/${id}/status`, "PUT", { status, date }); await refresh(); },
     saveSickroom: async (r, isNew) => { await (isNew ? api("/api/sickrooms", "POST", r) : api(`/api/sickrooms/${encodeURIComponent(r.roomNo)}`, "PUT", r)); await refresh(); },
     deleteSickroom: async (no) => { await api(`/api/sickrooms/${encodeURIComponent(no)}`, "DELETE"); await refresh(); },
   }), [db, me, ready, rev, refresh]);

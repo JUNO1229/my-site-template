@@ -7,15 +7,20 @@ import type { Patient } from "@/lib/types";
 import { todayStr } from "@/lib/util";
 import { cmpBed, vacantBeds } from "@/lib/sickroom";
 import { PageSkeleton } from "@/components/Ui";
+import PatientDrawer from "@/components/PatientDrawer";
 import { useToast } from "@/lib/toast";
 
 const blank: Omit<Patient, "id"> = { chartNo: "", name: "", ward: "1", bed: "", admitDate: "", dischargeDate: "", plan: "", notes: "", contractAmount: null };
 export default function Patients() {
-  const { db, ready, me, savePatient, deletePatient } = useStore();
+  const { db, ready, me, savePatient, deletePatient, setPatientStatus } = useStore();
   const [err, setErr] = useState("");
   const editable = canEditPatients(me);
   const [q, setQ] = useState("");
   const [showVacant, setShowVacant] = useState(false);
+  const [view, setView] = useState<"active" | "ended">("active");
+  const [info, setInfo] = useState<string | null>(null);
+  const [end, setEnd] = useState<{ p: Patient; date: string } | null>(null);
+  const [busy, setBusy] = useState(false);
   const { toast } = useToast();
   useEffect(() => {
     const init = new URLSearchParams(location.search).get("q"); if (init) setQ(init);
@@ -24,12 +29,16 @@ export default function Patients() {
   }, []);
   const [edit, setEdit] = useState<(Omit<Patient, "id"> & { id?: string }) | null>(null);
   if (!ready) return <PageSkeleton />;
-  const list = db.patients.filter((p) => p.source !== "auto" && (!q || p.name.includes(q) || p.chartNo.includes(q)));
+  const registry = db.patients.filter((p) => p.source !== "auto");
+  const isEnded = (p: Patient) => p.status === "discharged";
+  const activeN = registry.filter((p) => !isEnded(p)).length, endedN = registry.length - activeN;
+  const list = registry.filter((p) => (view === "ended") === isEnded(p) && (!q || p.name.includes(q) || p.chartNo.includes(q)));
+  const infoP = db.patients.find((p) => p.id === info) ?? null;
   const vacant = vacantBeds(db.sickrooms, db.patients, todayStr());
   type Row = { p?: Patient; bed: string; vacant?: boolean };
   const bedOf = (p: Patient) => (p.ward === "외" && !p.bed ? "외래" : p.bed);
   const patientRows: Row[] = list.map((p) => ({ p, bed: bedOf(p) }));
-  const vacantRows: Row[] = showVacant && !q ? vacant.map((v) => ({ bed: v.label, vacant: true })) : [];
+  const vacantRows: Row[] = view === "active" && showVacant && !q ? vacant.map((v) => ({ bed: v.label, vacant: true })) : [];
   const rows: Row[] = [...patientRows, ...vacantRows]
     .sort((x, y) => cmpBed(x.bed, y.bed) || Number(!!x.vacant) - Number(!!y.vacant) || (x.p?.name ?? "").localeCompare(y.p?.name ?? "", "ko"));
   const set = (k: keyof Patient, v: string) => setEdit((e) => e && { ...e, [k]: v });
@@ -37,21 +46,34 @@ export default function Patients() {
     <>
       <div className="fillpage">
       <div className="toolbar"><h2>환자명부</h2>
-        <b>{list.length}명</b>
-        {canViewSickrooms(me) && <label className="chk"><input type="checkbox" checked={showVacant} onChange={(e) => setShowVacant(e.target.checked)} />빈병실 포함 보기 (빈 병상 {vacant.length})</label>}
+        <div className="seg"><button className={view === "active" ? "on" : ""} onClick={() => setView("active")}>재원·이용중 {activeN}</button><button className={view === "ended" ? "on" : ""} onClick={() => setView("ended")}>퇴원·종료 {endedN}</button></div>
+        {view === "active" && canViewSickrooms(me) && <label className="chk"><input type="checkbox" checked={showVacant} onChange={(e) => setShowVacant(e.target.checked)} />빈병실 포함 보기 (빈 병상 {vacant.length})</label>}
         <input className="qinput" placeholder="이름·차트번호 검색" value={q} onChange={(e) => setQ(e.target.value)} />
         {editable && <button className="primary" onClick={() => setEdit(blank)}>+ 환자 등록</button>}</div>
       <div className="tblwrap fixhead">
-        <table className="tbl compact"><thead><tr><th>병동</th><th>병실</th><th>환자명</th><th>차트번호</th><th>입원일</th><th>퇴원예정</th>{editable && <th title="치료계약금액(본인부담, 만원)">계약금액</th>}<th>치료정보</th><th>참고사항</th><th /></tr></thead>
+        <table className="tbl compact"><thead><tr><th>병동</th><th>병실</th><th>환자명</th><th>차트번호</th><th>입원일</th><th>{view === "ended" ? "퇴원·종료일" : "퇴원예정"}</th>{editable && <th title="치료계약금액(본인부담, 만원)">계약금액</th>}<th>치료정보</th><th>참고사항</th><th /></tr></thead>
           <tbody>{rows.map((r, i) => r.vacant || !r.p ? (
             <tr key={`v${i}`} className="vacant"><td>{/^\d/.test(r.bed) ? r.bed[0] : ""}</td><td>{r.bed}</td><td>(빈병실)</td><td colSpan={editable ? 7 : 6} /></tr>
           ) : (() => { const p = r.p; return (
-            <tr key={p.id}><td>{p.ward}</td><td>{r.bed}</td><td>{p.name}</td><td>{p.chartNo}</td><td>{p.admitDate}</td><td>{p.dischargeDate}</td>
+            <tr key={p.id} className={`clickable ${isEnded(p) ? "ended" : ""}`} tabIndex={0} onClick={() => setInfo(p.id)} onKeyDown={(e) => { if (e.key === "Enter") setInfo(p.id); }}><td>{p.ward}</td><td>{r.bed}</td><td>{p.name}</td><td>{p.chartNo}</td><td>{p.admitDate}</td><td>{p.dischargeDate}</td>
               {editable && <td style={{ textAlign: "right" }}>{p.contractAmount != null ? `${p.contractAmount.toLocaleString("ko-KR")}만원` : ""}</td>}
               <td className="plan">{p.plan}</td><td className="notes">{p.notes}</td>
-              <td>{editable && <button onClick={() => setEdit(p)}>수정</button>}</td></tr>); })())}</tbody></table>
+              <td className="rowact" onClick={(e) => e.stopPropagation()}>{editable && (isEnded(p) ? <button className="btn-restore" onClick={() => setEnd({ p, date: todayStr() })}>복귀</button> : <button className="btn-end" onClick={() => setEnd({ p, date: todayStr() })}>퇴원/종료</button>)}{editable && <button onClick={() => setEdit(p)}>수정</button>}</td></tr>); })())}</tbody></table>
       </div>
       </div>
+      {infoP && <PatientDrawer p={infoP} canSeeAmount={editable} canEdit={editable} onClose={() => setInfo(null)} onEdit={(x) => setEdit(x)} onEnd={(x) => setEnd({ p: x, date: todayStr() })} />}
+      {end && (
+        <div className="overlay" onClick={() => !busy && setEnd(null)}><div className="modal" role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()}>
+          <h3>{isEnded(end.p) ? "복귀 처리" : "퇴원/종료 처리"}</h3>
+          <p>{isEnded(end.p) ? <><b>{end.p.name}</b> 님을 다시 재원·이용중으로 되돌립니다. 퇴원/종료일은 지워집니다.</> : <><b>{end.p.name}</b> 님을 퇴원/종료 처리합니다.{end.p.bed && ` 병실 ${end.p.bed}는 빈병실로 전환됩니다.`} 기존 치료 기록은 그대로 보관되며 "퇴원·종료" 목록에서 복귀할 수 있습니다.</>}</p>
+          {!isEnded(end.p) && <label>퇴원/종료일<input type="date" value={end.date} onChange={(e) => setEnd({ ...end, date: e.target.value })} /></label>}
+          {err && <p className="err">{err}</p>}
+          <div className="actions"><span style={{ flex: 1 }} /><button onClick={() => setEnd(null)} disabled={busy}>취소</button>
+            <button className="primary" disabled={busy || (!isEnded(end.p) && !end.date)} onClick={async () => {
+              setBusy(true); setErr("");
+              try { await setPatientStatus(end.p.id, isEnded(end.p) ? "active" : "discharged", end.date); toast(isEnded(end.p) ? "복귀 처리했습니다" : "퇴원/종료 처리했습니다"); setEnd(null); setInfo((i) => (i === end.p.id ? null : i)); }
+              catch (e) { setErr((e as Error).message); } setBusy(false); }}>{isEnded(end.p) ? "복귀" : "퇴원/종료 처리"}</button></div>
+        </div></div>)}
       {edit && (
         <div className="overlay" onClick={() => setEdit(null)}><div className="modal" onClick={(e) => e.stopPropagation()}>
           <h3>{edit.id ? "환자 수정" : "환자 등록"}</h3>

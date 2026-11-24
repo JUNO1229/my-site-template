@@ -42,7 +42,7 @@ h1,h2,h3,h4{margin:0}a{color:inherit}
 kbd{font:500 11px var(--font);padding:2px 7px;border-radius:6px;background:var(--field);color:var(--text2);border:0}
 .menu-btn{display:none}
 main{padding:12px 28px 96px;width:100%;max-width:1680px;margin:0 auto}
-.page-enter{animation:pageIn .35s cubic-bezier(.2,.7,.2,1) both}
+.page-enter{animation:pageIn .35s cubic-bezier(.2,.7,.2,1) backwards}
 /* ===== 버튼/아이콘 버튼 ===== */
 button{font:inherit;color:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
 .icon-btn{width:44px;height:44px;display:inline-grid;place-items:center;border:0;border-radius:50%;background:var(--surface);box-shadow:var(--sh-card);color:var(--text);transition:transform .15s,background .2s}
@@ -278,3 +278,26 @@ button:not([class]):hover{background:var(--tint)}button:not([class]):active{tran
 .tblwrap.fixhead .tbl thead th:first-child{box-shadow:0 6px 12px -9px rgba(110,79,168,.45)}
 .tbl thead th:nth-child(2){font-weight:600}
 .tblwrap.fixhead .tbl tbody tr{animation:none}
+/* 환자 정보창(우측 서랍) + 행 동작 */
+.tbl tbody tr.clickable{cursor:pointer}.tbl tbody tr.clickable:active{background:var(--tint)}.tbl tbody tr.clickable:focus-visible{outline:2px solid var(--p1);outline-offset:-2px}
+.tbl tbody tr.ended td{color:var(--text2)}
+.rowact{white-space:nowrap;text-align:right}.rowact button+button{margin-left:6px}
+.tbl td button.btn-end,.btn-end{background:rgba(238,110,143,.14);color:var(--aline);font-weight:600}.tbl td button.btn-end:hover,.btn-end:hover{background:rgba(238,110,143,.26)}
+.tbl td button.btn-restore,.btn-restore{background:rgba(46,159,107,.14);color:var(--success);font-weight:600}.tbl td button.btn-restore:hover,.btn-restore:hover{background:rgba(46,159,107,.26)}
+button.btn-end,button.btn-restore{display:inline-flex;align-items:center;justify-content:center;height:40px;padding:0 16px;border:0;border-radius:var(--r-m)}
+.drawer-wrap{place-items:stretch end;padding:0}
+.drawer{width:min(480px,100%);height:100dvh;max-height:100dvh;background:var(--surface);border-radius:var(--r-xl) 0 0 var(--r-xl);display:flex;flex-direction:column;box-shadow:-16px 0 50px rgba(0,0,0,.25);animation:slideleft .32s cubic-bezier(.2,.8,.2,1)}
+.overlay.out .drawer{animation:slideright .2s both}
+.drawer-head{display:flex;gap:14px;align-items:flex-start;padding:22px 20px 14px}.drawer-head h3{font-size:22px;font-weight:600}.drawer-head .grow{flex:1;min-width:0;display:flex;flex-direction:column;gap:6px;align-items:flex-start}
+.dsub{display:flex;flex-wrap:wrap;gap:4px 10px;color:var(--text2);font-size:13px}.dsub span+span::before{content:"·";margin-right:10px}
+.drawer-body{flex:1;overflow:auto;padding:4px 20px 20px;display:flex;flex-direction:column;gap:18px}
+.infogrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.ig{background:var(--field);border-radius:var(--r-m);padding:12px 14px}.ig.wide{grid-column:1/-1}.ig small{display:block;color:var(--text2);font-size:12px;margin-bottom:2px}.ig b{font-weight:600;font-size:15px}
+.dsec h4{font-size:14px;font-weight:600;margin-bottom:8px;display:flex;align-items:baseline;gap:8px}.dsec h4 small{font-weight:400;color:var(--text2);font-size:12px}
+.dtext{margin:0;background:var(--field);border-radius:var(--r-m);padding:12px 14px;line-height:1.6;overflow-wrap:anywhere;white-space:pre-wrap}
+.dsec .kpis{margin:0}.dsec .kpi{padding:8px 16px;box-shadow:none;background:var(--field);animation:none}
+.hlist{display:flex;flex-direction:column;gap:8px}.hrow{display:flex;gap:12px;align-items:center;padding:10px 12px;border-radius:var(--r-m);background:var(--field)}
+.hrow .hdate{min-width:86px;font-weight:600;font-size:13px}.hrow .hdate small{display:block;color:var(--text2);font-weight:400;font-variant-numeric:tabular-nums}
+.hrow .grow{flex:1;min-width:0}.hrow .grow b{display:block;font-weight:600}.hrow .grow small{color:var(--text2);font-size:12px}
+.drawer-foot{display:flex;gap:8px;align-items:center;padding:14px 20px calc(16px + env(safe-area-inset-bottom));border-top:1px solid var(--hair)}
+@keyframes slideleft{from{transform:translateX(100%)}to{transform:none}}@keyframes slideright{to{transform:translateX(100%)}}
+@media(max-width:960px){.drawer-wrap{place-items:end center}.drawer{height:92dvh;max-height:92dvh;border-radius:var(--r-xl) var(--r-xl) 0 0;animation:slideup .32s cubic-bezier(.2,.8,.2,1)}.overlay.out .drawer{animation:slidedown .2s both}}

@@ -15,7 +15,7 @@ export function roomState(r: Sickroom, today: string): RoomState {
   return "운영중";
 }
 /** 환자명부(자동생성 제외)에서 병실에 입원 중으로 보는 환자 */
-export const inpatients = (patients: Patient[]) => patients.filter((p) => p.source !== "auto" && p.bed.trim() && p.ward !== "외");
+export const inpatients = (patients: Patient[]) => patients.filter((p) => p.source !== "auto" && p.status !== "discharged" && p.bed.trim() && p.ward !== "외");
 
 export interface RoomUsage { room: Sickroom; state: RoomState; used: number; vacant: number }
 export function usage(rooms: Sickroom[], patients: Patient[], today: string): RoomUsage[] {

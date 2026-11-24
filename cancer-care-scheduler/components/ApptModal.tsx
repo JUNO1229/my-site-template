@@ -14,7 +14,7 @@ export default function ApptModal({ draft, onClose }: { draft: Draft; onClose: (
   const [closing, setClosing] = useState(false);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
-  const [f, setF] = useState<Draft>({ time: "09:00", option: "", status: "예약", memo: "", itemId: db.items.find((i) => canEditRoom(me, i.roomId))?.id ?? db.items[0]?.id, patientId: db.patients.find((p) => p.source !== "auto")?.id ?? db.patients[0]?.id, ...draft });
+  const [f, setF] = useState<Draft>({ time: "09:00", option: "", status: "예약", memo: "", itemId: db.items.find((i) => canEditRoom(me, i.roomId))?.id ?? db.items[0]?.id, patientId: db.patients.find((p) => p.source !== "auto" && p.status !== "discharged")?.id ?? db.patients[0]?.id, ...draft });
   const set = (k: keyof Appt, v: string) => setF((p) => ({ ...p, [k]: v }));
   const item = db.items.find((i) => i.id === f.itemId);
   const patient = db.patients.find((p) => p.id === f.patientId);
@@ -36,7 +36,7 @@ export default function ApptModal({ draft, onClose }: { draft: Draft; onClose: (
           <button className="icon-btn" aria-label="닫기" onClick={close}><Icon name="x" /></button></div>
         <div className="sheet-body">
           <label>환자<select value={f.patientId} onChange={(e) => set("patientId", e.target.value)}>
-            {db.patients.filter((p) => p.source !== "auto" || p.id === f.patientId).map((p) => <option key={p.id} value={p.id}>{pname(p)} · 차트 {p.chartNo || "-"}</option>)}</select></label>
+            {db.patients.filter((p) => (p.source !== "auto" && p.status !== "discharged") || p.id === f.patientId).map((p) => <option key={p.id} value={p.id}>{pname(p)} · 차트 {p.chartNo || "-"}</option>)}</select></label>
           {patient && (patient.plan || patient.notes) && <p className="hint planhint">{patient.plan}{patient.notes && ` / ${patient.notes}`}</p>}
           <div className="row">
             <label>치료일자<input type="date" value={f.date} onChange={(e) => set("date", e.target.value)} /></label>
