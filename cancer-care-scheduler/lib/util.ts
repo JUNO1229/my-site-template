@@ -35,3 +35,11 @@ export function findConflicts(appts: Appt[], items: Item[], date?: string): Map<
   return out;
 }
 export function csvEscape(v: string) { return /[",\n]/.test(v) ? `"${v.replace(/"/g, '""')}"` : v; }
+
+/** 만원 단위 금액을 읽기 쉽게: 315 → "315만원", 12345 → "1억 2,345만원", 20000 → "2억원" */
+export function fmtMan(n: number): string {
+  if (!n) return "0원";
+  const eok = Math.floor(n / 10000), man = n % 10000;
+  if (eok === 0) return `${man.toLocaleString("ko-KR")}만원`;
+  return man === 0 ? `${eok.toLocaleString("ko-KR")}억원` : `${eok.toLocaleString("ko-KR")}억 ${man.toLocaleString("ko-KR")}만원`;
+}
