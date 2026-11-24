@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import { label, pad, ymd } from "@/lib/util";
+import { dow, pad, ymd } from "@/lib/util";
 
 /** 실시간 시계 — "2026-11-24(화) 23:47" 형식, 1초마다 갱신(콜론이 깜박여 흐르는 중임을 표시), 자정이 지나면 날짜도 바뀐다 */
 export default function LiveClock() {
@@ -14,7 +14,7 @@ export default function LiveClock() {
   const on = now.getSeconds() % 2 === 0;
   return (
     <time className="clock" dateTime={now.toISOString()} title={now.toLocaleTimeString("ko-KR")}>
-      {label(ymd(now))} {pad(now.getHours())}<span className={`colon ${on ? "on" : ""}`}>:</span>{pad(now.getMinutes())}
+      <span className="cy">{ymd(now).slice(0, 5)}</span>{ymd(now).slice(5)}({dow(ymd(now))}) {pad(now.getHours())}<span className={`colon ${on ? "on" : ""}`}>:</span>{pad(now.getMinutes())}
     </time>
   );
 }

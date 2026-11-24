@@ -219,7 +219,7 @@ label.chk{flex-direction:row;align-items:center;gap:8px;font-weight:500;flex:non
   .cal{gap:4px}.day{min-height:78px;padding:4px}.ev{font-size:10px;padding:2px 4px}
   .tl-row,.nowline{grid-template-columns:44px minmax(0,1fr)}
 }
-@media(max-width:480px){.row>label{min-width:100%}.greet small{display:none}}
+@media(max-width:480px){.row>label{min-width:100%}.greet small{white-space:nowrap}.greet small .role,.greet .clock .cy{display:none}}
 /* ===== 애니메이션 ===== */
 @keyframes pageIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
 @keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
@@ -406,3 +406,6 @@ button.btn-end,button.btn-restore{display:inline-flex;align-items:center;justify
 .btn-card:hover{box-shadow:0 0 0 1.5px var(--psoft),var(--sh-card)}.btn-card:active{transform:scale(.97)}.btn-card .ic{color:var(--text2)}
 /* 실시간 시계 */
 .clock{font-variant-numeric:tabular-nums;white-space:nowrap}.clock .colon{display:inline-block;width:.4em;text-align:center;opacity:.25;transition:opacity .25s}.clock .colon.on{opacity:1}
+/* 모바일 인사 영역: 긴 이름도 종 아이콘에 가려지지 않게 글자를 줄이고 넘치면 … 처리 */
+.greet>div{min-width:0}.greet b{overflow:hidden;text-overflow:ellipsis}
+@media(max-width:480px){.greet{gap:10px}.greet b{font-size:15px}.greet small{font-size:12px;overflow:hidden;text-overflow:ellipsis}}
