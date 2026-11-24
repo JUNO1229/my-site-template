@@ -41,7 +41,7 @@ export default function Shell({ children }: { children: React.ReactNode }) {
 
   if (path.startsWith("/login")) return <>{children}</>;
   const menu: [string, string, string][] = [
-    ["/patients", "환자명부", "users"], ["/patient-history", "이전환자명부", "history"], ["/", "치료실 통합모니터링", "activity"], ["/rooms", "치료실별 스케줄", "grid"], ["/monthly", "월간 치료현황", "cal2"], ["/calendar", "캘린더", "calendar"], ["/list", "기간별 리스트", "list"],
+    ["/patients", "환자명부", "users"], ["/patient-history", "이전환자명부", "history"], ["/", "치료실 통합모니터링", "activity"], ["/rooms", "치료실별 스케줄", "grid"], ["/monthly", "월간 치료현황", "cal2"], ["/calendar", "환자별 치료캘린더", "calendar"], ["/list", "기간별 리스트", "list"],
     ...(isAdmin(me) ? [["/settings", "치료실 설정", "sliders"] as [string, string, string]] : []),
     ...(canViewSickrooms(me) ? [["/sickrooms", "병실관리", "bed"] as [string, string, string]] : []),
     ...(isAdmin(me) ? [["/admin", "계정·접속기록", "shield"] as [string, string, string]] : []),
