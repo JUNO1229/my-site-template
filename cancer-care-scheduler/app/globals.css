@@ -385,3 +385,6 @@ button.btn-end,button.btn-restore{display:inline-flex;align-items:center;justify
 .tabgroup{display:flex;align-items:stretch;gap:14px;flex-wrap:wrap}
 .tabgroup>.seg,.tabgroup>.sumbox{box-sizing:border-box}
 .sumbox{min-height:45px}
+/* 환자명부 검색칸: 흰색(카드) 배경 */
+.qinput{background:var(--surface);box-shadow:var(--sh-card)}
+.qinput:focus{background:var(--surface);box-shadow:inset 0 0 0 1.5px var(--p1),var(--sh-card)}

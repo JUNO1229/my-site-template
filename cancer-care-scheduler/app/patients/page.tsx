@@ -33,7 +33,7 @@ export default function Patients() {
   const registry = db.patients.filter((p) => p.source !== "auto");
   const isEnded = (p: Patient) => p.status === "discharged";
   const isOut = (p: Patient) => p.ward === "외";
-  const inN = registry.filter((p) => !isEnded(p) && !isOut(p)).length, outN = registry.filter((p) => !isEnded(p) && isOut(p)).length, endedN = registry.filter(isEnded).length;
+  const inN = registry.filter((p) => !isEnded(p) && !isOut(p)).length, outN = registry.filter((p) => !isEnded(p) && isOut(p)).length;
   const inView = (p: Patient) => (view === "ended" ? isEnded(p) : !isEnded(p) && (view === "out") === isOut(p));
   const list = registry.filter((p) => inView(p) && (!q || p.name.includes(q) || p.chartNo.includes(q)));
   // 계약금액 합계액: 현재 환자(재원+외래, 퇴원·종료 제외). 금액을 볼 수 있는 계정(editable)에만 표시
@@ -55,7 +55,7 @@ export default function Patients() {
         <div className="seg" role="tablist">
           <button className={view === "in" ? "on" : ""} role="tab" aria-selected={view === "in"} onClick={() => setView("in")}>재원 {inN}</button>
           <button className={view === "out" ? "on" : ""} role="tab" aria-selected={view === "out"} onClick={() => setView("out")}>외래 {outN}</button>
-          <button className={view === "ended" ? "on" : ""} role="tab" aria-selected={view === "ended"} onClick={() => setView("ended")}>퇴원·종료 {endedN}</button>
+          <button className={view === "ended" ? "on" : ""} role="tab" aria-selected={view === "ended"} onClick={() => setView("ended")}>퇴원·종료</button>
         </div>
         {editable && <div className="sumbox" title={`현재 환자(재원+외래) ${cur.length}명 · ${totalAmt.toLocaleString("ko-KR")}만원${noAmt ? ` · 계약금액 미입력 ${noAmt}명 제외` : ""}`}><small>계약금액 합계액</small><b>{fmtMan(totalAmt)}</b></div>}
         </div>
