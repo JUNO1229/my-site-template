@@ -9,7 +9,10 @@ const sql = neon(url);
 const q = (t, p = []) => sql.query(t, p);
 const cfg = JSON.parse(fs.readFileSync(new URL("../lib/baseConfig.json", import.meta.url), "utf8"));
 
-for (const st of [`CREATE TABLE IF NOT EXISTS users (
+for (const st of [`CREATE TABLE IF NOT EXISTS sickrooms (
+  room_no TEXT PRIMARY KEY, beds INT NOT NULL DEFAULT 1, start_date TEXT NOT NULL DEFAULT '', end_date TEXT NOT NULL DEFAULT '',
+  note TEXT NOT NULL DEFAULT '', sort INT NOT NULL DEFAULT 0)`,
+`CREATE TABLE IF NOT EXISTS users (
   id SERIAL PRIMARY KEY, username TEXT UNIQUE NOT NULL, name TEXT NOT NULL,
   role TEXT NOT NULL CHECK (role IN ('admin','manager','therapist','viewer')),
   room_ids TEXT[] NOT NULL DEFAULT '{}', active BOOLEAN NOT NULL DEFAULT true,
@@ -50,6 +53,13 @@ if ((await q("SELECT 1 FROM rooms LIMIT 1")).length === 0) {
   i = 0;
   for (const t of cfg.items) await q("INSERT INTO items(id,room_id,name,duration,capacity,slots,sort) VALUES($1,$2,$3,$4,$5,$6,$7)", [t.id, t.roomId, t.name, t.duration, t.capacity ?? 1, t.slots, i++]);
   console.log("치료실/치료항목 기본값 입력 완료");
+}
+
+if ((await q("SELECT 1 FROM sickrooms LIMIT 1")).length === 0) {
+  const base = JSON.parse(fs.readFileSync(new URL("../lib/baseSickrooms.json", import.meta.url), "utf8"));
+  let n = 0;
+  for (const r of base) await q("INSERT INTO sickrooms(room_no,beds,sort) VALUES($1,$2,$3) ON CONFLICT DO NOTHING", [r.roomNo, r.beds, n++]);
+  console.log(`병실 ${base.length}개 기본값 입력 완료`);
 }
 
 if ((await q("SELECT 1 FROM users LIMIT 1")).length === 0) {

@@ -13,3 +13,4 @@ export const isAdmin = (m?: Me | null) => m?.role === "admin";
 export const canEditPatients = (m?: Me | null) => m?.role === "admin" || m?.role === "manager";
 export const canEditRoom = (m: Me | null | undefined, roomId?: string) =>
   !!m && (m.role === "admin" || m.role === "manager" || (m.role === "therapist" && !!roomId && m.roomIds.includes(roomId)));
+export const canEditSickrooms = (m?: Me | null) => m?.role === "admin" || m?.role === "manager";

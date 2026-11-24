@@ -8,3 +8,4 @@ export const mAppt = (r: any) => ({ id: r.id, patientId: r.patient_id, date: r.a
   itemId: r.item_id, option: r.opt, status: r.status, memo: r.memo });
 export const mUser = (r: any) => ({ id: r.id, username: r.username, name: r.name, role: r.role, roomIds: r.room_ids,
   active: r.active, mustChange: r.must_change, lastLogin: r.last_login, locked: !!r.locked_until && new Date(r.locked_until) > new Date() });
+export const mSickroom = (r: any) => ({ roomNo: r.room_no, beds: r.beds, startDate: r.start_date, endDate: r.end_date, note: r.note });

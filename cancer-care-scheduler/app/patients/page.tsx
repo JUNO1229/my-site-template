@@ -4,12 +4,9 @@ import { useStore } from "@/lib/store";
 import { canEditPatients, isAdmin } from "@/lib/perm";
 import { WARDS_LIST } from "@/lib/wards";
 import type { Patient } from "@/lib/types";
-import { pname } from "@/lib/util";
+import { pname, todayStr } from "@/lib/util";
+import { cmpBed, vacantBeds } from "@/lib/sickroom";
 
-// 병실 오름차순(101, 102 …), 외래·병실 미지정은 맨 아래
-const roomNo = (p: Patient) => { const n = parseInt(p.bed, 10); return Number.isFinite(n) ? n : Infinity; };
-const byRoom = (a: Patient, b: Patient) => (roomNo(a) - roomNo(b) || 0) || a.name.localeCompare(b.name, "ko");
-const roomLabel = (p: Patient) => (Number.isFinite(roomNo(p)) ? p.bed : p.ward === "외" ? "외래" : p.bed);
 const blank: Omit<Patient, "id"> = { chartNo: "", name: "", ward: "1", bed: "", admitDate: "", dischargeDate: "", plan: "", notes: "", contractAmount: null };
 export default function Patients() {
   const { db, ready, me, savePatient, deletePatient } = useStore();
@@ -17,25 +14,36 @@ export default function Patients() {
   const editable = canEditPatients(me);
   const [q, setQ] = useState("");
   const [past, setPast] = useState(false);
+  const [showVacant, setShowVacant] = useState(false);
   const [edit, setEdit] = useState<(Omit<Patient, "id"> & { id?: string }) | null>(null);
   if (!ready) return <p>불러오는 중…</p>;
   const autoCount = db.patients.filter((p) => p.source === "auto").length;
-  const list = db.patients.filter((p) => (past || p.source !== "auto") && (!q || p.name.includes(q) || p.chartNo.includes(q))).sort(byRoom);
+  const list = db.patients.filter((p) => (past || p.source !== "auto") && (!q || p.name.includes(q) || p.chartNo.includes(q)));
+  const vacant = vacantBeds(db.sickrooms, db.patients, todayStr());
+  type Row = { p?: Patient; bed: string; vacant?: boolean };
+  const bedOf = (p: Patient) => (p.ward === "외" && !p.bed ? "외래" : p.bed);
+  const patientRows: Row[] = list.map((p) => ({ p, bed: bedOf(p) }));
+  const vacantRows: Row[] = showVacant && !q ? vacant.map((v) => ({ bed: v.label, vacant: true })) : [];
+  const rows: Row[] = [...patientRows, ...vacantRows]
+    .sort((x, y) => cmpBed(x.bed, y.bed) || Number(!!x.vacant) - Number(!!y.vacant) || (x.p?.name ?? "").localeCompare(y.p?.name ?? "", "ko"));
   const set = (k: keyof Patient, v: string) => setEdit((e) => e && { ...e, [k]: v });
   return (
     <>
       <div className="toolbar"><h2>환자명부</h2>
         <b>{list.length}명</b>
+        <label className="chk"><input type="checkbox" checked={showVacant} onChange={(e) => setShowVacant(e.target.checked)} />빈병실 포함 보기 (빈 병상 {vacant.length})</label>
         {autoCount > 0 && <label className="chk"><input type="checkbox" checked={past} onChange={(e) => setPast(e.target.checked)} />과거 환자 포함 ({autoCount}명, 스케줄 기록에서 자동 생성)</label>}
         <input placeholder="이름·차트번호 검색" value={q} onChange={(e) => setQ(e.target.value)} />
         {editable && <button className="primary" onClick={() => setEdit(blank)}>+ 환자 등록</button>}</div>
       <div className="tblwrap">
         <table className="tbl compact"><thead><tr><th>병실</th><th>환자(병동)</th><th>차트번호</th><th>입원일</th><th>퇴원예정</th>{editable && <th>계약금액(본인부담)</th>}<th>치료정보</th><th>참고사항</th><th /></tr></thead>
-          <tbody>{list.map((p) => (
-            <tr key={p.id}><td>{roomLabel(p)}</td><td>{pname(p)}</td><td>{p.chartNo}</td><td>{p.admitDate}</td><td>{p.dischargeDate}</td>
+          <tbody>{rows.map((r, i) => r.vacant || !r.p ? (
+            <tr key={`v${i}`} className="vacant"><td>{r.bed}</td><td>(빈병실)</td><td colSpan={editable ? 7 : 6} /></tr>
+          ) : (() => { const p = r.p; return (
+            <tr key={p.id}><td>{r.bed}</td><td>{pname(p)}</td><td>{p.chartNo}</td><td>{p.admitDate}</td><td>{p.dischargeDate}</td>
               {editable && <td style={{ textAlign: "right" }}>{p.contractAmount != null ? `${p.contractAmount.toLocaleString("ko-KR")}만원` : ""}</td>}
               <td className="long" title={p.plan}>{p.plan}</td><td className="long" title={p.notes}>{p.notes}</td>
-              <td>{editable && <button onClick={() => setEdit(p)}>수정</button>}</td></tr>))}</tbody></table>
+              <td>{editable && <button onClick={() => setEdit(p)}>수정</button>}</td></tr>); })())}</tbody></table>
       </div>
       {edit && (
         <div className="overlay" onClick={() => setEdit(null)}><div className="modal" onClick={(e) => e.stopPropagation()}>

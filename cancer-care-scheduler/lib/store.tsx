@@ -1,7 +1,7 @@
 "use client";
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import type { Appt, DB, Patient } from "./types";
+import type { Appt, DB, Patient, Sickroom } from "./types";
 import type { Me } from "./perm";
 import { api } from "./api";
 
@@ -11,12 +11,13 @@ interface Ctx {
   db: DB; me: Me | null; ready: boolean; rev: number; refresh: () => Promise<void>;
   saveAppt: (a: ApptInput) => Promise<void>; deleteAppt: (id: string) => Promise<void>;
   savePatient: (p: PatientInput) => Promise<void>; deletePatient: (id: string) => Promise<void>;
+  saveSickroom: (r: Sickroom, isNew: boolean) => Promise<void>; deleteSickroom: (roomNo: string) => Promise<void>;
 }
 const C = createContext<Ctx | null>(null);
 export const useStore = () => { const c = useContext(C); if (!c) throw new Error("store"); return c; };
 
 export function StoreProvider({ children }: { children: ReactNode }) {
-  const [db, setDb] = useState<DB>({ rooms: [], items: [], patients: [] });
+  const [db, setDb] = useState<DB>({ rooms: [], items: [], patients: [], sickrooms: [] });
   const [me, setMe] = useState<Me | null>(null);
   const [ready, setReady] = useState(false);
   const [rev, setRev] = useState(0);
@@ -25,7 +26,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
   const refresh = useCallback(async () => {
     const r = await api<{ me: Me } & DB>("/api/bootstrap");
-    setMe(r.me); setDb({ rooms: r.rooms, items: r.items, patients: r.patients }); setRev((x) => x + 1);
+    setMe(r.me); setDb({ rooms: r.rooms, items: r.items, patients: r.patients, sickrooms: r.sickrooms ?? [] }); setRev((x) => x + 1);
   }, []);
 
   useEffect(() => {
@@ -42,6 +43,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     deleteAppt: async (id) => { await api(`/api/appts/${id}`, "DELETE"); await refresh(); },
     savePatient: async (p) => { await (p.id ? api(`/api/patients/${p.id}`, "PUT", p) : api("/api/patients", "POST", p)); await refresh(); },
     deletePatient: async (id) => { await api(`/api/patients/${id}`, "DELETE"); await refresh(); },
+    saveSickroom: async (r, isNew) => { await (isNew ? api("/api/sickrooms", "POST", r) : api(`/api/sickrooms/${encodeURIComponent(r.roomNo)}`, "PUT", r)); await refresh(); },
+    deleteSickroom: async (no) => { await api(`/api/sickrooms/${encodeURIComponent(no)}`, "DELETE"); await refresh(); },
   }), [db, me, ready, rev, refresh]);
   return <C.Provider value={value}>{children}</C.Provider>;
 }
