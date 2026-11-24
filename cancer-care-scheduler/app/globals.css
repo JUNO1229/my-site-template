@@ -270,3 +270,7 @@ button:not([class]):hover{background:var(--tint)}button:not([class]):active{tran
 .ko{font-size:11px;font-weight:500;color:var(--text2);margin-left:7px;letter-spacing:0}
 .login h2 .ko{font-size:14px;margin-left:10px}
 .sidebar .brand b{font-size:16px}
+/* 환자명부 제목행: 진한 보라 배경 + 흰 글씨 + 가운데 정렬 */
+.tblwrap.fixhead .tbl.hdc thead th{background:var(--p2);color:#fff;text-align:center;font-weight:600;font-size:13px;letter-spacing:.2px;box-shadow:0 6px 12px -8px rgba(110,79,168,.55)}
+.tblwrap.fixhead .tbl.hdc thead th+th{box-shadow:0 6px 12px -8px rgba(110,79,168,.55),inset 1px 0 0 rgba(255,255,255,.14)}
+.tblwrap.fixhead .tbl.hdc thead th:nth-child(2){font-weight:600}
