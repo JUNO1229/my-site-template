@@ -64,7 +64,12 @@ export function route(fn: Handler, opts: { public?: boolean; roles?: Role[]; all
       if (me && me.mustChange && req.method !== "GET" && !opts.allowMustChange) throw new HttpError(403, "먼저 비밀번호를 변경해 주세요");
       return NextResponse.json((await fn(req, ctx, me as Me)) ?? { ok: true });
     } catch (e) {
-      if (e instanceof HttpError) return NextResponse.json({ error: e.message }, { status: e.status });
+      if (e instanceof HttpError) {
+        const res = NextResponse.json({ error: e.message }, { status: e.status });
+        // 로그인 정보가 유효하지 않으면 남은 쿠키를 지워 로그인 화면 ↔ 첫 화면 무한 반복을 막는다
+        if (e.status === 401) res.cookies.set(COOKIE, "", { httpOnly: true, secure: process.env.NODE_ENV === "production", sameSite: "lax", path: "/", maxAge: 0 });
+        return res;
+      }
       if ((e as { code?: string })?.code === "23505") return NextResponse.json({ error: "같은 이름·병동의 환자가 이미 있습니다" }, { status: 409 });
       console.error(e);
       return NextResponse.json({ error: "서버 오류가 발생했습니다" }, { status: 500 });

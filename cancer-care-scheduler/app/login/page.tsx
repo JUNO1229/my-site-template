@@ -1,10 +1,14 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
 import { Icon } from "@/components/Icons";
 
 export default function Login() {
   const [u, setU] = useState(""); const [pw, setPw] = useState(""); const [err, setErr] = useState(""); const [busy, setBusy] = useState(false);
+  const [expired, setExpired] = useState(false);
+  useEffect(() => {
+    if (new URLSearchParams(location.search).has("expired")) { setExpired(true); fetch("/api/auth/logout", { method: "POST", credentials: "same-origin" }).catch(() => {}); }
+  }, []);
   const submit = async (e: React.FormEvent) => {
     e.preventDefault(); setBusy(true); setErr("");
     try { const r = await api<{ mustChange: boolean }>("/api/auth/login", "POST", { username: u, password: pw }); location.href = r.mustChange ? "/account" : "/"; }
@@ -14,7 +18,8 @@ export default function Login() {
     <div className="login-wrap">
       <form className="login" onSubmit={submit}>
         <span className="logo"><Icon name="activity" size={28} /></span>
-        <h2>ResHub-C<span className="ko">리즈허브-C</span></h2><p className="login-sub">무등산생태요양병원</p><p className="hint">계정으로 로그인해 주세요. 계정은 시스템관리자가 발급합니다.</p>
+        <h2>ResHub-C<span className="ko">리즈허브-C</span></h2><p className="login-sub">무등산생태요양병원</p>{expired && <p className="err" role="alert">로그인 정보가 만료되었습니다. 다시 로그인해 주세요.</p>}
+        <p className="hint">계정으로 로그인해 주세요. 계정은 시스템관리자가 발급합니다.</p>
         <label>아이디<input value={u} onChange={(e) => setU(e.target.value)} autoComplete="username" autoFocus required /></label>
         <label>비밀번호<input type="password" value={pw} onChange={(e) => setPw(e.target.value)} autoComplete="current-password" required /></label>
         {err && <p className="err"><Icon name="alert" size={16} />{err}</p>}
