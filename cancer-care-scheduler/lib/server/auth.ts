@@ -65,6 +65,7 @@ export function route(fn: Handler, opts: { public?: boolean; roles?: Role[]; all
       return NextResponse.json((await fn(req, ctx, me as Me)) ?? { ok: true });
     } catch (e) {
       if (e instanceof HttpError) return NextResponse.json({ error: e.message }, { status: e.status });
+      if ((e as { code?: string })?.code === "23505") return NextResponse.json({ error: "같은 이름·병동의 환자가 이미 있습니다" }, { status: 409 });
       console.error(e);
       return NextResponse.json({ error: "서버 오류가 발생했습니다" }, { status: 500 });
     }

@@ -12,7 +12,7 @@ export const toMin = (t: string) => { const [h, m] = t.split(":").map(Number); r
 export const uid = () => Math.random().toString(36).slice(2, 10);
 export const todayStr = () => ymd(new Date());
 
-export const pname = (p?: Patient) => (p ? `${p.name}(${p.ward})` : "?");
+export const pname = (p?: Patient) => (p ? (p.ward ? `${p.name}(${p.ward})` : p.name) : "?");
 
 /** 충돌 검사: 치료항목별 동시 수용 인원 초과, 같은 환자 시간 겹침 */
 export function findConflicts(appts: Appt[], items: Item[], date?: string): Map<string, string> {

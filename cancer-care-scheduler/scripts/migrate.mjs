@@ -39,6 +39,7 @@ for (const st of [`CREATE TABLE IF NOT EXISTS users (
 `CREATE TABLE IF NOT EXISTS audit_log (
   id BIGSERIAL PRIMARY KEY, ts TIMESTAMPTZ NOT NULL DEFAULT now(), username TEXT, action TEXT NOT NULL, detail TEXT NOT NULL DEFAULT '')`]) await q(st);
 
+await q("CREATE UNIQUE INDEX IF NOT EXISTS patients_name_ward_uq ON patients(name, ward)");
 await q("ALTER TABLE items ADD COLUMN IF NOT EXISTS capacity INT NOT NULL DEFAULT 1");
 
 if ((await q("SELECT 1 FROM rooms LIMIT 1")).length === 0) {

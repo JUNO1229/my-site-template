@@ -3,6 +3,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useStore } from "@/lib/store";
 import { ROLE_DESC, ROLE_LABEL, isAdmin, type Role } from "@/lib/perm";
 import { api } from "@/lib/api";
+import ImportPanel from "@/components/ImportPanel";
 
 interface U { id: number; username: string; name: string; role: Role; roomIds: string[]; active: boolean; mustChange: boolean; lastLogin: string | null; locked: boolean }
 interface Log { ts: string; username: string | null; action: string; detail: string }
@@ -39,7 +40,7 @@ export default function Admin() {
   return (
     <>
       <div className="toolbar"><h2>계정·접속기록</h2>
-        <div className="seg">{([["users", "계정 관리"], ["audit", "접속·변경 기록"], ["data", "데이터 관리"]] as const).map(([k, t]) =>
+        <div className="seg">{([["users", "계정 관리"], ["audit", "접속·변경 기록"], ["data", "데이터 가져오기·관리"]] as const).map(([k, t]) =>
           <button key={k} className={tab === k ? "on" : ""} onClick={() => setTab(k)}>{t}</button>)}</div></div>
       {err && <p className="err">{err}</p>}{msg && <p className="ok">{msg}</p>}
       {tab === "users" && (<>
@@ -53,9 +54,9 @@ export default function Admin() {
       {tab === "audit" && (
         <table className="tbl"><thead><tr><th>시각(KST)</th><th>사용자</th><th>작업</th><th>내용</th></tr></thead>
           <tbody>{logs.map((l, i) => (<tr key={i}><td>{fmt(l.ts)}</td><td>{l.username ?? "-"}</td><td>{l.action}</td><td>{l.detail}</td></tr>))}</tbody></table>)}
-      {tab === "data" && (
+      {tab === "data" && (<><ImportPanel />
         <div className="card"><p>현재 환자명부와 스케줄은 <b>가상 데모 데이터</b>일 수 있습니다. 실제 운영 전에 삭제하고 시작하세요.</p>
-          <div className="row"><button onClick={() => data("demo")}>데모 데이터로 교체</button><button className="danger" onClick={() => data("clear")}>환자·스케줄 전체 삭제</button></div></div>)}
+          <div className="row"><button onClick={() => data("demo")}>데모 데이터로 교체</button><button className="danger" onClick={() => data("clear")}>환자·스케줄 전체 삭제</button></div></div></>)}
       {edit && (
         <div className="overlay" onClick={() => setEdit(null)}><div className="modal" onClick={(e) => e.stopPropagation()}>
           <h3>{edit.id ? "계정 수정" : "계정 발급"}</h3>

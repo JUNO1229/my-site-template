@@ -30,7 +30,7 @@ export default function Patients() {
           <div className="row"><label>환자명<input value={edit.name} onChange={(e) => set("name", e.target.value)} /></label>
             <label>차트번호<input value={edit.chartNo} onChange={(e) => set("chartNo", e.target.value)} /></label></div>
           <div className="row"><label>병동<select value={edit.ward} onChange={(e) => set("ward", e.target.value)}>
-            {WARDS_LIST.map((w) => <option key={w}>{w}</option>)}</select></label>
+            {WARDS_LIST.map((w) => <option key={w} value={w}>{w || "(없음)"}</option>)}</select></label>
             <label>병실<input value={edit.bed} onChange={(e) => set("bed", e.target.value)} /></label></div>
           <div className="row"><label>입원일<input type="date" value={edit.admitDate} onChange={(e) => set("admitDate", e.target.value)} /></label>
             <label>퇴원(예정)일<input type="date" value={edit.dischargeDate} onChange={(e) => set("dischargeDate", e.target.value)} /></label></div>
