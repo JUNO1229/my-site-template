@@ -4,7 +4,7 @@ import { useStore } from "@/lib/store";
 import { canEditPatients, isAdmin } from "@/lib/perm";
 import { WARDS_LIST } from "@/lib/wards";
 import type { Patient } from "@/lib/types";
-import { pname, todayStr } from "@/lib/util";
+import { todayStr } from "@/lib/util";
 import { cmpBed, vacantBeds } from "@/lib/sickroom";
 
 const blank: Omit<Patient, "id"> = { chartNo: "", name: "", ward: "1", bed: "", admitDate: "", dischargeDate: "", plan: "", notes: "", contractAmount: null };
@@ -36,13 +36,13 @@ export default function Patients() {
         <input placeholder="이름·차트번호 검색" value={q} onChange={(e) => setQ(e.target.value)} />
         {editable && <button className="primary" onClick={() => setEdit(blank)}>+ 환자 등록</button>}</div>
       <div className="tblwrap">
-        <table className="tbl compact"><thead><tr><th>병실</th><th>환자(병동)</th><th>차트번호</th><th>입원일</th><th>퇴원예정</th>{editable && <th>계약금액(본인부담)</th>}<th>치료정보</th><th>참고사항</th><th /></tr></thead>
+        <table className="tbl compact"><thead><tr><th>병동</th><th>병실</th><th>환자명</th><th>차트번호</th><th>입원일</th><th>퇴원예정</th>{editable && <th title="치료계약금액(본인부담, 만원)">계약금액</th>}<th>치료정보</th><th>참고사항</th><th /></tr></thead>
           <tbody>{rows.map((r, i) => r.vacant || !r.p ? (
-            <tr key={`v${i}`} className="vacant"><td>{r.bed}</td><td>(빈병실)</td><td colSpan={editable ? 7 : 6} /></tr>
+            <tr key={`v${i}`} className="vacant"><td>{/^\d/.test(r.bed) ? r.bed[0] : ""}</td><td>{r.bed}</td><td>(빈병실)</td><td colSpan={editable ? 7 : 6} /></tr>
           ) : (() => { const p = r.p; return (
-            <tr key={p.id}><td>{r.bed}</td><td>{pname(p)}</td><td>{p.chartNo}</td><td>{p.admitDate}</td><td>{p.dischargeDate}</td>
+            <tr key={p.id}><td>{p.ward}</td><td>{r.bed}</td><td>{p.name}</td><td>{p.chartNo}</td><td>{p.admitDate}</td><td>{p.dischargeDate}</td>
               {editable && <td style={{ textAlign: "right" }}>{p.contractAmount != null ? `${p.contractAmount.toLocaleString("ko-KR")}만원` : ""}</td>}
-              <td className="long" title={p.plan}>{p.plan}</td><td className="long" title={p.notes}>{p.notes}</td>
+              <td className="wrap">{p.plan}</td><td className="long" title={p.notes}>{p.notes}</td>
               <td>{editable && <button onClick={() => setEdit(p)}>수정</button>}</td></tr>); })())}</tbody></table>
       </div>
       {edit && (
