@@ -30,15 +30,17 @@ export default function ListPage() {
   };
   return (
     <>
+      <div className="fillpage">
       <div className="toolbar"><h2>기간별 리스트</h2>
         <input type="date" value={from} onChange={(e) => setFrom(e.target.value)} /> ~ <input type="date" value={to} onChange={(e) => setTo(e.target.value)} />
         <select value={room} onChange={(e) => setRoom(e.target.value)}><option value="">전체 치료실</option>{db.rooms.map((r) => <option key={r.id} value={r.id}>{r.name}</option>)}</select>
         <select value={st} onChange={(e) => setSt(e.target.value)}><option value="">전체 상태</option>{STATUSES.map((s) => <option key={s}>{s}</option>)}</select>
         <input placeholder="환자·치료 검색" value={kw} onChange={(e) => setKw(e.target.value)} />
         <b>{rows.length}건</b><button onClick={exportCsv}>CSV 내보내기</button></div>
-      <div className="tblwrap"><table className="tbl"><thead><tr><th>치료일자</th><th>시간</th><th>환자(병동)</th><th>치료</th><th>옵션</th><th>상태</th></tr></thead>
+      <div className="tblwrap fixhead"><table className="tbl compact"><thead><tr><th>치료일자</th><th>시간</th><th>환자(병동)</th><th>치료</th><th>옵션</th><th>상태</th></tr></thead>
         <tbody>{rows.map((a) => (<tr key={a.id}><td>{label(a.date)}</td><td>{a.time}</td><td>{pname(db.patients.find((p) => p.id === a.patientId))}</td>
           <td>{db.items.find((i) => i.id === a.itemId)?.name}</td><td>{a.option}</td><td><span className={`badge s-${a.status}`}>{a.status}</span></td></tr>))}</tbody></table></div>
+      </div>
     </>
   );
 }

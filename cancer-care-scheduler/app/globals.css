@@ -277,3 +277,4 @@ button:not([class]):hover{background:var(--tint)}button:not([class]):active{tran
 .tblwrap.fixhead .tbl thead th{box-shadow:inset 1px 0 0 rgba(110,79,168,.10),0 6px 12px -9px rgba(110,79,168,.45)}
 .tblwrap.fixhead .tbl thead th:first-child{box-shadow:0 6px 12px -9px rgba(110,79,168,.45)}
 .tbl thead th:nth-child(2){font-weight:600}
+.tblwrap.fixhead .tbl tbody tr{animation:none}
