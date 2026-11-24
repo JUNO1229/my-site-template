@@ -1,5 +1,5 @@
 // 구글 시트(CSV) → 환자/스케줄 변환. 외부 의존성 없음(브라우저·Node 공용).
-export interface PatientRow { name: string; ward: string; chart_no: string; bed: string; admit_date: string; discharge_date: string; plan: string; notes: string }
+export interface PatientRow { name: string; ward: string; chart_no: string; bed: string; admit_date: string; discharge_date: string; plan: string; notes: string; contract_amount: number | null }
 export interface ApptRow { name: string; ward: string; appt_date: string; appt_time: string; item_id: string; opt: string; status: string; memo: string }
 export interface ImportPlan {
   files: { name: string; kind: "환자명부" | "스케줄" | "알 수 없음"; rows: number }[];
@@ -27,6 +27,9 @@ const clean = (s: string) => (s ?? "").replace(/\s+/g, " ").trim();
 export function normDate(s: string): string {
   const m = (s ?? "").match(/(\d{4})\D+(\d{1,2})\D+(\d{1,2})/);
   return m ? `${m[1]}-${m[2].padStart(2, "0")}-${m[3].padStart(2, "0")}` : "";
+}
+export function normAmount(s: string): number | null {
+  const t = (s ?? "").replace(/[,\s원]/g, ""); return /^\d+$/.test(t) ? Number(t) : null;
 }
 export function normTime(s: string): string {
   const m = (s ?? "").match(/(\d{1,2}):(\d{2})/);
@@ -81,9 +84,9 @@ export function analyze(files: { name: string; text: string }[]): ImportPlan {
         const ward = sp.ward || clean(r[cWard] ?? "");
         const p: PatientRow = { name, ward, chart_no: clean(r[cChart] ?? ""), bed: clean(r[cBed] ?? ""),
           admit_date: normDate(r[cAdm] ?? ""), discharge_date: normDate(r[cDis] ?? ""),
-          plan: clean(r[cDis + 1] ?? ""), notes: clean(r[cDis + 3] ?? "") };
+          plan: clean(r[cDis + 1] ?? ""), notes: clean(r[cDis + 3] ?? ""), contract_amount: normAmount(r[cDis + 2] ?? "") };
         const k = `${name}|${ward}`; const old = reg.get(k);
-        reg.set(k, old ? Object.fromEntries(Object.entries(p).map(([a, b]) => [a, b || (old as never)[a]])) as unknown as PatientRow : p); n++;
+        reg.set(k, old ? Object.fromEntries(Object.entries(p).map(([a, b]) => [a, b === "" || b === null ? (old as never)[a] : b])) as unknown as PatientRow : p); n++;
       }
       plan.files.push({ name: f.name, kind: "환자명부", rows: n });
     } else {
@@ -111,7 +114,7 @@ export function analyze(files: { name: string; text: string }[]): ImportPlan {
     let ward = s.ward;
     if (!ward) { const c = byName.get(s.name); if (c?.length === 1) ward = c[0].ward; }
     const k = `${s.name}|${ward}`;
-    if (!reg.has(k) && !stub.has(k)) stub.set(k, { name: s.name, ward, chart_no: "", bed: "", admit_date: "", discharge_date: "", plan: s.info, notes: s.note || "스케줄 기록에서 자동 생성(환자명부에 없음)" });
+    if (!reg.has(k) && !stub.has(k)) stub.set(k, { name: s.name, ward, chart_no: "", bed: "", admit_date: "", discharge_date: "", plan: s.info, notes: s.note || "스케줄 기록에서 자동 생성(환자명부에 없음)", contract_amount: null });
     const key = `${k}|${s.d}|${s.t}|${s.item}`;
     if (seen.has(key)) { bump(plan.skipped, "중복 행(같은 환자·일시·치료)"); continue; }
     seen.add(key);

@@ -28,7 +28,7 @@ for (const st of [`CREATE TABLE IF NOT EXISTS users (
 `CREATE TABLE IF NOT EXISTS patients (
   id TEXT PRIMARY KEY, chart_no TEXT NOT NULL DEFAULT '', name TEXT NOT NULL, ward TEXT NOT NULL DEFAULT '1',
   bed TEXT NOT NULL DEFAULT '', admit_date TEXT NOT NULL DEFAULT '', discharge_date TEXT NOT NULL DEFAULT '',
-  plan TEXT NOT NULL DEFAULT '', notes TEXT NOT NULL DEFAULT '', created_at TIMESTAMPTZ NOT NULL DEFAULT now())`,
+  plan TEXT NOT NULL DEFAULT '', notes TEXT NOT NULL DEFAULT '', contract_amount INT, created_at TIMESTAMPTZ NOT NULL DEFAULT now())`,
 `CREATE TABLE IF NOT EXISTS appts (
   id TEXT PRIMARY KEY, patient_id TEXT NOT NULL REFERENCES patients(id) ON DELETE CASCADE,
   appt_date TEXT NOT NULL, appt_time TEXT NOT NULL, item_id TEXT NOT NULL REFERENCES items(id),
@@ -40,6 +40,7 @@ for (const st of [`CREATE TABLE IF NOT EXISTS users (
   id BIGSERIAL PRIMARY KEY, ts TIMESTAMPTZ NOT NULL DEFAULT now(), username TEXT, action TEXT NOT NULL, detail TEXT NOT NULL DEFAULT '')`]) await q(st);
 
 await q("CREATE UNIQUE INDEX IF NOT EXISTS patients_name_ward_uq ON patients(name, ward)");
+await q("ALTER TABLE patients ADD COLUMN IF NOT EXISTS contract_amount INT");
 await q("ALTER TABLE items ADD COLUMN IF NOT EXISTS capacity INT NOT NULL DEFAULT 1");
 
 if ((await q("SELECT 1 FROM rooms LIMIT 1")).length === 0) {

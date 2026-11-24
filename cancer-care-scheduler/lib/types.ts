@@ -8,6 +8,7 @@ export interface Room { id: string; name: string; therapist: string; active: boo
 export interface Patient {
   id: string; chartNo: string; name: string; ward: Ward; bed: string;
   admitDate: string; dischargeDate: string; plan: string; notes: string;
+  contractAmount?: number | null; // 치료계약금액(본인부담금) — 관리자/상담실장에게만 제공
 }
 export interface Appt {
   id: string; patientId: string; date: string; time: string; itemId: string;

@@ -22,7 +22,7 @@ export function makeSeed(today: string, nowMin: number): { patients: Patient[]; 
   const patients: Patient[] = NAMES.map((n, i) => ({
     id: `p${i + 1}`, chartNo: String(14000 + i * 7), name: SURN[i % SURN.length] + n,
     ward: WARDS[i % WARDS.length], bed: String(101 + i), admitDate: addDays(today, -30 - Math.floor(r() * 40)),
-    dischargeDate: addDays(today, 20 + Math.floor(r() * 60)), plan: PLANS[i % PLANS.length], notes: NOTES[i % NOTES.length],
+    dischargeDate: addDays(today, 20 + Math.floor(r() * 60)), plan: PLANS[i % PLANS.length], notes: NOTES[i % NOTES.length], contractAmount: 200 + Math.floor(r() * 400),
   }));
   const appts: Appt[] = [];
   const used = new Map<string, number>(); // date|itemId|time -> 인원
