@@ -9,7 +9,7 @@ const chunk = <T,>(a: T[], n: number) => Array.from({ length: Math.ceil(a.length
 export default function ImportPanel() {
   const { db, refresh } = useStore();
   const [plan, setPlan] = useState<ImportPlan | null>(null);
-  const [wipe, setWipe] = useState(true);
+  const [wipe, setWipe] = useState(false);
   const [busy, setBusy] = useState(false); const [log, setLog] = useState<string[]>([]); const [err, setErr] = useState("");
   const say = (m: string) => setLog((l) => [...l, m]);
 
@@ -48,7 +48,7 @@ export default function ImportPanel() {
       <h3 style={{ margin: 0 }}>구글 시트에서 가져오기</h3>
       <ol className="hint" style={{ margin: 0, paddingLeft: 18 }}>
         <li>구글 시트에서 <b>환자명부 탭</b>과 <b>치료스케줄관리 탭</b>을 각각 열고 <b>파일 → 다운로드 → 쉼표로 구분된 값(.csv)</b>으로 저장합니다. (치료실별 파일이 여러 개면 각 파일의 스케줄 탭을 모두 저장)</li>
-        <li>저장한 CSV 파일을 한꺼번에 선택하면 종류(환자명부/스케줄)를 자동으로 구분합니다.</li>
+        <li>저장한 CSV 파일을 <b>한꺼번에 선택</b>하면 종류(환자명부/스케줄)를 자동으로 구분합니다. 나눠서 올려도 기존 데이터에 이어서 추가됩니다(삭제 체크가 꺼져 있을 때).</li>
         <li>아래 미리보기를 확인하고 "가져오기 실행"을 누릅니다. 같은 파일을 다시 올려도 중복 등록되지 않습니다.</li>
       </ol>
       <input type="file" accept=".csv,text/csv" multiple onChange={(e) => pick(e.target.files)} disabled={busy} />
@@ -63,7 +63,7 @@ export default function ImportPanel() {
         </div>
         {unk.length > 0 && <p className="err">인식하지 못한 치료명(제외됨): {unk.map(([k, v]) => `${k} ${v}건`).join(", ")}</p>}
         {skipped.length > 0 && <p className="hint">제외: {skipped.map(([k, v]) => `${k} ${v}건`).join(", ")}</p>}
-        <label className="chk"><input type="checkbox" checked={wipe} onChange={(e) => setWipe(e.target.checked)} />가져오기 전에 현재 환자·스케줄을 모두 삭제 (현재 {db.patients.length}명 — 데모 데이터 정리용)</label>
+        <label className="chk"><input type="checkbox" checked={wipe} onChange={(e) => setWipe(e.target.checked)} />⚠ 가져오기 전에 현재 환자·스케줄을 모두 삭제 (현재 {db.patients.length}명). 파일을 하나씩 나눠 올릴 때는 켜지 마세요 — 앞서 올린 데이터가 지워집니다.</label>
         <button className="primary" disabled={busy || !(plan.patients.length + plan.appts.length)} onClick={run}>{busy ? "가져오는 중…" : "가져오기 실행"}</button>
       </>)}
       {err && <p className="err">{err}</p>}
