@@ -9,7 +9,11 @@ const sql = neon(url);
 const q = (t, p = []) => sql.query(t, p);
 const cfg = JSON.parse(fs.readFileSync(new URL("../lib/baseConfig.json", import.meta.url), "utf8"));
 
-for (const st of [`CREATE TABLE IF NOT EXISTS sickrooms (
+for (const st of [`CREATE TABLE IF NOT EXISTS patient_snapshots (
+  snap_date TEXT PRIMARY KEY, taken_at TIMESTAMPTZ NOT NULL DEFAULT now(), source TEXT NOT NULL DEFAULT 'cron',
+  total INT NOT NULL DEFAULT 0, in_cnt INT NOT NULL DEFAULT 0, out_cnt INT NOT NULL DEFAULT 0, ended_cnt INT NOT NULL DEFAULT 0,
+  amount_sum BIGINT NOT NULL DEFAULT 0, added INT, ended_new INT, changed INT, data JSONB NOT NULL)`,
+`CREATE TABLE IF NOT EXISTS sickrooms (
   room_no TEXT PRIMARY KEY, beds INT NOT NULL DEFAULT 1, start_date TEXT NOT NULL DEFAULT '', end_date TEXT NOT NULL DEFAULT '',
   note TEXT NOT NULL DEFAULT '', sort INT NOT NULL DEFAULT 0)`,
 `CREATE TABLE IF NOT EXISTS users (
