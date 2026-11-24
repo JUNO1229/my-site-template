@@ -40,7 +40,7 @@ export default function PatientDrawer({ p, canSeeAmount, canEdit, onClose, onEdi
           <Avatar name={p.name} size={56} />
           <div className="grow"><h3>{p.name}</h3>
             <div className="dsub">{p.chartNo && <span>차트 {p.chartNo}</span>}{ward(p) && <span>{ward(p)}</span>}{room && <span>{room}{/^\d/.test(room) ? "호" : ""}</span>}</div>
-            <span className={`pill ${ended ? "mut" : "ok"}`}>{ended ? "퇴원·종료" : "재원·이용중"}</span></div>
+            <span className={`pill ${ended ? "mut" : "ok"}`}>{ended ? "퇴원·종료" : p.ward === "외" ? "외래" : "재원"}</span></div>
           <button className="icon-btn" aria-label="닫기" onClick={close}><Icon name="x" /></button>
         </div>
         <div className="drawer-body">

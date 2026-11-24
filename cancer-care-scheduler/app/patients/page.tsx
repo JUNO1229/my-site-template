@@ -18,7 +18,7 @@ export default function Patients() {
   const editable = canEditPatients(me);
   const [q, setQ] = useState("");
   const [showVacant, setShowVacant] = useState(false);
-  const [view, setView] = useState<"active" | "ended">("active");
+  const [view, setView] = useState<"in" | "out" | "ended">("in"); // 재원 / 외래 / 퇴원·종료
   const [info, setInfo] = useState<string | null>(null);
   const [end, setEnd] = useState<{ p: Patient; date: string } | null>(null);
   const [busy, setBusy] = useState(false);
@@ -32,14 +32,16 @@ export default function Patients() {
   if (!ready) return <PageSkeleton />;
   const registry = db.patients.filter((p) => p.source !== "auto");
   const isEnded = (p: Patient) => p.status === "discharged";
-  const activeN = registry.filter((p) => !isEnded(p)).length, endedN = registry.length - activeN;
-  const list = registry.filter((p) => (view === "ended") === isEnded(p) && (!q || p.name.includes(q) || p.chartNo.includes(q)));
+  const isOut = (p: Patient) => p.ward === "외";
+  const inN = registry.filter((p) => !isEnded(p) && !isOut(p)).length, outN = registry.filter((p) => !isEnded(p) && isOut(p)).length, endedN = registry.filter(isEnded).length;
+  const inView = (p: Patient) => (view === "ended" ? isEnded(p) : !isEnded(p) && (view === "out") === isOut(p));
+  const list = registry.filter((p) => inView(p) && (!q || p.name.includes(q) || p.chartNo.includes(q)));
   const infoP = db.patients.find((p) => p.id === info) ?? null;
   const vacant = vacantBeds(db.sickrooms, db.patients, todayStr());
   type Row = { p?: Patient; bed: string; vacant?: boolean };
   const bedOf = (p: Patient) => (p.ward === "외" && !p.bed ? "외래" : p.bed);
   const patientRows: Row[] = list.map((p) => ({ p, bed: bedOf(p) }));
-  const vacantRows: Row[] = view === "active" && showVacant && !q ? vacant.map((v) => ({ bed: v.label, vacant: true })) : [];
+  const vacantRows: Row[] = view === "in" && showVacant && !q ? vacant.map((v) => ({ bed: v.label, vacant: true })) : [];
   const rows: Row[] = [...patientRows, ...vacantRows]
     .sort((x, y) => cmpBed(x.bed, y.bed) || Number(!!x.vacant) - Number(!!y.vacant) || (x.p?.name ?? "").localeCompare(y.p?.name ?? "", "ko"));
   const set = (k: keyof Patient, v: string) => setEdit((e) => e && { ...e, [k]: v });
@@ -47,8 +49,12 @@ export default function Patients() {
     <>
       <div className="fillpage">
       <div className="toolbar"><h2>환자명부</h2>
-        <div className="seg"><button className={view === "active" ? "on" : ""} onClick={() => setView("active")}>재원·이용중 {activeN}</button><button className={view === "ended" ? "on" : ""} onClick={() => setView("ended")}>퇴원·종료 {endedN}</button></div>
-        {view === "active" && canViewSickrooms(me) && <label className="chk"><input type="checkbox" checked={showVacant} onChange={(e) => setShowVacant(e.target.checked)} />빈병실 포함 보기 (빈 병상 {vacant.length})</label>}
+        <div className="seg" role="tablist">
+          <button className={view === "in" ? "on" : ""} role="tab" aria-selected={view === "in"} onClick={() => setView("in")}>재원 {inN}</button>
+          <button className={view === "out" ? "on" : ""} role="tab" aria-selected={view === "out"} onClick={() => setView("out")}>외래 {outN}</button>
+          <button className={view === "ended" ? "on" : ""} role="tab" aria-selected={view === "ended"} onClick={() => setView("ended")}>퇴원·종료 {endedN}</button>
+        </div>
+        {view === "in" && canViewSickrooms(me) && <label className="chk"><input type="checkbox" checked={showVacant} onChange={(e) => setShowVacant(e.target.checked)} />빈병실 포함 보기 (빈 병상 {vacant.length})</label>}
         <input className="qinput" placeholder="이름·차트번호 검색" value={q} onChange={(e) => setQ(e.target.value)} />
         {editable && <button className="primary" onClick={() => setEdit(blank)}>+ 환자 등록</button>}</div>
       <div className="tblwrap fixhead">
@@ -66,7 +72,7 @@ export default function Patients() {
       {end && (
         <div className="overlay" onClick={() => !busy && setEnd(null)}><div className="modal" role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()}>
           <h3>{isEnded(end.p) ? "복귀 처리" : "퇴원/종료 처리"}</h3>
-          <p>{isEnded(end.p) ? <><b>{end.p.name}</b> 님을 다시 재원·이용중으로 되돌립니다. 퇴원/종료일은 지워집니다.</> : <><b>{end.p.name}</b> 님을 퇴원/종료 처리합니다.{end.p.bed && ` 병실 ${end.p.bed}는 빈병실로 전환됩니다.`} 기존 치료 기록은 그대로 보관되며 "퇴원·종료" 목록에서 복귀할 수 있습니다.</>}</p>
+          <p>{isEnded(end.p) ? <><b>{end.p.name}</b> 님을 다시 재원·외래 목록으로 되돌립니다. 퇴원/종료일은 지워집니다.</> : <><b>{end.p.name}</b> 님을 퇴원/종료 처리합니다.{end.p.bed && ` 병실 ${end.p.bed}는 빈병실로 전환됩니다.`} 기존 치료 기록은 그대로 보관되며 "퇴원·종료" 목록에서 복귀할 수 있습니다.</>}</p>
           {!isEnded(end.p) && <label>퇴원/종료일<DateField value={end.date} onChange={(v) => setEnd({ ...end, date: v })} /></label>}
           {err && <p className="err">{err}</p>}
           <div className="actions"><span style={{ flex: 1 }} /><button onClick={() => setEnd(null)} disabled={busy}>취소</button>
