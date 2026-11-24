@@ -23,10 +23,17 @@
     },
     {
       "id": "lp",
-      "name": "림프",
-      "therapist": "장진희 / 양지연",
+      "name": "림프1",
+      "therapist": "장진희",
       "active": true,
       "color": "#059669"
+    },
+    {
+      "id": "lp2",
+      "name": "림프2",
+      "therapist": "양지연",
+      "active": true,
+      "color": "#0d9488"
     },
     {
       "id": "pd",
@@ -152,7 +159,7 @@
     },
     {
       "id": "lp2",
-      "roomId": "lp",
+      "roomId": "lp2",
       "name": "림프2",
       "duration": 50,
       "slots": [
