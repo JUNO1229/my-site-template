@@ -6,7 +6,7 @@ import { api } from "@/lib/api";
 import ImportPanel from "@/components/ImportPanel";
 import { useToast } from "@/lib/toast";
 
-interface U { id: number; username: string; name: string; role: Role; roomIds: string[]; active: boolean; mustChange: boolean; lastLogin: string | null; locked: boolean }
+interface U { id: number; username: string; name: string; role: Role; roomIds: string[]; active: boolean; mustChange: boolean; lastLogin: string | null }
 interface Log { ts: string; username: string | null; action: string; detail: string }
 const ROLES = Object.keys(ROLE_LABEL) as Role[];
 const fmt = (s: string | null) => (s ? new Date(s).toLocaleString("ko-KR", { timeZone: "Asia/Seoul" }) : "-");
@@ -55,7 +55,7 @@ export default function Admin() {
         <div className="tblwrap"><table className="tbl"><thead><tr><th>아이디</th><th>이름</th><th>권한</th><th>담당 치료실</th><th>상태</th><th>최근 로그인</th><th /></tr></thead>
           <tbody>{users.map((u) => (<tr key={u.id}><td>{u.username}</td><td>{u.name}</td><td>{ROLE_LABEL[u.role]}</td>
             <td>{u.role === "therapist" ? u.roomIds.map((id) => db.rooms.find((r) => r.id === id)?.name ?? id).join(", ") : "전체"}</td>
-            <td>{!u.active ? "사용중지" : u.locked ? "잠김" : u.mustChange ? "비밀번호 변경 대기" : "정상"}</td><td>{fmt(u.lastLogin)}</td>
+            <td>{!u.active ? "사용중지" : u.mustChange ? "비밀번호 변경 대기" : "정상"}</td><td>{fmt(u.lastLogin)}</td>
             <td><button onClick={() => setEdit({ ...u })}>수정</button></td></tr>))}</tbody></table></div></>)}
       {tab === "audit" && (
         <div className="tblwrap"><table className="tbl"><thead><tr><th>시각(KST)</th><th>사용자</th><th>작업</th><th>내용</th></tr></thead>
@@ -73,8 +73,7 @@ export default function Admin() {
             <label key={r.id} className="chk"><input type="checkbox" checked={edit.roomIds?.includes(r.id) ?? false} onChange={() => toggleRoom(r.id)} />{r.name}</label>))}</div>}
           {edit.id
             ? <><label>비밀번호 재설정(입력 시 임시 비밀번호로 변경, 다음 로그인 때 변경 요구)<input type="text" value={edit.resetPassword ?? ""} onChange={(e) => setEdit({ ...edit, resetPassword: e.target.value })} placeholder="비워두면 변경 없음" /></label>
-              <label className="chk"><input type="checkbox" checked={edit.active ?? true} onChange={(e) => setEdit({ ...edit, active: e.target.checked })} />사용 중</label>
-              {edit.locked && <button onClick={async () => { await api(`/api/users/${edit.id}`, "PUT", { unlock: true }); setEdit(null); load(); }}>잠금 해제</button>}</>
+              <label className="chk"><input type="checkbox" checked={edit.active ?? true} onChange={(e) => setEdit({ ...edit, active: e.target.checked })} />사용 중</label></>
             : <label>임시 비밀번호 (8자 이상, 영문+숫자)<input type="text" value={edit.password ?? ""} onChange={(e) => setEdit({ ...edit, password: e.target.value })} /></label>}
           {err && <p className="err">{err}</p>}
           <div className="actions"><span style={{ flex: 1 }} /><button onClick={() => setEdit(null)}>취소</button><button className="primary" onClick={save}>저장</button></div>

@@ -12,7 +12,7 @@ export const POST = route(async (req) => {
     await audit(username, "login_fail");
     throw new HttpError(401, "아이디 또는 비밀번호가 올바르지 않습니다");
   }
-  await q("UPDATE users SET failed=0, locked_until=NULL, last_login=now() WHERE id=$1", [u.id]); // 로그인 횟수 제한(잠금)은 사용하지 않음
+  await q("UPDATE users SET last_login=now() WHERE id=$1", [u.id]);
   await createSession(u.id);
   await audit(u.username, "login");
   return { ok: true, mustChange: u.must_change };

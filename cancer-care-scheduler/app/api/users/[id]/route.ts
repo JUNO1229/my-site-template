@@ -15,10 +15,9 @@ export const PUT = route(async (req, ctx, me) => {
   await q("UPDATE users SET name=$2, role=$3, room_ids=$4, active=$5 WHERE id=$1", [id, str(b.name, 50) || u.name, role, roomIds, active]);
   let forceLogout = !active || role !== u.role;
   if (typeof b.resetPassword === "string" && b.resetPassword) {
-    await q("UPDATE users SET password_hash=$2, must_change=true, failed=0, locked_until=NULL WHERE id=$1", [id, hashPassword(checkPasswordPolicy(b.resetPassword))]);
+    await q("UPDATE users SET password_hash=$2, must_change=true WHERE id=$1", [id, hashPassword(checkPasswordPolicy(b.resetPassword))]);
     forceLogout = true;
   }
-  if (b.unlock === true) await q("UPDATE users SET failed=0, locked_until=NULL WHERE id=$1", [id]);
   if (forceLogout) await q("DELETE FROM sessions WHERE user_id=$1", [id]);
   await audit(me.username, "user_update", `${u.username} role=${role} active=${active}${b.resetPassword ? " pw_reset" : ""}`);
 }, { roles: ["admin"] });
