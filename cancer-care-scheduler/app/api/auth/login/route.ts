@@ -5,7 +5,7 @@ import { str } from "@/lib/server/validate";
 const DUMMY = "00000000000000000000000000000000:" + "0".repeat(128);
 export const POST = route(async (req) => {
   const b = await body(req);
-  const username = str(b.username, 50).toLowerCase(), password = typeof b.password === "string" ? b.password : "";
+  const username = str(b.username, 50).normalize("NFC").toLowerCase(), password = typeof b.password === "string" ? b.password : "";
   const u = (await q("SELECT * FROM users WHERE lower(username)=$1", [username]))[0];
   if (u?.locked_until && new Date(u.locked_until) > new Date()) {
     await audit(username, "login_locked"); throw new HttpError(429, "로그인 시도가 너무 많습니다. 10분 후 다시 시도해 주세요");
