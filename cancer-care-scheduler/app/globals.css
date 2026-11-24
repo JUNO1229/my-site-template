@@ -388,3 +388,9 @@ button.btn-end,button.btn-restore{display:inline-flex;align-items:center;justify
 /* 환자명부 검색칸: 흰색(카드) 배경 */
 .qinput{background:var(--surface);box-shadow:var(--sh-card)}
 .qinput:focus{background:var(--surface);box-shadow:inset 0 0 0 1.5px var(--p1),var(--sh-card)}
+/* 툴바의 날짜칸·선택칸: 검색칸과 같은 흰색 카드 스타일로 통일 (팝업 안의 입력칸은 기존 회색 유지) */
+.toolbar select,.toolbar .datefield{background:var(--surface);box-shadow:var(--sh-card);height:44px}
+.toolbar .datefield:hover{background:var(--surface);box-shadow:0 0 0 1.5px var(--psoft),var(--sh-card)}
+.toolbar select:hover{box-shadow:0 0 0 1.5px var(--psoft),var(--sh-card)}
+.toolbar select:focus,.toolbar .datefield.open,.toolbar .datefield:focus-visible{background:var(--surface);box-shadow:inset 0 0 0 1.5px var(--p1),var(--sh-card)}
+.toolbar select{padding:0 34px 0 14px;cursor:pointer}
