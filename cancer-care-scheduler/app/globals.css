@@ -265,3 +265,4 @@ button:not([class]):hover{background:var(--tint)}button:not([class]):active{tran
 .tbl td button{height:32px;padding:0 14px;font-size:13px}
 @media(max-width:960px){.fillpage{height:auto;min-height:0}.fillpage>.tblwrap.fixhead{flex:none;min-height:320px;max-height:calc(100dvh - 170px)}}
 .tbl.sick.compact td:nth-child(2){font-weight:400}
+.login-sub{margin:-10px 0 0;color:var(--text2);font-size:13px;font-weight:500}

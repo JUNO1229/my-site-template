@@ -5,7 +5,7 @@ import { ToastProvider } from "@/lib/toast";
 import { UiProvider } from "@/lib/ui";
 import Shell from "@/components/Shell";
 
-export const metadata: Metadata = { title: "암센터 치료관리", robots: { index: false, follow: false } };
+export const metadata: Metadata = { title: "ResHub-C(리즈허브-C)", robots: { index: false, follow: false } };
 export const viewport: Viewport = { width: "device-width", initialScale: 1, themeColor: "#6E4FA8" };
 const THEME_JS = `try{var t=localStorage.getItem('ccs-theme');if(t)document.documentElement.dataset.theme=t}catch(e){}`;
 export default function RootLayout({ children }: { children: React.ReactNode }) {
