@@ -52,14 +52,14 @@ export default function Admin() {
       {tab === "users" && (<>
         <div className="toolbar"><button className="primary" onClick={() => setEdit({ role: "therapist", roomIds: [], active: true })}>+ 계정 발급</button>
           <span className="hint">{ROLES.map((r) => `${ROLE_LABEL[r]}: ${ROLE_DESC[r]}`).join("  |  ")}</span></div>
-        <table className="tbl"><thead><tr><th>아이디</th><th>이름</th><th>권한</th><th>담당 치료실</th><th>상태</th><th>최근 로그인</th><th /></tr></thead>
+        <div className="tblwrap"><table className="tbl"><thead><tr><th>아이디</th><th>이름</th><th>권한</th><th>담당 치료실</th><th>상태</th><th>최근 로그인</th><th /></tr></thead>
           <tbody>{users.map((u) => (<tr key={u.id}><td>{u.username}</td><td>{u.name}</td><td>{ROLE_LABEL[u.role]}</td>
             <td>{u.role === "therapist" ? u.roomIds.map((id) => db.rooms.find((r) => r.id === id)?.name ?? id).join(", ") : "전체"}</td>
             <td>{!u.active ? "사용중지" : u.locked ? "잠김" : u.mustChange ? "비밀번호 변경 대기" : "정상"}</td><td>{fmt(u.lastLogin)}</td>
-            <td><button onClick={() => setEdit({ ...u })}>수정</button></td></tr>))}</tbody></table></>)}
+            <td><button onClick={() => setEdit({ ...u })}>수정</button></td></tr>))}</tbody></table></div></>)}
       {tab === "audit" && (
-        <table className="tbl"><thead><tr><th>시각(KST)</th><th>사용자</th><th>작업</th><th>내용</th></tr></thead>
-          <tbody>{logs.map((l, i) => (<tr key={i}><td>{fmt(l.ts)}</td><td>{l.username ?? "-"}</td><td>{l.action}</td><td>{l.detail}</td></tr>))}</tbody></table>)}
+        <div className="tblwrap"><table className="tbl"><thead><tr><th>시각(KST)</th><th>사용자</th><th>작업</th><th>내용</th></tr></thead>
+          <tbody>{logs.map((l, i) => (<tr key={i}><td>{fmt(l.ts)}</td><td>{l.username ?? "-"}</td><td>{l.action}</td><td>{l.detail}</td></tr>))}</tbody></table></div>)}
       {tab === "data" && (<><ImportPanel />
         <div className="card"><p>현재 환자명부와 스케줄은 <b>가상 데모 데이터</b>일 수 있습니다. 실제 운영 전에 삭제하고 시작하세요.</p>
           <div className="row"><button onClick={() => data("demo")}>데모 데이터로 교체</button><button onClick={purge}>명부에 없는 자동 생성 환자·스케줄 정리</button><button className="danger" onClick={() => data("clear")}>환자·스케줄 전체 삭제</button></div></div></>)}

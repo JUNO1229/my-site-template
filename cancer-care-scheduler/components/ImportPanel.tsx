@@ -53,8 +53,8 @@ export default function ImportPanel() {
       </ol>
       <input type="file" accept=".csv,text/csv" multiple onChange={(e) => pick(e.target.files)} disabled={busy} />
       {plan && (<>
-        <table className="tbl"><thead><tr><th>파일</th><th>종류</th><th>읽은 행</th></tr></thead>
-          <tbody>{plan.files.map((f, i) => <tr key={i}><td>{f.name}</td><td>{f.kind}</td><td>{f.rows}</td></tr>)}</tbody></table>
+        <div className="tblwrap"><table className="tbl"><thead><tr><th>파일</th><th>종류</th><th>읽은 행</th></tr></thead>
+          <tbody>{plan.files.map((f, i) => <tr key={i}><td>{f.name}</td><td>{f.kind}</td><td>{f.rows}</td></tr>)}</tbody></table></div>
         <div className="kpis">
           <div className="kpi"><b>{plan.patients.length}</b>환자명부</div>
           <div className="kpi"><b>{plan.stubs.length}</b>명부에 없는 환자</div>

@@ -1,5 +1,6 @@
 /* ===== 소프트 퍼플 UI — 디자인 정의서 토큰 ===== */
 :root{
+  --th-bg:#E6DDF5;--th-fg:#4A3380;
   --bg:#EEEFF6;--surface:#fff;--field:#F3F4F9;--text:#1F1D2B;--text2:#6E6E82;
   --p1:#8E6BBF;--p2:#6E4FA8;--psoft:#B9A2DA;--a1:#F28DA6;--a2:#EE6E8F;--aline:#EC7A98;
   --success:#2E9F6B;--warning:#E08A1E;--tint:rgba(110,79,168,.08);--hair:rgba(110,79,168,.09);
@@ -9,8 +10,8 @@
   --font:"Pretendard Variable",Pretendard,-apple-system,"Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
   color-scheme:light;
 }
-@media(prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#16151F;--surface:#22212E;--field:#2B2A39;--text:#F2F1F8;--text2:#A6A5BA;--tint:rgba(185,162,218,.12);--hair:rgba(255,255,255,.07);--sh-card:0 8px 24px rgba(0,0,0,.35);color-scheme:dark}}
-:root[data-theme=dark]{--bg:#16151F;--surface:#22212E;--field:#2B2A39;--text:#F2F1F8;--text2:#A6A5BA;--tint:rgba(185,162,218,.12);--hair:rgba(255,255,255,.07);--sh-card:0 8px 24px rgba(0,0,0,.35);color-scheme:dark}
+@media(prefers-color-scheme:dark){:root:not([data-theme=light]){--th-bg:#3A3150;--th-fg:#DCD0F2;--bg:#16151F;--surface:#22212E;--field:#2B2A39;--text:#F2F1F8;--text2:#A6A5BA;--tint:rgba(185,162,218,.12);--hair:rgba(255,255,255,.07);--sh-card:0 8px 24px rgba(0,0,0,.35);color-scheme:dark}}
+:root[data-theme=dark]{--th-bg:#3A3150;--th-fg:#DCD0F2;--bg:#16151F;--surface:#22212E;--field:#2B2A39;--text:#F2F1F8;--text2:#A6A5BA;--tint:rgba(185,162,218,.12);--hair:rgba(255,255,255,.07);--sh-card:0 8px 24px rgba(0,0,0,.35);color-scheme:dark}
 *{box-sizing:border-box}html{-webkit-text-size-adjust:100%}
 body{margin:0;font:400 14px/1.5 var(--font);background:var(--bg);color:var(--text);transition:background .3s,color .3s;-webkit-font-smoothing:antialiased}
 h1,h2,h3,h4{margin:0}a{color:inherit}
@@ -270,7 +271,9 @@ button:not([class]):hover{background:var(--tint)}button:not([class]):active{tran
 .ko{font-size:11px;font-weight:500;color:var(--text2);margin-left:7px;letter-spacing:0}
 .login h2 .ko{font-size:14px;margin-left:10px}
 .sidebar .brand b{font-size:16px}
-/* 환자명부 제목행: 진한 보라 배경 + 흰 글씨 + 가운데 정렬 */
-.tblwrap.fixhead .tbl.hdc thead th{background:var(--p2);color:#fff;text-align:center;font-weight:600;font-size:13px;letter-spacing:.2px;box-shadow:0 6px 12px -8px rgba(110,79,168,.55)}
-.tblwrap.fixhead .tbl.hdc thead th+th{box-shadow:0 6px 12px -8px rgba(110,79,168,.55),inset 1px 0 0 rgba(255,255,255,.14)}
-.tblwrap.fixhead .tbl.hdc thead th:nth-child(2){font-weight:600}
+/* 모든 표 공통 제목행: 연한 보라 배경 + 진한 보라 글씨 + 가운데 정렬 */
+.tbl thead th,.tblwrap .tbl thead th,.tblwrap.fixhead .tbl thead th{background:var(--th-bg);color:var(--th-fg);text-align:center;font-weight:600;font-size:13px;letter-spacing:.2px;border-bottom:0;box-shadow:inset 1px 0 0 rgba(110,79,168,.10)}
+.tbl thead th:first-child{box-shadow:none}
+.tblwrap.fixhead .tbl thead th{box-shadow:inset 1px 0 0 rgba(110,79,168,.10),0 6px 12px -9px rgba(110,79,168,.45)}
+.tblwrap.fixhead .tbl thead th:first-child{box-shadow:0 6px 12px -9px rgba(110,79,168,.45)}
+.tbl thead th:nth-child(2){font-weight:600}

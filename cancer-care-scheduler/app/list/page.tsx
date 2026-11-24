@@ -36,9 +36,9 @@ export default function ListPage() {
         <select value={st} onChange={(e) => setSt(e.target.value)}><option value="">전체 상태</option>{STATUSES.map((s) => <option key={s}>{s}</option>)}</select>
         <input placeholder="환자·치료 검색" value={kw} onChange={(e) => setKw(e.target.value)} />
         <b>{rows.length}건</b><button onClick={exportCsv}>CSV 내보내기</button></div>
-      <table className="tbl"><thead><tr><th>치료일자</th><th>시간</th><th>환자(병동)</th><th>치료</th><th>옵션</th><th>상태</th></tr></thead>
+      <div className="tblwrap"><table className="tbl"><thead><tr><th>치료일자</th><th>시간</th><th>환자(병동)</th><th>치료</th><th>옵션</th><th>상태</th></tr></thead>
         <tbody>{rows.map((a) => (<tr key={a.id}><td>{label(a.date)}</td><td>{a.time}</td><td>{pname(db.patients.find((p) => p.id === a.patientId))}</td>
-          <td>{db.items.find((i) => i.id === a.itemId)?.name}</td><td>{a.option}</td><td><span className={`badge s-${a.status}`}>{a.status}</span></td></tr>))}</tbody></table>
+          <td>{db.items.find((i) => i.id === a.itemId)?.name}</td><td>{a.option}</td><td><span className={`badge s-${a.status}`}>{a.status}</span></td></tr>))}</tbody></table></div>
     </>
   );
 }
