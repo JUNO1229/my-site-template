@@ -362,9 +362,9 @@ button.btn-end,button.btn-restore{display:inline-flex;align-items:center;justify
 @keyframes calfade{from{opacity:0}to{opacity:1}}@keyframes calr{from{opacity:0;transform:translateX(18px)}to{opacity:1;transform:none}}@keyframes call{from{opacity:0;transform:translateX(-18px)}to{opacity:1;transform:none}}
 @media(max-width:700px){.calpop.sheet{left:0;right:0;bottom:0;top:auto;width:100%;z-index:90;border-radius:var(--r-xl) var(--r-xl) 0 0;padding:18px 18px calc(18px + env(safe-area-inset-bottom));animation:slideup .28s cubic-bezier(.2,.8,.2,1)}.calpop.sheet.out{animation:slidedown .18s both}
   .cday{height:44px;font-size:15px}.cal-nav{width:44px;height:44px}.calpop-foot .btn-soft{height:44px}}
-/* 환자명부: 계약금액 총합계 박스(인원 탭 옆) */
-.sumbox{display:flex;flex-direction:column;justify-content:center;gap:1px;min-height:51px;padding:6px 18px;border-radius:var(--r-m);background:var(--surface);box-shadow:var(--sh-card);animation:rise .4s backwards}
-.sumbox small{font-size:11px;font-weight:500;color:var(--text2)}.sumbox b{font-size:17px;font-weight:700;color:var(--p2);font-variant-numeric:tabular-nums;white-space:nowrap}
+/* 환자명부: 계약금액 합계액 박스(인원 탭 옆) */
+.sumbox{display:flex;flex-direction:column;justify-content:center;gap:0;padding:4px 18px;border-radius:var(--r-m);background:var(--surface);box-shadow:var(--sh-card);animation:rise .4s backwards}
+.sumbox small{font-size:11px;line-height:1.25;font-weight:500;color:var(--text2)}.sumbox b{font-size:16px;line-height:1.25;font-weight:700;color:var(--p2);font-variant-numeric:tabular-nums;white-space:nowrap}
 :root[data-theme=dark] .sumbox b{color:var(--psoft)}
 /* ===== 슬림 스크롤바(시스템 스타일) =====
    표시 폭 약 5px의 둥근 보라 막대, 화살표 버튼 없음. Chrome/Edge/Safari는 ::-webkit-scrollbar, Firefox는 scrollbar-width 사용 */
@@ -381,3 +381,7 @@ button.btn-end,button.btn-restore{display:inline-flex;align-items:center;justify
 .side-actions .btn-soft{white-space:nowrap;padding:0 10px;gap:5px;font-size:13px}
 /* 표 화면(환자명부·기간별 리스트·병실관리): 데스크톱에서는 표가 화면 아래 끝까지 채우도록 하단 여백을 최소화 */
 @media(min-width:961px){main:has(.fillpage){padding-bottom:16px}.fillpage{height:calc(100dvh - 105px)}}
+/* 환자 수 탭과 계약금액 합계액 박스: 같은 줄에서 높이를 항상 동일하게 */
+.tabgroup{display:flex;align-items:stretch;gap:14px;flex-wrap:wrap}
+.tabgroup>.seg,.tabgroup>.sumbox{box-sizing:border-box}
+.sumbox{min-height:45px}
