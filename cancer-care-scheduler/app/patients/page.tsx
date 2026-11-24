@@ -15,7 +15,6 @@ export default function Patients() {
   const [err, setErr] = useState("");
   const editable = canEditPatients(me);
   const [q, setQ] = useState("");
-  const [past, setPast] = useState(false);
   const [showVacant, setShowVacant] = useState(false);
   const { toast } = useToast();
   useEffect(() => {
@@ -25,8 +24,7 @@ export default function Patients() {
   }, []);
   const [edit, setEdit] = useState<(Omit<Patient, "id"> & { id?: string }) | null>(null);
   if (!ready) return <PageSkeleton />;
-  const autoCount = db.patients.filter((p) => p.source === "auto").length;
-  const list = db.patients.filter((p) => (past || p.source !== "auto") && (!q || p.name.includes(q) || p.chartNo.includes(q)));
+  const list = db.patients.filter((p) => p.source !== "auto" && (!q || p.name.includes(q) || p.chartNo.includes(q)));
   const vacant = vacantBeds(db.sickrooms, db.patients, todayStr());
   type Row = { p?: Patient; bed: string; vacant?: boolean };
   const bedOf = (p: Patient) => (p.ward === "외" && !p.bed ? "외래" : p.bed);
@@ -40,7 +38,6 @@ export default function Patients() {
       <div className="toolbar"><h2>환자명부</h2>
         <b>{list.length}명</b>
         {canViewSickrooms(me) && <label className="chk"><input type="checkbox" checked={showVacant} onChange={(e) => setShowVacant(e.target.checked)} />빈병실 포함 보기 (빈 병상 {vacant.length})</label>}
-        {autoCount > 0 && <label className="chk"><input type="checkbox" checked={past} onChange={(e) => setPast(e.target.checked)} />과거 환자 포함 ({autoCount}명, 스케줄 기록에서 자동 생성)</label>}
         <input className="qinput" placeholder="이름·차트번호 검색" value={q} onChange={(e) => setQ(e.target.value)} />
         {editable && <button className="primary" onClick={() => setEdit(blank)}>+ 환자 등록</button>}</div>
       <div className="tblwrap fixhead">
