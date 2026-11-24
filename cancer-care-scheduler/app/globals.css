@@ -394,3 +394,10 @@ button.btn-end,button.btn-restore{display:inline-flex;align-items:center;justify
 .toolbar select:hover{box-shadow:0 0 0 1.5px var(--psoft),var(--sh-card)}
 .toolbar select:focus,.toolbar .datefield.open,.toolbar .datefield:focus-visible{background:var(--surface);box-shadow:inset 0 0 0 1.5px var(--p1),var(--sh-card)}
 .toolbar select{padding:0 34px 0 14px;cursor:pointer}
+/* 환자명부: 이전환자기록(퇴원·종료) 토글 버튼 — + 환자 등록 오른쪽 */
+.histbtn{display:inline-flex;align-items:center;gap:7px;height:44px;padding:0 18px;border:0;border-radius:var(--r-l);background:var(--surface);color:var(--text);font-weight:600;box-shadow:var(--sh-card);transition:transform .15s,box-shadow .2s,background .2s,color .2s}
+.histbtn:hover{box-shadow:0 0 0 1.5px var(--psoft),var(--sh-card)}.histbtn:active{transform:scale(.97)}
+.histbtn.on{background:var(--tint);color:var(--p2);box-shadow:inset 0 0 0 1.5px var(--p1)}:root[data-theme=dark] .histbtn.on{color:var(--psoft)}
+.histbtn .ic{color:var(--text2)}.histbtn.on .ic{color:currentColor}
+.toolbtns{display:flex;align-items:center;gap:10px;flex-wrap:nowrap}
+.fillpage>.toolbar .qinput{min-width:160px;width:190px}

@@ -9,6 +9,7 @@ import { cmpBed, vacantBeds } from "@/lib/sickroom";
 import { PageSkeleton } from "@/components/Ui";
 import PatientDrawer from "@/components/PatientDrawer";
 import DateField from "@/components/DateField";
+import { Icon } from "@/components/Icons";
 import { useToast } from "@/lib/toast";
 
 const blank: Omit<Patient, "id"> = { chartNo: "", name: "", ward: "1", bed: "", admitDate: "", dischargeDate: "", plan: "", notes: "", contractAmount: null };
@@ -18,7 +19,7 @@ export default function Patients() {
   const editable = canEditPatients(me);
   const [q, setQ] = useState("");
   const [showVacant, setShowVacant] = useState(false);
-  const [view, setView] = useState<"in" | "out" | "ended">("in"); // 재원 / 외래 / 퇴원·종료
+  const [view, setView] = useState<"in" | "out" | "ended">("in"); // 재원 / 외래 / 이전환자기록(퇴원·종료)
   const [info, setInfo] = useState<string | null>(null);
   const [end, setEnd] = useState<{ p: Patient; date: string } | null>(null);
   const [busy, setBusy] = useState(false);
@@ -55,13 +56,13 @@ export default function Patients() {
         <div className="seg" role="tablist">
           <button className={view === "in" ? "on" : ""} role="tab" aria-selected={view === "in"} onClick={() => setView("in")}>재원 {inN}</button>
           <button className={view === "out" ? "on" : ""} role="tab" aria-selected={view === "out"} onClick={() => setView("out")}>외래 {outN}</button>
-          <button className={view === "ended" ? "on" : ""} role="tab" aria-selected={view === "ended"} onClick={() => setView("ended")}>퇴원·종료</button>
-        </div>
+                  </div>
         {editable && <div className="sumbox" title={`현재 환자(재원+외래) ${cur.length}명 · ${totalAmt.toLocaleString("ko-KR")}만원${noAmt ? ` · 계약금액 미입력 ${noAmt}명 제외` : ""}`}><small>계약금액 합계액</small><b>{fmtMan(totalAmt)}</b></div>}
         </div>
         {view === "in" && canViewSickrooms(me) && <label className="chk"><input type="checkbox" checked={showVacant} onChange={(e) => setShowVacant(e.target.checked)} />빈병실 포함 보기 (빈 병상 {vacant.length})</label>}
         <input className="qinput" placeholder="이름·차트번호 검색" value={q} onChange={(e) => setQ(e.target.value)} />
-        {editable && <button className="primary" onClick={() => setEdit(blank)}>+ 환자 등록</button>}</div>
+        <div className="toolbtns">{editable && <button className="primary" onClick={() => setEdit(blank)}>+ 환자 등록</button>}
+        <button className={`histbtn ${view === "ended" ? "on" : ""}`} aria-pressed={view === "ended"} onClick={() => setView(view === "ended" ? "in" : "ended")}><Icon name="clock" size={17} />이전환자기록</button></div></div>
       <div className="tblwrap fixhead">
         <table className="tbl compact"><thead><tr><th>병동</th><th>병실</th><th>환자명</th><th>차트번호</th><th>입원일</th><th>{view === "ended" ? "퇴원·종료일" : "퇴원예정"}</th>{editable && <th title="치료계약금액(본인부담, 만원)">계약금액</th>}<th>치료정보</th><th>참고사항</th><th /></tr></thead>
           <tbody>{rows.map((r, i) => r.vacant || !r.p ? (
@@ -77,7 +78,7 @@ export default function Patients() {
       {end && (
         <div className="overlay" onClick={() => !busy && setEnd(null)}><div className="modal" role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()}>
           <h3>{isEnded(end.p) ? "복귀 처리" : "퇴원/종료 처리"}</h3>
-          <p>{isEnded(end.p) ? <><b>{end.p.name}</b> 님을 다시 재원·외래 목록으로 되돌립니다. 퇴원/종료일은 지워집니다.</> : <><b>{end.p.name}</b> 님을 퇴원/종료 처리합니다.{end.p.bed && ` 병실 ${end.p.bed}는 빈병실로 전환됩니다.`} 기존 치료 기록은 그대로 보관되며 "퇴원·종료" 목록에서 복귀할 수 있습니다.</>}</p>
+          <p>{isEnded(end.p) ? <><b>{end.p.name}</b> 님을 다시 재원·외래 목록으로 되돌립니다. 퇴원/종료일은 지워집니다.</> : <><b>{end.p.name}</b> 님을 퇴원/종료 처리합니다.{end.p.bed && ` 병실 ${end.p.bed}는 빈병실로 전환됩니다.`} 기존 치료 기록은 그대로 보관되며 "이전환자기록"에서 복귀할 수 있습니다.</>}</p>
           {!isEnded(end.p) && <label>퇴원/종료일<DateField value={end.date} onChange={(v) => setEnd({ ...end, date: v })} /></label>}
           {err && <p className="err">{err}</p>}
           <div className="actions"><span style={{ flex: 1 }} /><button onClick={() => setEnd(null)} disabled={busy}>취소</button>
