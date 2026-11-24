@@ -60,7 +60,7 @@ export default function PatientHistory() {
   return (
     <div className="fillpage">
       <div className="toolbar">
-        <h2>이전환자명부기록</h2>
+        <h2>이전환자명부</h2>
         <span className="hint" style={{ margin: 0 }}>매일 24:00(한국시간)에 그날의 환자명부가 자동 저장됩니다</span>
         <span className="spacer" />
         <DateField compact value={sel} onChange={jump} ariaLabel="날짜로 이동" placeholder="날짜로 이동" />
