@@ -16,7 +16,7 @@ export default function Card() {
     const fd = new FormData(); fd.set("image", file)
     const r = await extractCard(fd); setBusy(false)
     if (r.error) setNote(r.error)
-    else if (!r.fields) setNote("OCR 키(ANTHROPIC_API_KEY)가 설정되지 않아 수동 입력 모드입니다. 이미지를 보며 직접 입력하세요.")
+    else if (!r.fields) setNote("AI 키(GEMINI_API_KEY)가 설정되지 않아 수동 입력 모드입니다. 이미지를 보며 직접 입력하세요.")
     else { setFields(r.fields); setNote("추출 완료 — 내용을 확인·수정한 뒤 저장하세요.") }
   }
   return (

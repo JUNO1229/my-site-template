@@ -1,5 +1,6 @@
 import { q } from "./db"
 import type { Lead } from "./domain"
+import { aiAvailable, aiName, llm } from "./providers"
 
 export type Profile = { keywords: string[]; regions: string[]; tags: string[]; note: string; summary?: string }
 
@@ -29,18 +30,15 @@ export function analyzeByRules(text: string, sidos: string[], validTags: string[
 }
 
 export async function analyzeByAI(text: string, sidos: string[], validTags: string[]): Promise<Profile | null> {
-  if (!process.env.ANTHROPIC_API_KEY) return null
+  if (!aiAvailable()) return null
   try {
-    const r = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST", headers: { "x-api-key": process.env.ANTHROPIC_API_KEY, "anthropic-version": "2023-06-01", "content-type": "application/json" },
-      body: JSON.stringify({ model: process.env.OCR_MODEL || "claude-haiku-5-5", max_tokens: 700, messages: [{ role: "user", content:
-        `영업 프로젝트 개요를 읽고, 영업 대상 기관·시설을 찾기 위한 프로필을 JSON 한 개로만 출력하라.\n프로젝트: ${text.slice(0, 12000)}\n\n` +
-        `키: summary(개요 2~3문장 요약), keywords(기관명·주소·업종에서 검색할 한국어 키워드 3~10개), regions(아래 시도 중 관련된 것), tags(아래 태그 중 영업 대상에 맞는 것), note(분석 근거 한 문장).\n시도: ${sidos.join(", ")}\n태그: ${validTags.join(", ")}` }] }) })
-    if (!r.ok) return null
-    const t: string = (await r.json() as any).content?.[0]?.text ?? ""
-    const j = JSON.parse(t.match(/\{[\s\S]*\}/)![0])
+    const out = await llm(
+      `영업 프로젝트 개요를 읽고, 영업 대상 기관·시설을 찾기 위한 프로필을 JSON 한 개로만 출력하라.\n프로젝트: ${text.slice(0, 12000)}\n\n` +
+      `키: summary(개요 2~3문장 요약), keywords(기관명·주소·업종에서 검색할 한국어 키워드 3~10개), regions(아래 시도 중 관련된 것), tags(아래 태그 중 영업 대상에 맞는 것), note(분석 근거 한 문장).\n시도: ${sidos.join(", ")}\n태그: ${validTags.join(", ")}`, [], 1500)
+    if (!out) return null
+    const j = JSON.parse(out.match(/\{[\s\S]*\}/)![0])
     return { keywords: uniq(j.keywords ?? []), regions: uniq(j.regions ?? []).filter((s) => sidos.includes(s)),
-      tags: uniq(j.tags ?? []).filter((x) => validTags.includes(x)), note: `AI 분석: ${j.note ?? ""}`, summary: typeof j.summary === "string" ? j.summary : undefined }
+      tags: uniq(j.tags ?? []).filter((x) => validTags.includes(x)), note: `AI 분석(${aiName()}): ${j.note ?? ""}`, summary: typeof j.summary === "string" ? j.summary : undefined }
   } catch { return null }
 }
 

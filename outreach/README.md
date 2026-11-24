@@ -12,7 +12,7 @@
 | `APP_PASSWORD`, `AUTH_SECRET` | 공용 비밀번호, 세션 서명 키(16자 이상) |
 | `RESEND_API_KEY`, `EMAIL_FROM` | 이메일 실발송(없으면 시뮬레이션) |
 | `SOLAPI_API_KEY`, `SOLAPI_API_SECRET`, `SMS_SENDER` | 문자 실발송(없으면 시뮬레이션) |
-| `ANTHROPIC_API_KEY` | 명함 OCR·프로젝트 AI 분석(없으면 수동/내장 규칙) |
+| `GEMINI_API_KEY` (`GEMINI_MODEL` 선택, 기본 gemini-2.5-flash) | 명함 OCR·스캔 PDF OCR·프로젝트 AI 분석 (무료 등급 가능). 없으면 `ANTHROPIC_API_KEY`, 둘 다 없으면 수동/내장 규칙 |
 
 ## 명령
 ```bash

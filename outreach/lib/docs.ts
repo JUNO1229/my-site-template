@@ -11,7 +11,7 @@ export async function extractDocText(file: File): Promise<string> {
     if (text.replace(/\s/g, "").length >= 50 * Math.max(1, pdf.numPages / 4)) return text
     // 글자가 거의 없으면 스캔 이미지 PDF → OCR
     const ocr = await ocrPdf(buf)
-    if (ocr === null) throw new Error("스캔(이미지) PDF라서 글자를 읽을 수 없습니다. 글자 인식(OCR)을 쓰려면 ANTHROPIC_API_KEY 설정이 필요합니다")
+    if (ocr === null) throw new Error("스캔(이미지) PDF라서 글자를 읽을 수 없습니다. 글자 인식(OCR)을 쓰려면 AI 키(GEMINI_API_KEY) 설정이 필요합니다")
     return ocr
   }
   if (name.endsWith(".docx")) {

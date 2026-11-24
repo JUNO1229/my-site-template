@@ -1,9 +1,11 @@
 // 외부 연동 어댑터. 키가 없으면 시뮬레이션 모드(실제 발송 없음)로 동작한다.
 export type SendResult = { status: "sent" | "simulated" | "failed"; providerId?: string; error?: string }
+export const aiAvailable = () => !!process.env.GEMINI_API_KEY || !!process.env.ANTHROPIC_API_KEY
+export const aiName = () => (process.env.GEMINI_API_KEY ? "Gemini" : process.env.ANTHROPIC_API_KEY ? "Claude" : null)
 export const providerStatus = () => ({
   email: !!process.env.RESEND_API_KEY && !!process.env.EMAIL_FROM,
   sms: !!process.env.SOLAPI_API_KEY && !!process.env.SOLAPI_API_SECRET && !!process.env.SMS_SENDER,
-  ocr: !!process.env.ANTHROPIC_API_KEY })
+  ocr: aiAvailable() })
 
 export async function sendEmail(to: string, subject: string, text: string, unsubUrl: string): Promise<SendResult> {
   if (!providerStatus().email) return { status: "simulated" }
@@ -33,31 +35,45 @@ export async function sendSms(to: string, text: string): Promise<SendResult> {
   } catch (e: any) { return { status: "failed", error: String(e?.message ?? e) } }
 }
 
+
+type AiFile = { mime: string; base64: string }
+/** 공용 AI 호출: GEMINI_API_KEY 우선, 없으면 ANTHROPIC_API_KEY. 키가 없으면 null. */
+export async function llm(prompt: string, files: AiFile[] = [], maxTokens = 4000): Promise<string | null> {
+  if (process.env.GEMINI_API_KEY) {
+    const model = process.env.GEMINI_MODEL || "gemini-2.5-flash"
+    const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
+      method: "POST", headers: { "x-goog-api-key": process.env.GEMINI_API_KEY, "content-type": "application/json" },
+      body: JSON.stringify({ contents: [{ parts: [...files.map((f) => ({ inline_data: { mime_type: f.mime, data: f.base64 } })), { text: prompt }] }],
+        generationConfig: { maxOutputTokens: maxTokens, temperature: 0 } }) })
+    const j: any = await r.json().catch(() => ({}))
+    if (!r.ok) throw new Error(`Gemini 오류 (HTTP ${r.status}${j?.error?.message ? ": " + String(j.error.message).slice(0, 120) : ""})`)
+    return (j.candidates?.[0]?.content?.parts ?? []).map((x: any) => x.text ?? "").join("")
+  }
+  if (process.env.ANTHROPIC_API_KEY) {
+    const block = (f: AiFile) => f.mime === "application/pdf"
+      ? { type: "document", source: { type: "base64", media_type: f.mime, data: f.base64 } }
+      : { type: "image", source: { type: "base64", media_type: f.mime, data: f.base64 } }
+    const r = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST", headers: { "x-api-key": process.env.ANTHROPIC_API_KEY, "anthropic-version": "2023-06-01", "content-type": "application/json" },
+      body: JSON.stringify({ model: process.env.OCR_MODEL || "claude-haiku-5-5", max_tokens: maxTokens, messages: [{ role: "user", content: [...files.map(block), { type: "text", text: prompt }] }] }) })
+    if (!r.ok) throw new Error(`Claude 오류 (HTTP ${r.status})`)
+    return ((await r.json()) as any).content?.map((c: any) => c.text ?? "").join("") ?? ""
+  }
+  return null
+}
+
 export type CardFields = { org_name?: string; contact_name?: string; title?: string; dept?: string; email?: string
   phone?: string; mobile?: string; fax?: string; address?: string; homepage?: string }
-/** 명함 이미지 → 필드 추출(Claude 비전). 키 없으면 null → 화면에서 수동 입력. */
+/** 명함 이미지 → 필드 추출. AI 키가 없으면 null → 화면에서 수동 입력. */
 export async function ocrCard(base64: string, mediaType: string): Promise<CardFields | null> {
-  if (!providerStatus().ocr) return null
-  const r = await fetch("https://api.anthropic.com/v1/messages", {
-    method: "POST", headers: { "x-api-key": process.env.ANTHROPIC_API_KEY!, "anthropic-version": "2023-06-01", "content-type": "application/json" },
-    body: JSON.stringify({ model: process.env.OCR_MODEL || "claude-haiku-5-5", max_tokens: 600, messages: [{ role: "user", content: [
-      { type: "image", source: { type: "base64", media_type: mediaType, data: base64 } },
-      { type: "text", text: "명함에서 정보를 추출해 JSON 한 개만 출력. 키: org_name, contact_name, title, dept, email, phone, mobile, fax, address, homepage. 없으면 생략. 설명 금지." }] }] }) })
-  if (!r.ok) throw new Error(`OCR 실패 HTTP ${r.status}`)
-  const j: any = await r.json()
-  const t: string = j.content?.[0]?.text ?? ""
-  const m = t.match(/\{[\s\S]*\}/)
+  const out = await llm("명함에서 정보를 추출해 JSON 한 개만 출력. 키: org_name, contact_name, title, dept, email, phone, mobile, fax, address, homepage. 없으면 생략. 설명 금지.", [{ mime: mediaType, base64 }], 800)
+  if (out === null) return null
+  const m = out.match(/\{[\s\S]*\}/)
   return m ? JSON.parse(m[0]) : {}
 }
 
-/** 스캔(이미지) PDF → 텍스트. Claude 가 PDF 페이지 이미지를 직접 읽는다. 키가 없으면 null. */
+/** 스캔(이미지) PDF → 텍스트. AI 가 페이지 이미지를 직접 읽는다. 키가 없으면 null. */
 export async function ocrPdf(buf: Buffer): Promise<string | null> {
-  if (!providerStatus().ocr) return null
-  const r = await fetch("https://api.anthropic.com/v1/messages", {
-    method: "POST", headers: { "x-api-key": process.env.ANTHROPIC_API_KEY!, "anthropic-version": "2023-06-01", "content-type": "application/json" },
-    body: JSON.stringify({ model: process.env.OCR_MODEL || "claude-haiku-5-5", max_tokens: 16000, messages: [{ role: "user", content: [
-      { type: "document", source: { type: "base64", media_type: "application/pdf", data: buf.toString("base64") } },
-      { type: "text", text: "이 스캔 문서의 모든 페이지의 글자를 순서대로 그대로 옮겨 적어라. 표는 행 단위로 한 줄씩. 설명·요약·머리말 없이 본문 텍스트만 출력." }] }] }) })
-  if (!r.ok) throw new Error(`OCR 실패 (HTTP ${r.status})`)
-  return ((await r.json()) as any).content?.map((c: any) => c.text ?? "").join("\n") ?? ""
+  return llm("이 스캔 문서의 모든 페이지의 글자를 순서대로 그대로 옮겨 적어라. 표는 행 단위로 한 줄씩. 설명·요약·머리말 없이 본문 텍스트만 출력.",
+    [{ mime: "application/pdf", base64: buf.toString("base64") }], 16000)
 }
