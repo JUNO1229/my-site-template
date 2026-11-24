@@ -14,7 +14,7 @@ export default function Login() {
     <div className="login-wrap">
       <form className="login" onSubmit={submit}>
         <span className="logo"><Icon name="activity" size={28} /></span>
-        <h2>ResHub-C</h2><p className="login-sub">리즈허브-C · 무등산생태요양병원</p><p className="hint">계정으로 로그인해 주세요. 계정은 시스템관리자가 발급합니다.</p>
+        <h2>ResHub-C<span className="ko">리즈허브-C</span></h2><p className="login-sub">무등산생태요양병원</p><p className="hint">계정으로 로그인해 주세요. 계정은 시스템관리자가 발급합니다.</p>
         <label>아이디<input value={u} onChange={(e) => setU(e.target.value)} autoComplete="username" autoFocus required /></label>
         <label>비밀번호<input type="password" value={pw} onChange={(e) => setPw(e.target.value)} autoComplete="current-password" required /></label>
         {err && <p className="err"><Icon name="alert" size={16} />{err}</p>}
