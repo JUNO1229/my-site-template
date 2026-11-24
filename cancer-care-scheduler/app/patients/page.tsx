@@ -23,7 +23,7 @@ export default function Patients() {
       <table className="tbl"><thead><tr><th>환자(병동)</th><th>차트번호</th><th>병실</th><th>입원일</th><th>퇴원예정</th>{editable && <th>치료계약금액<br /><small>(본인부담)</small></th>}<th>치료정보</th><th>참고사항</th><th /></tr></thead>
         <tbody>{list.map((p) => (
           <tr key={p.id}><td>{p.name}({p.ward})</td><td>{p.chartNo}</td><td>{p.bed}</td><td>{p.admitDate}</td><td>{p.dischargeDate}</td>
-            {editable && <td style={{ textAlign: "right" }}>{p.contractAmount != null ? p.contractAmount.toLocaleString("ko-KR") : ""}</td>}<td>{p.plan}</td><td>{p.notes}</td><td>{editable && <button onClick={() => setEdit(p)}>수정</button>}</td></tr>))}</tbody></table>
+            {editable && <td style={{ textAlign: "right" }}>{p.contractAmount != null ? `${p.contractAmount.toLocaleString("ko-KR")}만원` : ""}</td>}<td>{p.plan}</td><td>{p.notes}</td><td>{editable && <button onClick={() => setEdit(p)}>수정</button>}</td></tr>))}</tbody></table>
       {edit && (
         <div className="overlay" onClick={() => setEdit(null)}><div className="modal" onClick={(e) => e.stopPropagation()}>
           <h3>{edit.id ? "환자 수정" : "환자 등록"}</h3>
@@ -34,7 +34,7 @@ export default function Patients() {
             <label>병실<input value={edit.bed} onChange={(e) => set("bed", e.target.value)} /></label></div>
           <div className="row"><label>입원일<input type="date" value={edit.admitDate} onChange={(e) => set("admitDate", e.target.value)} /></label>
             <label>퇴원(예정)일<input type="date" value={edit.dischargeDate} onChange={(e) => set("dischargeDate", e.target.value)} /></label></div>
-          <label>치료계약금액(본인부담, 시트 단위 그대로)<input type="number" min={0} value={edit.contractAmount ?? ""} onChange={(e) => setEdit((x) => x && { ...x, contractAmount: e.target.value === "" ? null : Number(e.target.value) })} /></label>
+          <label>치료계약금액(본인부담, 만원 단위)<input type="number" min={0} value={edit.contractAmount ?? ""} onChange={(e) => setEdit((x) => x && { ...x, contractAmount: e.target.value === "" ? null : Number(e.target.value) })} /></label>
           <label>치료정보<input value={edit.plan} onChange={(e) => set("plan", e.target.value)} /></label>
           <label>참고사항<input value={edit.notes} onChange={(e) => set("notes", e.target.value)} /></label>
           <div className="actions">
