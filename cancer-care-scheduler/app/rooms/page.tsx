@@ -32,7 +32,7 @@ export default function RoomPage() {
         {days.map((d, di) => {
           const list = appts.filter((a) => a.date === d && lanes.some((l) => l.id === a.itemId)).sort((a, b) => toMin(a.time) - toMin(b.time));
           return (
-            <section key={d} className="room" style={{ animationDelay: `${di * 60}ms`, outline: d === date ? "2px solid var(--p1)" : undefined }}>
+            <section key={d} className={`room ${d === date ? "sel" : ""}`} style={{ animationDelay: `${di * 60}ms` }}>
               <header><div><b className="dh-compact">{Number(d.slice(5, 7))}월 {Number(d.slice(8))}일 ({label(d).slice(-2, -1)})</b>{d === today && <small>오늘</small>}</div><span className="mini">{list.filter((a) => a.status !== "취소").length}건</span></header>
               <div className="list">
                 {list.length ? list.map((a, i) => (
