@@ -401,3 +401,6 @@ button.btn-end,button.btn-restore{display:inline-flex;align-items:center;justify
 .histbtn .ic{color:var(--text2)}.histbtn.on .ic{color:currentColor}
 .toolbtns{display:flex;align-items:center;gap:10px;flex-wrap:nowrap}
 .fillpage>.toolbar .qinput{min-width:160px;width:190px}
+/* 흰색 카드형 버튼(툴바 보조 동작: CSV 내보내기 등) */
+.btn-card{display:inline-flex;align-items:center;justify-content:center;gap:7px;height:44px;padding:0 18px;border:0;border-radius:var(--r-l);background:var(--surface);color:var(--text);font-weight:600;box-shadow:var(--sh-card);transition:transform .15s,box-shadow .2s}
+.btn-card:hover{box-shadow:0 0 0 1.5px var(--psoft),var(--sh-card)}.btn-card:active{transform:scale(.97)}.btn-card .ic{color:var(--text2)}

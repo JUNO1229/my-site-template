@@ -5,6 +5,7 @@ import { STATUSES } from "@/lib/types";
 import { addDays, csvEscape, label, pname, todayStr, toMin } from "@/lib/util";
 import { PageSkeleton } from "@/components/Ui";
 import DateField from "@/components/DateField";
+import { Icon } from "@/components/Icons";
 import { useToast } from "@/lib/toast";
 
 export default function ListPage() {
@@ -27,7 +28,10 @@ export default function ListPage() {
       return [a.date, a.time, pname(db.patients.find((p) => p.id === a.patientId)), db.rooms.find((r) => r.id === it.roomId)?.name ?? "", it.name, a.option, a.status, a.memo]; });
     const csv = "﻿" + [head, ...body].map((r) => r.map(csvEscape).join(",")).join("\n");
     const url = URL.createObjectURL(new Blob([csv], { type: "text/csv" }));
-    const el = document.createElement("a"); el.href = url; el.download = `치료스케줄_${from}_${to}.csv`; el.click(); URL.revokeObjectURL(url); toast(`${rows.length}건을 CSV로 내보냈습니다`);
+    const el = document.createElement("a"); el.href = url; el.download = `치료스케줄_${from}_${to}.csv`; el.style.display = "none";
+    document.body.appendChild(el); el.click(); el.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 4000); // 다운로드가 시작된 뒤에 임시 주소를 해제한다
+    toast(`${rows.length}건을 CSV로 내보냈습니다`);
   };
   return (
     <>
@@ -37,7 +41,7 @@ export default function ListPage() {
         <select value={room} onChange={(e) => setRoom(e.target.value)}><option value="">전체 치료실</option>{db.rooms.map((r) => <option key={r.id} value={r.id}>{r.name}</option>)}</select>
         <select value={st} onChange={(e) => setSt(e.target.value)}><option value="">전체 상태</option>{STATUSES.map((s) => <option key={s}>{s}</option>)}</select>
         <input className="qinput" placeholder="환자·치료 검색" value={kw} onChange={(e) => setKw(e.target.value)} />
-        <b>{rows.length}건</b><button onClick={exportCsv}>CSV 내보내기</button></div>
+        <b>{rows.length}건</b><button className="btn-card" onClick={exportCsv}><Icon name="download" size={17} />CSV 내보내기</button></div>
       <div className="tblwrap fixhead"><table className="tbl compact"><thead><tr><th>치료일자</th><th>시간</th><th>환자(병동)</th><th>치료</th><th>옵션</th><th>상태</th></tr></thead>
         <tbody>{rows.map((a) => (<tr key={a.id}><td>{label(a.date)}</td><td>{a.time}</td><td>{pname(db.patients.find((p) => p.id === a.patientId))}</td>
           <td>{db.items.find((i) => i.id === a.itemId)?.name}</td><td>{a.option}</td><td><span className={`badge s-${a.status}`}>{a.status}</span></td></tr>))}</tbody></table></div>
