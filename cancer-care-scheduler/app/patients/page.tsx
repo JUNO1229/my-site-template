@@ -35,6 +35,7 @@ export default function Patients() {
   const set = (k: keyof Patient, v: string) => setEdit((e) => e && { ...e, [k]: v });
   return (
     <>
+      <div className="fillpage">
       <div className="toolbar"><h2>환자명부</h2>
         <b>{list.length}명</b>
         {canViewSickrooms(me) && <label className="chk"><input type="checkbox" checked={showVacant} onChange={(e) => setShowVacant(e.target.checked)} />빈병실 포함 보기 (빈 병상 {vacant.length})</label>}
@@ -49,6 +50,7 @@ export default function Patients() {
               {editable && <td style={{ textAlign: "right" }}>{p.contractAmount != null ? `${p.contractAmount.toLocaleString("ko-KR")}만원` : ""}</td>}
               <td className="plan">{p.plan}</td><td className="notes">{p.notes}</td>
               <td>{editable && <button onClick={() => setEdit(p)}>수정</button>}</td></tr>); })())}</tbody></table>
+      </div>
       </div>
       {edit && (
         <div className="overlay" onClick={() => setEdit(null)}><div className="modal" onClick={(e) => e.stopPropagation()}>

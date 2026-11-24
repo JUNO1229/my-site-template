@@ -30,6 +30,7 @@ export default function Sickrooms() {
   const del = async () => { if (!edit || !confirm(`병실 ${edit.r.roomNo} 정보를 삭제합니다.`)) return; try { await deleteSickroom(edit.r.roomNo); toast("병실을 삭제했습니다"); setEdit(null); setErr(""); } catch (e) { setErr((e as Error).message); } };
   return (
     <>
+      <div className="fillpage">
       <div className="toolbar"><h2>병실관리</h2>
         <div className="seg">{([["", "전체"], ["vacant", "빈 병상 있음"], ["empty", "환자 없는 병실"], ["ended", "시작전·종료"]] as const).map(([k, t]) =>
           <button key={k} className={only === k ? "on" : ""} onClick={() => setOnly(k)}>{t}</button>)}</div>
@@ -39,15 +40,16 @@ export default function Sickrooms() {
         <div className="kpi s-완료"><b>{totals.used}</b>입원</div><div className="kpi s-예약"><b>{Math.max(0, totals.beds - totals.used)}</b>빈 병상</div>
       </div>
       <p className="hint">입원 현황은 환자명부(자동 생성 환자 제외)의 병실과 병실번호(예: 207-2 → 207호)를 기준으로 계산합니다. 시작일·종료일이 비어 있으면 상시 운영으로 봅니다. 기준일: {today}</p>
-      <div className="tblwrap">
-        <table className="tbl compact"><thead><tr><th>병실</th><th>병상수</th><th>시작일</th><th>종료일</th><th>상태</th><th>입원</th><th>빈 병상</th><th>비고</th><th /></tr></thead>
+      <div className="tblwrap fixhead">
+        <table className="tbl compact sick"><thead><tr><th>병실</th><th className="num">병상수</th><th>시작일</th><th>종료일</th><th>상태</th><th className="num">입원</th><th className="num">빈 병상</th><th>비고</th><th /></tr></thead>
           <tbody>{list.map(({ room, state, used, vacant }) => (
             <tr key={room.roomNo} className={state === "운영중" && used === 0 ? "vacant" : ""}>
-              <td>{room.roomNo}</td><td>{room.beds}</td><td>{room.startDate}</td><td>{room.endDate}</td>
+              <td>{room.roomNo}</td><td className="num">{room.beds}</td><td>{room.startDate}</td><td>{room.endDate}</td>
               <td><span className={`pill ${PILL[state]}`}>{state}</span></td>
-              <td>{used}{used > room.beds && <span className="err"> (병상 초과)</span>}</td><td>{state === "운영중" ? vacant : ""}</td>
-              <td className="long" title={room.note}>{room.note}</td>
+              <td className="num">{used}{used > room.beds && <span className="err"> (병상 초과)</span>}</td><td className="num">{state === "운영중" ? vacant : ""}</td>
+              <td className="note">{room.note}</td>
               <td>{editable && <button onClick={() => { setErr(""); setEdit({ r: room, isNew: false }); }}>수정</button>}</td></tr>))}</tbody></table>
+      </div>
       </div>
       {edit && (
         <div className="overlay" onClick={() => setEdit(null)}><div className="modal" onClick={(e) => e.stopPropagation()}>

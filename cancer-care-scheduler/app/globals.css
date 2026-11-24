@@ -246,9 +246,22 @@ button:not([class]):hover{background:var(--tint)}button:not([class]):active{tran
 .datebar button{width:40px;padding:0;border-radius:50%;background:var(--surface);box-shadow:var(--sh-card)}
 .kpis+.hint{margin:12px 0}.qinput{height:44px;min-width:200px}
 /* 환자명부: 제목행 고정 + 내용만 스크롤, 치료정보 축소·참고사항 확대(전체 내용 표시) */
-.tblwrap.fixhead{max-height:calc(100dvh - 258px);min-height:280px;overflow:auto;overscroll-behavior:contain}
+.tblwrap.fixhead{overflow:auto;overscroll-behavior:contain}
 .tblwrap.fixhead .tbl th{position:sticky;top:0;z-index:3;background:var(--surface);box-shadow:0 1px 0 var(--hair),0 6px 10px -8px rgba(110,79,168,.25)}
 .tblwrap.fixhead .tbl.compact th,.tblwrap.fixhead .tbl.compact td{padding-left:10px;padding-right:10px}
 .tbl.compact td.plan{white-space:normal;width:30%;min-width:180px;line-height:1.45;overflow-wrap:anywhere;word-break:keep-all}
 .tbl.compact td.notes{white-space:normal;width:42%;min-width:250px;line-height:1.45;overflow-wrap:anywhere;word-break:keep-all}
-@media(max-width:960px){.tblwrap.fixhead{max-height:calc(100dvh - 416px)}}
+/* 병실관리: 열 간격 축소 — 숫자 열은 가운데 정렬·좁게, 비고가 남는 폭 사용, 제목행 고정 */
+.tbl.sick th,.tbl.sick td{padding:9px 14px}
+.tbl.sick th.num,.tbl.sick td.num{text-align:center;width:1%;min-width:64px}
+.tbl.sick td.note{width:100%;min-width:140px;white-space:normal;color:var(--text2);overflow-wrap:anywhere}
+.tbl.sick td:first-child{font-weight:600}
+/* 표 화면: 남는 높이를 표 영역이 채우고(페이지 스크롤 없음) 내용만 스크롤 */
+.fillpage{display:flex;flex-direction:column;height:calc(100dvh - 200px);min-height:420px}
+.fillpage>.tblwrap.fixhead{flex:1 1 0;min-height:0}
+.fillpage>.toolbar,.fillpage>.kpis,.fillpage>.hint{flex:none}
+.tbl td button{vertical-align:middle}.tbl.sick td{line-height:1.3}
+@media(max-width:960px){.fillpage{height:calc(100dvh - 330px)}}
+.tbl td button{height:32px;padding:0 14px;font-size:13px}
+@media(max-width:960px){.fillpage{height:auto;min-height:0}.fillpage>.tblwrap.fixhead{flex:none;min-height:320px;max-height:calc(100dvh - 170px)}}
+.tbl.sick.compact td:nth-child(2){font-weight:400}
