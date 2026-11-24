@@ -379,3 +379,5 @@ button.btn-end,button.btn-restore{display:inline-flex;align-items:center;justify
 }
 @supports not selector(::-webkit-scrollbar){*{scrollbar-width:thin;scrollbar-color:var(--sb-h) transparent}}
 .side-actions .btn-soft{white-space:nowrap;padding:0 10px;gap:5px;font-size:13px}
+/* 표 화면(환자명부·기간별 리스트·병실관리): 데스크톱에서는 표가 화면 아래 끝까지 채우도록 하단 여백을 최소화 */
+@media(min-width:961px){main:has(.fillpage){padding-bottom:16px}.fillpage{height:calc(100dvh - 105px)}}
