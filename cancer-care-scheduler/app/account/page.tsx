@@ -3,12 +3,13 @@ import { useState } from "react";
 import { useStore } from "@/lib/store";
 import { ROLE_DESC, ROLE_LABEL } from "@/lib/perm";
 import { api } from "@/lib/api";
+import { PageSkeleton } from "@/components/Ui";
 
 export default function Account() {
   const { me, db, refresh } = useStore();
   const [cur, setCur] = useState(""); const [nw, setNw] = useState(""); const [nw2, setNw2] = useState("");
   const [msg, setMsg] = useState(""); const [err, setErr] = useState("");
-  if (!me) return <p>불러오는 중…</p>;
+  if (!me) return <PageSkeleton />;
   const submit = async (e: React.FormEvent) => {
     e.preventDefault(); setErr(""); setMsg("");
     if (nw !== nw2) return setErr("새 비밀번호가 서로 다릅니다");

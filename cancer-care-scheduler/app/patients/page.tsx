@@ -1,11 +1,13 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useStore } from "@/lib/store";
 import { canEditPatients, canViewSickrooms, isAdmin } from "@/lib/perm";
 import { WARDS_LIST } from "@/lib/wards";
 import type { Patient } from "@/lib/types";
 import { todayStr } from "@/lib/util";
 import { cmpBed, vacantBeds } from "@/lib/sickroom";
+import { PageSkeleton } from "@/components/Ui";
+import { useToast } from "@/lib/toast";
 
 const blank: Omit<Patient, "id"> = { chartNo: "", name: "", ward: "1", bed: "", admitDate: "", dischargeDate: "", plan: "", notes: "", contractAmount: null };
 export default function Patients() {
@@ -15,8 +17,14 @@ export default function Patients() {
   const [q, setQ] = useState("");
   const [past, setPast] = useState(false);
   const [showVacant, setShowVacant] = useState(false);
+  const { toast } = useToast();
+  useEffect(() => {
+    const init = new URLSearchParams(location.search).get("q"); if (init) setQ(init);
+    const on = (e: Event) => setQ((e as CustomEvent<string>).detail ?? "");
+    window.addEventListener("global-search", on); return () => window.removeEventListener("global-search", on);
+  }, []);
   const [edit, setEdit] = useState<(Omit<Patient, "id"> & { id?: string }) | null>(null);
-  if (!ready) return <p>불러오는 중…</p>;
+  if (!ready) return <PageSkeleton />;
   const autoCount = db.patients.filter((p) => p.source === "auto").length;
   const list = db.patients.filter((p) => (past || p.source !== "auto") && (!q || p.name.includes(q) || p.chartNo.includes(q)));
   const vacant = vacantBeds(db.sickrooms, db.patients, todayStr());
@@ -33,7 +41,7 @@ export default function Patients() {
         <b>{list.length}명</b>
         {canViewSickrooms(me) && <label className="chk"><input type="checkbox" checked={showVacant} onChange={(e) => setShowVacant(e.target.checked)} />빈병실 포함 보기 (빈 병상 {vacant.length})</label>}
         {autoCount > 0 && <label className="chk"><input type="checkbox" checked={past} onChange={(e) => setPast(e.target.checked)} />과거 환자 포함 ({autoCount}명, 스케줄 기록에서 자동 생성)</label>}
-        <input placeholder="이름·차트번호 검색" value={q} onChange={(e) => setQ(e.target.value)} />
+        <input className="qinput" placeholder="이름·차트번호 검색" value={q} onChange={(e) => setQ(e.target.value)} />
         {editable && <button className="primary" onClick={() => setEdit(blank)}>+ 환자 등록</button>}</div>
       <div className="tblwrap">
         <table className="tbl compact"><thead><tr><th>병동</th><th>병실</th><th>환자명</th><th>차트번호</th><th>입원일</th><th>퇴원예정</th>{editable && <th title="치료계약금액(본인부담, 만원)">계약금액</th>}<th>치료정보</th><th>참고사항</th><th /></tr></thead>
@@ -59,9 +67,9 @@ export default function Patients() {
           <label>치료정보<input value={edit.plan} onChange={(e) => set("plan", e.target.value)} /></label>
           <label>참고사항<input value={edit.notes} onChange={(e) => set("notes", e.target.value)} /></label>
           <div className="actions">
-            {edit.id && isAdmin(me) && <button className="danger" onClick={async () => { if (confirm("환자와 모든 스케줄이 삭제됩니다.")) { try { await deletePatient(edit.id!); setEdit(null); } catch (e) { setErr((e as Error).message); } } }}>삭제</button>}
+            {edit.id && isAdmin(me) && <button className="danger" onClick={async () => { if (confirm("환자와 모든 스케줄이 삭제됩니다.")) { try { await deletePatient(edit.id!); toast("환자를 삭제했습니다"); setEdit(null); } catch (e) { setErr((e as Error).message); } } }}>삭제</button>}
             <span style={{ flex: 1 }} /><button onClick={() => setEdit(null)}>취소</button>
-            <button className="primary" onClick={async () => { if (!edit.name) return; try { await savePatient(edit); setEdit(null); setErr(""); } catch (e) { setErr((e as Error).message); } }}>저장</button></div>{err && <p className="err">{err}</p>}
+            <button className="primary" onClick={async () => { if (!edit.name) return; try { await savePatient(edit); toast("환자 정보를 저장했습니다"); setEdit(null); setErr(""); } catch (e) { setErr((e as Error).message); } }}>저장</button></div>{err && <p className="err">{err}</p>}
         </div></div>)}
     </>
   );

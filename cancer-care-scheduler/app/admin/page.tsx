@@ -4,6 +4,7 @@ import { useStore } from "@/lib/store";
 import { ROLE_DESC, ROLE_LABEL, isAdmin, type Role } from "@/lib/perm";
 import { api } from "@/lib/api";
 import ImportPanel from "@/components/ImportPanel";
+import { useToast } from "@/lib/toast";
 
 interface U { id: number; username: string; name: string; role: Role; roomIds: string[]; active: boolean; mustChange: boolean; lastLogin: string | null; locked: boolean }
 interface Log { ts: string; username: string | null; action: string; detail: string }
@@ -16,6 +17,7 @@ export default function Admin() {
   const [users, setUsers] = useState<U[]>([]); const [logs, setLogs] = useState<Log[]>([]);
   const [edit, setEdit] = useState<(Partial<U> & { password?: string; resetPassword?: string }) | null>(null);
   const [err, setErr] = useState(""); const [msg, setMsg] = useState("");
+  const { toast } = useToast();
   const load = useCallback(() => {
     api<{ users: U[] }>("/api/users").then((r) => setUsers(r.users)).catch((e) => setErr(e.message));
     api<{ logs: Log[] }>("/api/audit").then((r) => setLogs(r.logs)).catch(() => {});
@@ -28,7 +30,7 @@ export default function Admin() {
     if (!edit) return; setErr("");
     try {
       if (edit.id) await api(`/api/users/${edit.id}`, "PUT", edit); else await api("/api/users", "POST", edit);
-      setEdit(null); load();
+      toast(edit.id ? "계정 정보를 저장했습니다" : "계정을 발급했습니다"); setEdit(null); load();
     } catch (e) { setErr((e as Error).message); }
   };
   const purge = async () => {

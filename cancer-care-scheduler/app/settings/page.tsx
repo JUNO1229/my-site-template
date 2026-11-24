@@ -4,20 +4,23 @@ import { useStore } from "@/lib/store";
 import { isAdmin } from "@/lib/perm";
 import { api } from "@/lib/api";
 import type { Item, Room } from "@/lib/types";
+import { PageSkeleton } from "@/components/Ui";
+import { useToast } from "@/lib/toast";
 
 export default function Settings() {
   const { db, me, ready, refresh } = useStore();
   const [rooms, setRooms] = useState<Room[]>([]); const [items, setItems] = useState<(Item & { slotText: string })[]>([]);
   const [msg, setMsg] = useState(""); const [err, setErr] = useState("");
+  const { toast } = useToast();
   useEffect(() => { setRooms(db.rooms); setItems(db.items.map((i) => ({ ...i, slotText: i.slots.join(",") }))); }, [db]);
-  if (!ready) return <p>불러오는 중…</p>;
+  if (!ready) return <PageSkeleton />;
   if (!isAdmin(me)) return <p className="err">시스템관리자만 접근할 수 있습니다.</p>;
   const saveAll = async () => {
     setErr(""); setMsg("");
     try {
       for (const r of rooms) await api(`/api/rooms/${r.id}`, "PUT", r);
       for (const i of items) await api(`/api/items/${i.id}`, "PUT", { ...i, slots: i.slotText.split(",").map((s) => s.trim()).filter(Boolean) });
-      await refresh(); setMsg("저장되었습니다");
+      await refresh(); setMsg(""); toast("치료실 설정을 저장했습니다");
     } catch (e) { setErr((e as Error).message); }
   };
   return (

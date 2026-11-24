@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { useAppts, useStore } from "@/lib/store";
 import { addDays, parse, pad, pname, todayStr, toMin, ymd } from "@/lib/util";
+import { PageSkeleton } from "@/components/Ui";
 
 export default function CalendarPage() {
   const { db, ready } = useStore();
@@ -12,7 +13,7 @@ export default function CalendarPage() {
   const first = parse(`${ym}-01`);
   const gridStart = addDays(ymd(first), -((first.getDay() + 6) % 7));
   const appts = useAppts(gridStart, addDays(gridStart, 41), patient?.id ?? "none");
-  if (!ready) return <p>불러오는 중…</p>;
+  if (!ready) return <PageSkeleton />;
   const cells = Array.from({ length: 42 }, (_, i) => addDays(gridStart, i)).filter((_, i, a) => i < 35 || a[35].startsWith(ym));
   const shift = (n: number) => { const d = new Date(first); d.setMonth(d.getMonth() + n); setYm(`${d.getFullYear()}-${pad(d.getMonth() + 1)}`); };
   return (

@@ -5,6 +5,8 @@ import { canEditSickrooms, canViewSickrooms } from "@/lib/perm";
 import { usage, type RoomState } from "@/lib/sickroom";
 import { todayStr } from "@/lib/util";
 import type { Sickroom } from "@/lib/types";
+import { PageSkeleton } from "@/components/Ui";
+import { useToast } from "@/lib/toast";
 
 const blank: Sickroom = { roomNo: "", beds: 1, startDate: "", endDate: "", note: "" };
 const PILL: Record<RoomState, string> = { 운영중: "ok", 시작전: "warn", 종료: "mut" };
@@ -15,16 +17,17 @@ export default function Sickrooms() {
   const [only, setOnly] = useState<"" | "vacant" | "empty" | "ended">("");
   const [err, setErr] = useState("");
   const editable = canEditSickrooms(me);
+  const { toast } = useToast();
   const today = todayStr();
   const rows = useMemo(() => usage(db.sickrooms, db.patients, today), [db.sickrooms, db.patients, today]);
-  if (!ready) return <p>불러오는 중…</p>;
+  if (!ready) return <PageSkeleton />;
   if (!canViewSickrooms(me)) return <p className="err">병실관리는 치료실 담당자 계정에서는 사용할 수 없습니다.</p>;
   const active = rows.filter((x) => x.state === "운영중");
   const totals = { rooms: active.length, beds: active.reduce((a, x) => a + x.room.beds, 0), used: active.reduce((a, x) => a + Math.min(x.used, x.room.beds), 0) };
   const list = rows.filter((x) => only === "" || (only === "vacant" && x.state === "운영중" && x.vacant > 0) || (only === "empty" && x.state === "운영중" && x.used === 0) || (only === "ended" && x.state !== "운영중"));
   const set = (k: keyof Sickroom, v: string | number) => setEdit((e) => e && { ...e, r: { ...e.r, [k]: v } });
-  const save = async () => { if (!edit) return; try { await saveSickroom(edit.r, edit.isNew); setEdit(null); setErr(""); } catch (e) { setErr((e as Error).message); } };
-  const del = async () => { if (!edit || !confirm(`병실 ${edit.r.roomNo} 정보를 삭제합니다.`)) return; try { await deleteSickroom(edit.r.roomNo); setEdit(null); setErr(""); } catch (e) { setErr((e as Error).message); } };
+  const save = async () => { if (!edit) return; try { await saveSickroom(edit.r, edit.isNew); toast(edit.isNew ? "병실을 등록했습니다" : "병실 정보를 저장했습니다"); setEdit(null); setErr(""); } catch (e) { setErr((e as Error).message); } };
+  const del = async () => { if (!edit || !confirm(`병실 ${edit.r.roomNo} 정보를 삭제합니다.`)) return; try { await deleteSickroom(edit.r.roomNo); toast("병실을 삭제했습니다"); setEdit(null); setErr(""); } catch (e) { setErr((e as Error).message); } };
   return (
     <>
       <div className="toolbar"><h2>병실관리</h2>

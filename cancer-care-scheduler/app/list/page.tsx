@@ -3,9 +3,12 @@ import { useMemo, useState } from "react";
 import { useAppts, useStore } from "@/lib/store";
 import { STATUSES } from "@/lib/types";
 import { addDays, csvEscape, label, pname, todayStr, toMin } from "@/lib/util";
+import { PageSkeleton } from "@/components/Ui";
+import { useToast } from "@/lib/toast";
 
 export default function ListPage() {
   const { db, ready } = useStore();
+  const { toast } = useToast();
   const [from, setFrom] = useState(addDays(todayStr(), -7));
   const [to, setTo] = useState(addDays(todayStr(), 14));
   const [kw, setKw] = useState(""); const [room, setRoom] = useState(""); const [st, setSt] = useState("");
@@ -16,14 +19,14 @@ export default function ListPage() {
     if (room && it?.roomId !== room) return false; if (st && a.status !== st) return false;
     return !kw || `${p?.name}${it?.name}`.includes(kw);
   }).sort((a, b) => a.date.localeCompare(b.date) || toMin(a.time) - toMin(b.time)), [appts, db, from, to, kw, room, st]);
-  if (!ready) return <p>불러오는 중…</p>;
+  if (!ready) return <PageSkeleton />;
   const exportCsv = () => {
     const head = ["치료일자", "시작시간", "환자(병동)", "치료실", "치료", "옵션", "상태", "비고"];
     const body = rows.map((a) => { const it = db.items.find((i) => i.id === a.itemId)!;
       return [a.date, a.time, pname(db.patients.find((p) => p.id === a.patientId)), db.rooms.find((r) => r.id === it.roomId)?.name ?? "", it.name, a.option, a.status, a.memo]; });
     const csv = "﻿" + [head, ...body].map((r) => r.map(csvEscape).join(",")).join("\n");
     const url = URL.createObjectURL(new Blob([csv], { type: "text/csv" }));
-    const el = document.createElement("a"); el.href = url; el.download = `치료스케줄_${from}_${to}.csv`; el.click(); URL.revokeObjectURL(url);
+    const el = document.createElement("a"); el.href = url; el.download = `치료스케줄_${from}_${to}.csv`; el.click(); URL.revokeObjectURL(url); toast(`${rows.length}건을 CSV로 내보냈습니다`);
   };
   return (
     <>
