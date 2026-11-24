@@ -1,5 +1,6 @@
 /* ===== 소프트 퍼플 UI — 디자인 정의서 토큰 ===== */
 :root{
+  --sb:rgba(110,79,168,.26);--sb-h:rgba(110,79,168,.5);--sb-a:rgba(110,79,168,.68);
   --th-bg:#E6DDF5;--th-fg:#4A3380;
   --bg:#EEEFF6;--surface:#fff;--field:#F3F4F9;--text:#1F1D2B;--text2:#6E6E82;
   --p1:#8E6BBF;--p2:#6E4FA8;--psoft:#B9A2DA;--a1:#F28DA6;--a2:#EE6E8F;--aline:#EC7A98;
@@ -10,7 +11,7 @@
   --font:"Pretendard Variable",Pretendard,-apple-system,"Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
   color-scheme:light;
 }
-@media(prefers-color-scheme:dark){:root:not([data-theme=light]){--th-bg:#3A3150;--th-fg:#DCD0F2;--bg:#16151F;--surface:#22212E;--field:#2B2A39;--text:#F2F1F8;--text2:#A6A5BA;--tint:rgba(185,162,218,.12);--hair:rgba(255,255,255,.07);--sh-card:0 8px 24px rgba(0,0,0,.35);color-scheme:dark}}
+@media(prefers-color-scheme:dark){:root:not([data-theme=light]){--sb:rgba(185,162,218,.28);--sb-h:rgba(185,162,218,.5);--sb-a:rgba(185,162,218,.7);--th-bg:#3A3150;--th-fg:#DCD0F2;--bg:#16151F;--surface:#22212E;--field:#2B2A39;--text:#F2F1F8;--text2:#A6A5BA;--tint:rgba(185,162,218,.12);--hair:rgba(255,255,255,.07);--sh-card:0 8px 24px rgba(0,0,0,.35);color-scheme:dark}}
 :root[data-theme=dark]{--th-bg:#3A3150;--th-fg:#DCD0F2;--bg:#16151F;--surface:#22212E;--field:#2B2A39;--text:#F2F1F8;--text2:#A6A5BA;--tint:rgba(185,162,218,.12);--hair:rgba(255,255,255,.07);--sh-card:0 8px 24px rgba(0,0,0,.35);color-scheme:dark}
 *{box-sizing:border-box}html{-webkit-text-size-adjust:100%}
 body{margin:0;font:400 14px/1.5 var(--font);background:var(--bg);color:var(--text);transition:background .3s,color .3s;-webkit-font-smoothing:antialiased}
@@ -365,3 +366,16 @@ button.btn-end,button.btn-restore{display:inline-flex;align-items:center;justify
 .sumbox{display:flex;flex-direction:column;justify-content:center;gap:1px;min-height:51px;padding:6px 18px;border-radius:var(--r-m);background:var(--surface);box-shadow:var(--sh-card);animation:rise .4s backwards}
 .sumbox small{font-size:11px;font-weight:500;color:var(--text2)}.sumbox b{font-size:17px;font-weight:700;color:var(--p2);font-variant-numeric:tabular-nums;white-space:nowrap}
 :root[data-theme=dark] .sumbox b{color:var(--psoft)}
+/* ===== 슬림 스크롤바(시스템 스타일) =====
+   표시 폭 약 5px의 둥근 보라 막대, 화살표 버튼 없음. Chrome/Edge/Safari는 ::-webkit-scrollbar, Firefox는 scrollbar-width 사용 */
+@supports selector(::-webkit-scrollbar){
+  ::-webkit-scrollbar{width:9px;height:9px;background:transparent}
+  ::-webkit-scrollbar-track{background:transparent}
+  ::-webkit-scrollbar-corner{background:transparent}
+  ::-webkit-scrollbar-button{display:none;width:0;height:0}
+  ::-webkit-scrollbar-thumb{background:var(--sb);background-clip:padding-box;border:2px solid transparent;border-radius:999px;min-height:36px;min-width:36px;transition:background .15s}
+  ::-webkit-scrollbar-thumb:hover{background:var(--sb-h);background-clip:padding-box}
+  ::-webkit-scrollbar-thumb:active{background:var(--sb-a);background-clip:padding-box}
+}
+@supports not selector(::-webkit-scrollbar){*{scrollbar-width:thin;scrollbar-color:var(--sb-h) transparent}}
+.side-actions .btn-soft{white-space:nowrap;padding:0 10px;gap:5px;font-size:13px}
