@@ -8,7 +8,8 @@ import { useStore, useAppts } from "@/lib/store";
 import { useUi, useNow } from "@/lib/ui";
 import { ROLE_LABEL, canViewSickrooms, isAdmin } from "@/lib/perm";
 import { api } from "@/lib/api";
-import { findConflicts, label, toMin, todayStr } from "@/lib/util";
+import { findConflicts, toMin, todayStr } from "@/lib/util";
+import LiveClock from "./LiveClock";
 
 export default function Shell({ children }: { children: React.ReactNode }) {
   const path = usePathname(); const router = useRouter();
@@ -77,7 +78,7 @@ export default function Shell({ children }: { children: React.ReactNode }) {
           <button className="icon-btn menu-btn" aria-label="메뉴 열기" onClick={() => setDrawer(true)}><Icon name="menu" /></button>
           <Link href="/account" className="greet" aria-label="내 계정">
             {me && <Avatar name={me.name} size={40} />}
-            <div><b>안녕하세요, {me?.name ?? ""}님</b><small>{me ? ROLE_LABEL[me.role] : ""} · {label(today)}</small></div>
+            <div><b>안녕하세요, {me?.name ?? ""}님</b><small>{me ? ROLE_LABEL[me.role] : ""} · <LiveClock /></small></div>
           </Link>
           <form className="searchbar" onSubmit={submitSearch} role="search">
             <Icon name="search" size={18} /><input ref={search} name="q" placeholder="환자 이름·차트번호 검색" aria-label="환자 검색" autoComplete="off" /><kbd>/</kbd>
