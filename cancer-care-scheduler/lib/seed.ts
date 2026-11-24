@@ -25,7 +25,7 @@ export function makeSeed(today: string, nowMin: number): { patients: Patient[]; 
     dischargeDate: addDays(today, 20 + Math.floor(r() * 60)), plan: PLANS[i % PLANS.length], notes: NOTES[i % NOTES.length],
   }));
   const appts: Appt[] = [];
-  const used = new Set<string>(); // date|itemId|time
+  const used = new Map<string, number>(); // date|itemId|time -> 인원
   const busy = new Map<string, number[]>(); // date|patient -> [start...]
   const start = mondayOf(addDays(today, -14));
   patients.forEach((p, pi) => {
@@ -43,12 +43,12 @@ export function makeSeed(today: string, nowMin: number): { patients: Patient[]; 
         if (dow(date) === "토" || dow(date) === "일") continue;
         const shuffled = [...it.slots].sort(() => r() - 0.5);
         const time = shuffled.find((t) => {
-          if (used.has(`${date}|${k}|${t}`)) return false;
+          if ((used.get(`${date}|${k}|${t}`) ?? 0) >= (it.capacity ?? 1)) return false;
           const b = busy.get(`${date}|${p.id}`) ?? [];
           return b.every((x) => Math.abs(x - toMin(t)) >= 70);
         });
         if (!time) continue;
-        used.add(`${date}|${k}|${time}`);
+        used.set(`${date}|${k}|${time}`, (used.get(`${date}|${k}|${time}`) ?? 0) + 1);
         busy.set(`${date}|${p.id}`, [...(busy.get(`${date}|${p.id}`) ?? []), toMin(time)]);
         const status = date < today ? (r() < 0.07 ? "취소" : "완료")
           : date === today ? (toMin(time) < nowMin ? "완료" : "예약") : "예약";

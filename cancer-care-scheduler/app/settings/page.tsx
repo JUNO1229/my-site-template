@@ -31,6 +31,7 @@ export default function Settings() {
           {items.filter((i) => i.roomId === r.id).map((i) => (
             <div key={i.id} className="row sub"><label>치료항목<input value={i.name} onChange={(e) => setItems(items.map((x) => x.id === i.id ? { ...x, name: e.target.value } : x))} /></label>
               <label>소요(분)<input type="number" value={i.duration} onChange={(e) => setItems(items.map((x) => x.id === i.id ? { ...x, duration: Number(e.target.value) } : x))} /></label>
+              <label>동시 수용 인원<input type="number" min={1} value={i.capacity} onChange={(e) => setItems(items.map((x) => x.id === i.id ? { ...x, capacity: Number(e.target.value) } : x))} /></label>
               <label>시작시간 목록(HH:MM, 쉼표)<input value={i.slotText} onChange={(e) => setItems(items.map((x) => x.id === i.id ? { ...x, slotText: e.target.value } : x))} /></label></div>))}
         </section>))}
     </>

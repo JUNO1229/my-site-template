@@ -3,7 +3,7 @@ export type Status = "예약" | "완료" | "취소";
 export const STATUSES: Status[] = ["예약", "완료", "취소"];
 export const OPTIONS = ["", "K", "C", "S", "J", "무료"] as const;
 
-export interface Item { id: string; roomId: string; name: string; duration: number; slots: string[] }
+export interface Item { id: string; roomId: string; name: string; duration: number; capacity: number; slots: string[] }
 export interface Room { id: string; name: string; therapist: string; active: boolean; color: string }
 export interface Patient {
   id: string; chartNo: string; name: string; ward: Ward; bed: string;

@@ -24,7 +24,7 @@ for (const st of [`CREATE TABLE IF NOT EXISTS users (
   active BOOLEAN NOT NULL DEFAULT true, color TEXT NOT NULL DEFAULT '#2563eb', sort INT NOT NULL DEFAULT 0)`,
 `CREATE TABLE IF NOT EXISTS items (
   id TEXT PRIMARY KEY, room_id TEXT NOT NULL REFERENCES rooms(id), name TEXT NOT NULL,
-  duration INT NOT NULL DEFAULT 50, slots TEXT[] NOT NULL DEFAULT '{}', sort INT NOT NULL DEFAULT 0)`,
+  duration INT NOT NULL DEFAULT 50, capacity INT NOT NULL DEFAULT 1, slots TEXT[] NOT NULL DEFAULT '{}', sort INT NOT NULL DEFAULT 0)`,
 `CREATE TABLE IF NOT EXISTS patients (
   id TEXT PRIMARY KEY, chart_no TEXT NOT NULL DEFAULT '', name TEXT NOT NULL, ward TEXT NOT NULL DEFAULT '1',
   bed TEXT NOT NULL DEFAULT '', admit_date TEXT NOT NULL DEFAULT '', discharge_date TEXT NOT NULL DEFAULT '',
@@ -39,11 +39,13 @@ for (const st of [`CREATE TABLE IF NOT EXISTS users (
 `CREATE TABLE IF NOT EXISTS audit_log (
   id BIGSERIAL PRIMARY KEY, ts TIMESTAMPTZ NOT NULL DEFAULT now(), username TEXT, action TEXT NOT NULL, detail TEXT NOT NULL DEFAULT '')`]) await q(st);
 
+await q("ALTER TABLE items ADD COLUMN IF NOT EXISTS capacity INT NOT NULL DEFAULT 1");
+
 if ((await q("SELECT 1 FROM rooms LIMIT 1")).length === 0) {
   let i = 0;
   for (const r of cfg.rooms) await q("INSERT INTO rooms(id,name,therapist,active,color,sort) VALUES($1,$2,$3,$4,$5,$6)", [r.id, r.name, r.therapist, r.active, r.color, i++]);
   i = 0;
-  for (const t of cfg.items) await q("INSERT INTO items(id,room_id,name,duration,slots,sort) VALUES($1,$2,$3,$4,$5,$6)", [t.id, t.roomId, t.name, t.duration, t.slots, i++]);
+  for (const t of cfg.items) await q("INSERT INTO items(id,room_id,name,duration,capacity,slots,sort) VALUES($1,$2,$3,$4,$5,$6,$7)", [t.id, t.roomId, t.name, t.duration, t.capacity ?? 1, t.slots, i++]);
   console.log("치료실/치료항목 기본값 입력 완료");
 }
 
