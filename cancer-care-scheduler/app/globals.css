@@ -409,3 +409,7 @@ button.btn-end,button.btn-restore{display:inline-flex;align-items:center;justify
 /* 모바일 인사 영역: 긴 이름도 종 아이콘에 가려지지 않게 글자를 줄이고 넘치면 … 처리 */
 .greet>div{min-width:0}.greet b{overflow:hidden;text-overflow:ellipsis}
 @media(max-width:480px){.greet{gap:10px}.greet b{font-size:15px}.greet small{font-size:12px;overflow:hidden;text-overflow:ellipsis}}
+/* 환자명부: 오늘 날짜 칩(제목 오른쪽) · 빈병실 포함보기 체크(툴바 맨 오른쪽 끝) */
+.todaychip{display:inline-flex;align-items:center;gap:6px;height:30px;padding:0 12px;border-radius:999px;background:var(--surface);box-shadow:var(--sh-card);font-size:12.5px;font-weight:500;color:var(--text2);font-variant-numeric:tabular-nums;white-space:nowrap}
+.todaychip b{color:var(--p2);font-weight:700}:root[data-theme=dark] .todaychip b{color:var(--psoft)}.todaychip .ic{color:var(--p1)}
+.toolbar .vacchk{margin-left:auto;white-space:nowrap}
