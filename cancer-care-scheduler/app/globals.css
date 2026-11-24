@@ -35,3 +35,7 @@ button{cursor:pointer}button.primary{background:var(--pri);color:#fff;border-col
 .err{color:var(--bad);margin:4px 0}.ok{color:var(--ok);margin:4px 0}
 .who{display:flex;gap:8px;align-items:center;white-space:nowrap}.who a{color:var(--fg);text-decoration:none;font-size:13px}
 .login{margin:12vh auto 0;width:min(380px,92vw)}.login h2{margin:0}
+.tblwrap{overflow-x:auto;border:1px solid var(--bd);border-radius:8px}
+.tbl.compact th,.tbl.compact td{white-space:nowrap;padding:6px 12px}
+.tbl.compact td.long{max-width:250px;overflow:hidden;text-overflow:ellipsis}
+.tbl.compact th:first-child,.tbl.compact td:first-child{font-weight:600;width:1%}
