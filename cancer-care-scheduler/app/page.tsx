@@ -42,7 +42,7 @@ export default function Monitor() {
   return (
     <>
       <div className="toolbar">
-        <h2>통합 모니터링</h2>
+        <h2>치료실 통합모니터링</h2>
         <span className="pill ok livepill"><i className="dot" />실시간 자동 갱신</span><span className="spacer" />
         <div className="seg" role="tablist"><button className={view === "cards" ? "on" : ""} onClick={() => setView("cards")} role="tab" aria-selected={view === "cards"}>치료실별</button>
           <button className={view === "timeline" ? "on" : ""} onClick={() => setView("timeline")} role="tab" aria-selected={view === "timeline"}>타임라인</button></div>
