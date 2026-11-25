@@ -1,5 +1,6 @@
 import { audit, body, HttpError, route } from "@/lib/server/auth";
 import { q } from "@/lib/server/db";
+import { adoptTemps } from "@/lib/server/patient";
 import { isDate, isTime, OPTS, STATUS, str } from "@/lib/server/validate";
 
 const MAX = 3000;
@@ -21,7 +22,8 @@ export const POST = route(async (req) => {
       ins AS (INSERT INTO patients(id,chart_no,name,ward,bed,admit_date,discharge_date,plan,notes,contract_amount,source)
         SELECT gen_random_uuid()::text,chart_no,name,ward,bed,admit_date,discharge_date,plan,notes,contract_amount,'${b.kind === "stubs" ? "auto" : "registry"}' FROM x ${conflict} RETURNING (xmax=0) AS inserted)
       SELECT count(*) FILTER (WHERE inserted)::int AS inserted, count(*) FILTER (WHERE NOT inserted)::int AS updated FROM ins`, [JSON.stringify(data)]);
-    return { inserted: r[0].inserted, updated: r[0].updated };
+    const a = b.kind === "patients" ? await adoptTemps() : { merged: 0, moved: 0 };
+    return { inserted: r[0].inserted, updated: r[0].updated, merged: a.merged };
   }
   if (b.kind === "appts") {
     const items = new Set((await q("SELECT id FROM items")).map((i) => i.id as string));

@@ -6,11 +6,13 @@ import { OPTIONS, STATUSES, type Appt } from "@/lib/types";
 import { pname } from "@/lib/util";
 import { canEditRoom } from "@/lib/perm";
 import { Icon } from "./Icons";
+import { api } from "@/lib/api";
 import DateField from "./DateField";
 
 export type Draft = Partial<Appt> & { date: string };
 export default function ApptModal({ draft, onClose }: { draft: Draft; onClose: () => void }) {
-  const { db, me, saveAppt, deleteAppt } = useStore();
+  const { db, me, saveAppt, deleteAppt, refresh } = useStore();
+  const [tmpOpen, setTmpOpen] = useState(false); const [tmpName, setTmpName] = useState(""); const [tmpBusy, setTmpBusy] = useState(false);
   const { toast } = useToast();
   const [closing, setClosing] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -23,6 +25,14 @@ export default function ApptModal({ draft, onClose }: { draft: Draft; onClose: (
   const patient = db.patients.find((p) => p.id === f.patientId);
   const writable = canEditRoom(me, item?.roomId);
   const valid = !!f.patientId && !!f.itemId && !!f.time && !!f.date;
+  const addTemp = async () => {
+    if (tmpBusy || tmpName.trim().length < 2) return; setTmpBusy(true); setErr("");
+    try {
+      const r = await api<{ id: string; reused?: boolean }>("/api/patients/temp", "POST", { name: tmpName.trim() });
+      await refresh(); setF((p) => ({ ...p, patientId: r.id })); setTmpOpen(false); setTmpName(""); setQ("");
+      toast(r.reused ? "이미 임시 등록된 환자입니다. 선택했습니다" : "임시 환자로 등록했습니다 — 상담실에서 정보를 입력하면 자동으로 합쳐집니다");
+    } catch (e) { setErr((e as Error).message); } finally { setTmpBusy(false); }
+  };
   const close = () => { setClosing(true); setTimeout(onClose, 180); };
   useEffect(() => { const k = (e: KeyboardEvent) => { if (e.key === "Escape") close(); }; document.addEventListener("keydown", k); return () => document.removeEventListener("keydown", k); }); // eslint-disable-line
   /** keep=true: 등록 후 창을 닫지 않고 환자만 비워 다음 환자를 이어서 입력한다 */
@@ -51,6 +61,12 @@ export default function ApptModal({ draft, onClose }: { draft: Draft; onClose: (
           <label>환자<select value={f.patientId} onChange={(e) => set("patientId", e.target.value)}>
             <option value="" disabled>환자를 선택하세요</option>
             {db.patients.filter((p) => (p.source !== "auto" && p.status !== "discharged" && (!q.trim() || (pname(p) + " " + p.chartNo).toLowerCase().includes(q.trim().toLowerCase()))) || p.id === f.patientId).map((p) => <option key={p.id} value={p.id}>{pname(p)} · 차트 {p.chartNo || "-"}</option>)}</select></label>
+          {!f.id && (tmpOpen ? (
+            <div className="tmpreg"><small className="hint">상담실에서 아직 환자명부에 입력하지 않은 환자입니다. 이름만 먼저 입력하면 임시 환자로 등록되고, 나중에 상담실이 등록하면 스케줄이 자동으로 합쳐집니다.</small>
+              <div className="row"><input value={tmpName} onChange={(e) => setTmpName(e.target.value)} placeholder="환자 이름 (예: 홍길동)" maxLength={30} autoFocus onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addTemp(); } }} />
+                <button type="button" className="btn-soft" disabled={tmpBusy || tmpName.trim().length < 2} onClick={addTemp}>{tmpBusy ? "등록 중…" : "임시 등록"}</button>
+                <button type="button" className="btn-ghost" onClick={() => setTmpOpen(false)}>취소</button></div></div>
+          ) : <button type="button" className="linkbtn" onClick={() => setTmpOpen(true)}>+ 명단에 없는 환자 (이름만 먼저 임시 등록)</button>)}
           {patient && (patient.plan || patient.notes) && <p className="hint planhint">{patient.plan}{patient.notes && ` / ${patient.notes}`}</p>}
           <div className="row">
             <label>치료일자<DateField value={f.date} onChange={(v) => set("date", v)} /></label>

@@ -6,6 +6,9 @@ import { useAppts, useStore } from "@/lib/store";
 import { useUi } from "@/lib/ui";
 import { addDays, dow, todayStr, toMin } from "@/lib/util";
 import type { Patient } from "@/lib/types";
+import { api } from "@/lib/api";
+import { useToast } from "@/lib/toast";
+import { pname } from "@/lib/util";
 
 const ward = (p: Patient) => (p.ward === "외" ? "외래" : p.ward ? `${p.ward}병동` : "");
 const md = (d: string) => `${Number(d.slice(5, 7))}월 ${Number(d.slice(8))}일(${dow(d)})`;
@@ -14,7 +17,14 @@ const md = (d: string) => `${Number(d.slice(5, 7))}월 ${Number(d.slice(8))}일(
 export default function PatientDrawer({ p, canSeeAmount, canEdit, onClose, onEdit, onEnd }: {
   p: Patient; canSeeAmount: boolean; canEdit: boolean; onClose: () => void; onEdit: (p: Patient) => void; onEnd: (p: Patient) => void;
 }) {
-  const { db, me } = useStore(); const { openAppt } = useUi();
+  const { db, me, refresh } = useStore(); const { openAppt } = useUi(); const { toast } = useToast();
+  const [target, setTarget] = useState(""); const [merging, setMerging] = useState(false);
+  const isTemp = p.source === "temp";
+  const merge = async () => {
+    if (!target || merging) return; setMerging(true);
+    try { const r = await api<{ moved: number }>(`/api/patients/${p.id}/merge`, "POST", { targetId: target }); await refresh(); toast(`스케줄 ${r.moved}건을 실제 환자로 옮기고 합쳤습니다`); close(); }
+    catch (e) { toast((e as Error).message, "err"); setMerging(false); }
+  };
   const [closing, setClosing] = useState(false);
   const today = todayStr();
   const appts = useAppts(addDays(today, -180), addDays(today, 90), p.id);
@@ -40,10 +50,18 @@ export default function PatientDrawer({ p, canSeeAmount, canEdit, onClose, onEdi
           <Avatar name={p.name} size={56} />
           <div className="grow"><h3>{p.name}</h3>
             <div className="dsub">{p.chartNo && <span>차트 {p.chartNo}</span>}{ward(p) && <span>{ward(p)}</span>}{room && <span>{room}{/^\d/.test(room) ? "호" : ""}</span>}</div>
-            <span className={`pill ${ended ? "mut" : "ok"}`}>{ended ? "퇴원·종료" : p.ward === "외" ? "외래" : "재원"}</span></div>
+            <span className={`pill ${ended ? "mut" : "ok"}`}>{ended ? "퇴원·종료" : isTemp ? "임시 · 상담실 등록 대기" : p.ward === "외" ? "외래" : "재원"}</span></div>
           <button className="icon-btn" aria-label="닫기" onClick={close}><Icon name="x" /></button>
         </div>
         <div className="drawer-body">
+          {isTemp && (
+            <div className="tmpnote"><b>임시 환자</b> — 치료실에서 이름만 먼저 입력한 환자입니다. 환자명부에 같은 이름으로 등록하면 스케줄이 자동으로 옮겨집니다.
+              {canEdit && <><div className="hint" style={{ margin: "8px 0 6px" }}>이미 등록된 환자와 이름이 다르면 직접 합쳐 주세요. (아니면 아래 ‘수정’에서 병동·차트번호를 입력해 그대로 정식 등록)</div>
+                <div className="row" style={{ gap: 8, alignItems: "center" }}>
+                  <select value={target} onChange={(e) => setTarget(e.target.value)} style={{ flex: 1 }}><option value="">합칠 실제 환자 선택</option>
+                    {db.patients.filter((x) => x.source === "registry" && x.status !== "discharged").map((x) => <option key={x.id} value={x.id}>{pname(x)} · 차트 {x.chartNo || "-"}</option>)}</select>
+                  <button className="primary" disabled={!target || merging} onClick={() => confirm("임시 환자의 모든 스케줄을 선택한 환자로 옮기고, 임시 환자는 삭제됩니다. 진행할까요?") && merge()}>합치기</button></div></>}
+            </div>)}
           <div className="infogrid">
             <div className="ig"><small>입원일 / 치료시작일</small><b>{p.admitDate || "-"}</b></div>
             <div className="ig"><small>{ended ? "퇴원 / 종료일" : "퇴원 예정일"}</small><b>{p.dischargeDate || "-"}</b></div>

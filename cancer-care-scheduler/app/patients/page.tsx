@@ -31,13 +31,15 @@ export default function Patients() {
     window.addEventListener("global-search", on); return () => window.removeEventListener("global-search", on);
   }, []);
   const [edit, setEdit] = useState<(Omit<Patient, "id"> & { id?: string }) | null>(null);
+  const [tempOnly, setTempOnly] = useState(false);
   if (!ready) return <PageSkeleton />;
   const registry = db.patients.filter((p) => p.source !== "auto");
   const isEnded = (p: Patient) => p.status === "discharged";
   const isOut = (p: Patient) => p.ward === "외";
   const inN = registry.filter((p) => !isEnded(p) && !isOut(p)).length, outN = registry.filter((p) => !isEnded(p) && isOut(p)).length;
   const inView = (p: Patient) => (view === "ended" ? isEnded(p) : !isEnded(p) && (view === "out") === isOut(p));
-  const list = registry.filter((p) => inView(p) && (!q || p.name.includes(q) || p.chartNo.includes(q)));
+  const temps = registry.filter((p) => p.source === "temp" && !isEnded(p));
+  const list = registry.filter((p) => (tempOnly ? temps.includes(p) : inView(p)) && (!q || p.name.includes(q) || p.chartNo.includes(q)));
   // 계약금액 합계액: 현재 환자(재원+외래, 퇴원·종료 제외). 금액을 볼 수 있는 계정(editable)에만 표시
   const cur = registry.filter((p) => !isEnded(p)); const totalAmt = cur.reduce((s, p) => s + (p.contractAmount ?? 0), 0); const noAmt = cur.filter((p) => p.contractAmount == null).length;
   const infoP = db.patients.find((p) => p.id === info) ?? null;
@@ -57,6 +59,7 @@ export default function Patients() {
         <div className="seg" role="tablist">
           <button className={view === "in" ? "on" : ""} role="tab" aria-selected={view === "in"} onClick={() => setView("in")}>재원 {inN}</button>
           <button className={view === "out" ? "on" : ""} role="tab" aria-selected={view === "out"} onClick={() => setView("out")}>외래 {outN}</button>
+          {temps.length > 0 && <button className={`tmpchip ${tempOnly ? "on" : ""}`} aria-pressed={tempOnly} title="치료실에서 임시로 입력한 환자 — 상담실 등록 필요" onClick={() => setTempOnly((v) => !v)}>임시 {temps.length}</button>}
                   </div>
         {editable && <div className="sumbox" title={`현재 환자(재원+외래) ${cur.length}명 · ${totalAmt.toLocaleString("ko-KR")}만원${noAmt ? ` · 계약금액 미입력 ${noAmt}명 제외` : ""}`}><small>계약금액 합계액</small><b>{fmtMan(totalAmt)}</b></div>}
         </div>
@@ -69,7 +72,7 @@ export default function Patients() {
           <tbody>{rows.map((r, i) => r.vacant || !r.p ? (
             <tr key={`v${i}`} className="vacant"><td>{/^\d/.test(r.bed) ? r.bed[0] : ""}</td><td>{r.bed}</td><td>(빈병실)</td><td colSpan={editable ? 7 : 6} /></tr>
           ) : (() => { const p = r.p; return (
-            <tr key={p.id} className={`clickable ${isEnded(p) ? "ended" : ""}`} tabIndex={0} onClick={() => setInfo(p.id)} onKeyDown={(e) => { if (e.key === "Enter") setInfo(p.id); }}><td>{p.ward}</td><td>{r.bed}</td><td>{p.name}</td><td>{p.chartNo}</td><td>{p.admitDate}</td><td>{p.dischargeDate}</td>
+            <tr key={p.id} className={`clickable ${isEnded(p) ? "ended" : ""}`} tabIndex={0} onClick={() => setInfo(p.id)} onKeyDown={(e) => { if (e.key === "Enter") setInfo(p.id); }}><td>{p.ward}</td><td>{r.bed}</td><td>{p.name}{p.source === "temp" && <em className="tmpbadge" title="치료실에서 임시로 입력한 환자 — 상담실 등록 대기">임시</em>}</td><td>{p.chartNo}</td><td>{p.admitDate}</td><td>{p.dischargeDate}</td>
               {editable && <td style={{ textAlign: "right" }}>{p.contractAmount != null ? `${p.contractAmount.toLocaleString("ko-KR")}만원` : ""}</td>}
               <td className="plan">{p.plan}</td><td className="notes">{p.notes}</td>
               <td className="rowact" onClick={(e) => e.stopPropagation()}>{editable && (isEnded(p) ? <button className="btn-restore" onClick={() => setEnd({ p, date: todayStr() })}>복귀</button> : <button className="btn-end" onClick={() => setEnd({ p, date: todayStr() })}>퇴원/종료</button>)}{editable && <button onClick={() => setEdit(p)}>수정</button>}</td></tr>); })())}</tbody></table>

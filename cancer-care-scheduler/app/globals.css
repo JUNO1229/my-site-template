@@ -437,3 +437,10 @@ button.btn-end,button.btn-restore{display:inline-flex;align-items:center;justify
 .devmon .matrix{width:100%;border-collapse:collapse;font-size:13.5px}.devmon .matrix th,.devmon .matrix td{padding:8px 10px;text-align:center;border-bottom:1px solid var(--line,rgba(0,0,0,.07))}.devmon .matrix td:first-child,.devmon .matrix th:first-child{text-align:left}
 .devmon .ok{color:#15803d;font-weight:700}.devmon .no{color:var(--text2);opacity:.55}
 .devmon .sec2{margin:22px 0 10px;font-size:15px;font-weight:700}
+
+.tmpbadge{margin-left:6px;padding:1px 8px;border-radius:999px;background:#fef3c7;color:#92400e;font-size:11px;font-style:normal;font-weight:700;vertical-align:1px}
+.seg button.tmpchip{background:#fef3c7;color:#92400e}.seg button.tmpchip.on{background:#d97706;color:#fff;box-shadow:none}
+.tmpnote{margin:0 0 14px;padding:12px 14px;border-radius:var(--r-m);background:#fffbeb;color:#78350f;font-size:13.5px;line-height:1.5}
+:root[data-theme=dark] .tmpnote{background:rgba(217,119,6,.16);color:#fcd34d}:root[data-theme=dark] .tmpbadge{background:rgba(217,119,6,.28);color:#fcd34d}
+.tmpreg{margin-top:8px;padding:10px 12px;border-radius:var(--r-m);background:var(--field);display:grid;gap:8px}.tmpreg .row{display:flex;gap:8px}.tmpreg input{flex:1}
+.linkbtn{border:0;background:none;color:var(--p2);font-weight:600;font-size:13px;padding:4px 0;text-align:left}.linkbtn:hover{text-decoration:underline}
