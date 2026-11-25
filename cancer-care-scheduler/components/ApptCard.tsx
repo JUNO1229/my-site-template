@@ -27,7 +27,7 @@ export default function ApptCard({ a, patient, item, room, conflict, today, nowM
       role="button" tabIndex={0} onClick={() => onOpen(a)} onKeyDown={(ev) => { if (ev.key === "Enter" || ev.key === " ") { ev.preventDefault(); onOpen(a); } }}
       aria-label={`${a.time} ${patient?.name ?? ""} ${item?.name ?? ""} ${a.status}`}>
       <div className="ac-main">
-        <div className="ac-title">{patient?.name ?? "?"}{patient?.ward && <small>{patient.ward}병동</small>}
+        <div className="ac-title">{patient?.name ?? "?"}{patient?.ward && <small>{patient.ward === "외" ? "외래" : `${patient.ward}병동`}</small>}
           {conflict && <span className="warn-ic" title={conflict}><Icon name="alert" size={15} /></span>}</div>
         <div className="ac-cap">{item?.name}{a.option && ` · ${a.option}`}{showRoom && room && ` · ${room.name}`}</div>
         <div className="ac-time"><Icon name="clock" size={13} />{hm(s)} – {hm(e)}{current && <b className="live">진행 중</b>}</div>
