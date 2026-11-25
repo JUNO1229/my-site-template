@@ -2,7 +2,7 @@
 import { useEffect, useMemo, useState } from "react";
 import DatePicker from "@/components/DatePicker";
 import ApptCard from "@/components/ApptCard";
-import { Avatar, AvatarStack, CountUp, PageSkeleton, PopMenu, ProgressBar } from "@/components/Ui";
+import { CountUp, PageSkeleton, ProgressBar } from "@/components/Ui";
 import { Icon } from "@/components/Icons";
 import { useAppts, useStore } from "@/lib/store";
 import { useNow, useStatusChange, useUi } from "@/lib/ui";
@@ -37,13 +37,17 @@ export default function Monitor() {
 
   const card = (a: Appt, i: number) => (
     <ApptCard key={a.id} a={a} patient={db.patients.find((p) => p.id === a.patientId)} item={itemOf(a)} room={roomOf(a)} conflict={conflicts.get(a.id)}
-      today={today} nowMin={nowMin} me={me} onOpen={openAppt} onStatus={setStatus} showRoom={view === "timeline" || !!roomId} delay={Math.min(i, 12) * 35} />);
+      today={today} nowMin={nowMin} me={me} onOpen={openAppt} onStatus={setStatus} showRoom={view === "timeline" || !!roomId} delay={Math.min(i, 12) * 35} compact={view === "cards"} hideItem={db.items.filter((x) => x.roomId === itemOf(a)?.roomId).length <= 1} />);
 
   return (
-    <>
+    <div className="mon">
       <div className="toolbar">
         <h2>치료실 통합모니터링</h2>
-        <span className="pill ok livepill"><i className="dot" />실시간 자동 갱신</span><span className="spacer" />
+        <span className="pill ok livepill" title="1분마다 자동 갱신"><i className="dot" />실시간</span>
+        <div className="kchips" aria-label="일정 요약">
+          <span className="kc">전체 <b><CountUp value={shown.length} /></b></span><span className="kc s-예약">예약 <b><CountUp value={count(shown, "예약")} /></b></span>
+          <span className="kc s-완료">치료완료 <b><CountUp value={count(shown, "완료")} /></b></span><span className="kc s-취소">예약취소 <b><CountUp value={count(shown, "취소")} /></b></span>
+          <span className={`kc ${conflictCount ? "bad" : ""}`}>충돌 <b><CountUp value={conflictCount} /></b></span></div><span className="spacer" />
         <div className="seg" role="tablist"><button className={view === "cards" ? "on" : ""} onClick={() => setView("cards")} role="tab" aria-selected={view === "cards"}>치료실별</button>
           <button className={view === "timeline" ? "on" : ""} onClick={() => setView("timeline")} role="tab" aria-selected={view === "timeline"}>타임라인</button></div>
         {me && me.role !== "viewer" && <button className="primary desk-only" onClick={() => openAppt({ date })}><Icon name="plus" size={18} />스케줄 등록</button>}
@@ -58,30 +62,17 @@ export default function Monitor() {
           return (
             <div key={r.id} className={`rcard g-${i % 2 ? "b" : "a"} ${roomId === r.id ? "sel" : ""}`} style={{ animationDelay: `${i * 60}ms` }} role="button" tabIndex={0} aria-pressed={roomId === r.id}
               onClick={() => setRoomId(roomId === r.id ? "" : r.id)} onKeyDown={(e) => { if (e.key === "Enter") setRoomId(roomId === r.id ? "" : r.id); }}>
-              <div className="rc-top"><span className="rbadge">{total === 0 ? "일정 없음" : left === 0 ? "모두 완료" : `${left}건 남음`}</span>
-                <PopMenu tone="on-grad" label={`${r.name} 메뉴`} items={[{ label: roomId === r.id ? "필터 해제" : "이 치료실만 보기", onClick: () => setRoomId(roomId === r.id ? "" : r.id) },
-                  ...(canEditRoom(me, r.id) ? [{ label: "스케줄 추가", onClick: () => openAppt({ date, itemId: db.items.find((x) => x.roomId === r.id)?.id }) }] : [])]} /></div>
-              <h4>{r.name}</h4><div className="sub">담당 {r.therapist}</div>
-              <AvatarStack names={r.therapist.split("/").map((s) => s.trim())} />
+              <div className="rc-top"><h4>{r.name}</h4><span className="rbadge">{total === 0 ? "일정 없음" : left === 0 ? "모두 완료" : `${left}건 남음`}</span></div>
               <div className="rc-foot"><div className="rc-meta"><span>진행률 {Math.round(pct)}%</span><span>{done}/{total}</span></div><ProgressBar value={pct} /></div>
             </div>);
         })}
-      </div>
-
-      <div className="sec"><h3>오늘의 요약</h3></div>
-      <div className="kpis">
-        <div className="kpi"><b><CountUp value={shown.length} /></b>전체</div>
-        <div className="kpi s-예약"><b><CountUp value={count(shown, "예약")} /></b>예약</div>
-        <div className="kpi s-완료"><b><CountUp value={count(shown, "완료")} /></b>치료완료</div>
-        <div className="kpi s-취소"><b><CountUp value={count(shown, "취소")} /></b>예약취소</div>
-        <div className={`kpi ${conflictCount ? "bad" : ""}`}><b><CountUp value={conflictCount} /></b>충돌</div>
       </div>
 
       <div className="dash">
         <div>
           <div className="sec"><h3>{view === "cards" ? "치료실별 일정" : "시간대별 일정"}</h3></div>
           {view === "cards" ? (
-            <div className="rooms" style={{ gridTemplateColumns: `repeat(${(roomId ? rooms.filter((r) => r.id === roomId) : rooms).length}, minmax(230px, 1fr))` }}>
+            <div className="rooms" style={{ "--n": (roomId ? rooms.filter((r) => r.id === roomId) : rooms).length, "--cols": (roomId ? rooms.filter((r) => r.id === roomId) : rooms).map((r) => (sorted.some((a) => itemOf(a)?.roomId === r.id) ? "minmax(150px,1fr)" : "minmax(100px,.5fr)")).join(" ") } as React.CSSProperties}>
               {(roomId ? rooms.filter((r) => r.id === roomId) : rooms).map((r, ri) => {
                 const list = sorted.filter((a) => itemOf(a)?.roomId === r.id);
                 return (
@@ -98,7 +89,7 @@ export default function Monitor() {
           )}
         </div>
       </div>
-    </>
+    </div>
   );
 }
 

@@ -488,3 +488,57 @@ button.btn-end,button.btn-restore{display:inline-flex;align-items:center;justify
 .tstbl th:first-child,.tstbl td:first-child{padding-left:10px}
 .tstbl .switch{flex-direction:row;white-space:nowrap}.tstbl .switch span{display:inline}.tstbl .tsal{min-width:130px}
 .fillpage>.card{flex:1 1 0;min-height:0;overflow:auto}
+
+/* ===== 치료실 통합모니터링: 한 화면(스크롤 없이) 보기용 압축 레이아웃 ===== */
+.mon .toolbar{margin:4px 0 10px;flex-wrap:nowrap}.mon .toolbar h2{font-size:18px;white-space:nowrap}.mon .toolbar .primary{white-space:nowrap;height:36px;padding:0 14px}.mon .toolbar .seg button{padding:6px 12px}
+.mon .kchips{display:flex;gap:6px;flex-wrap:wrap}.mon .kc{display:inline-flex;align-items:baseline;gap:5px;height:30px;padding:0 12px;border-radius:999px;background:var(--surface);box-shadow:var(--sh-card);color:var(--text2);font-size:12px;font-weight:500;align-items:center}
+.mon .kc b{font-size:14px;font-weight:700;color:var(--text);font-variant-numeric:tabular-nums}.mon .kc.s-예약 b{color:var(--p2)}.mon .kc.s-완료 b{color:var(--success)}.mon .kc.bad b{color:var(--aline)}
+:root[data-theme=dark] .mon .kc.s-예약 b{color:var(--psoft)}
+/* 주간 날짜 선택: 제목·날짜칸·이동 버튼을 한 줄에 */
+.mon .dp{padding:8px 12px;margin-bottom:0}
+.mon .dp-head{margin:0}.mon .dp-row{gap:6px}.mon .dcell{height:46px;gap:0}.mon .dw{font-size:11px}.mon .dn{font-size:15px;line-height:1.2}.mon .dchk{display:none}.mon .dcell.today:not(.sel)::after{bottom:4px}
+@media(min-width:1100px){
+  .mon .dp{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:14px}
+  .mon .dp-head{display:contents}.mon .dp-title{grid-column:1;grid-row:1;white-space:nowrap}.mon .dp-row{grid-column:2;grid-row:1}.mon .dp-actions{grid-column:3;grid-row:1}
+  .mon .dp-title span{display:block;font-size:12px}
+}
+.mon .sec{margin:12px 0 8px}.mon .sec h3{font-size:15px}
+/* 치료실 현황 카드 */
+.mon .rcards{grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px}
+.mon .rcard{min-height:0;padding:9px 12px;gap:6px}.mon .rcard::after{display:none}.mon .rcard:hover{transform:none}
+.mon .rc-top{gap:6px;align-items:center}.mon .rcard h4{margin:0;font-size:14px;white-space:nowrap}.mon .rbadge{font-size:10px;padding:2px 7px;white-space:nowrap}
+.mon .rc-foot{margin-top:0}.mon .rc-meta{margin-bottom:4px}
+/* 치료실별 일정 */
+.mon .rooms{grid-template-columns:var(--cols);gap:10px;padding-bottom:2px}
+.mon .room{min-width:0;min-height:0}.mon .room header{padding:10px 12px 4px}.mon .room header b{font-size:14px}.mon .room header small{font-size:11px}
+.mon .list{padding:4px 8px;gap:4px;max-height:none;overflow:visible}.mon .empty{margin:14px 0;font-size:12.5px}
+.mon .add{margin:4px 8px 8px;height:30px;font-size:12.5px}
+.acard.compact{display:flex;align-items:center;gap:6px;padding:3px 2px 3px 8px;border-radius:var(--r-m);min-height:32px;justify-content:flex-start}
+.acard.compact .ac-t{flex:none;font-size:11.5px;font-weight:700;color:var(--p2);font-variant-numeric:tabular-nums;min-width:34px}
+.acard.compact .ac-n{flex:1;min-width:0;display:flex;align-items:baseline;gap:4px;overflow:hidden;white-space:nowrap}
+.acard.compact .ac-n b{font-size:13.5px;font-weight:600;overflow:hidden;text-overflow:ellipsis}.acard.compact .ac-n small{font-size:10px;color:var(--text2);flex:none}
+.acard.compact .ac-opt{flex:none;font-style:normal;font-size:10px;font-weight:700;padding:0 5px;border-radius:999px;background:#fef3c7;color:#92400e}
+.acard.compact .ac-it{flex:none;font-style:normal;font-size:10px;color:var(--text2);background:var(--surface);padding:0 5px;border-radius:999px}
+.acard.compact.current .ac-t,.acard.compact.current .ac-n small{color:rgba(255,255,255,.92)}.acard.compact.current .ac-opt{background:rgba(255,255,255,.25);color:#fff}
+.acard.compact .icon-btn{width:24px;height:24px;flex:none}.acard.compact .icon-btn svg{width:16px;height:16px}
+.acard.compact .ac-done{display:inline-flex;color:var(--success);flex:none}.acard.compact .ac-cancel{font-size:10px;color:var(--text2);flex:none}
+.acard.compact .warn-ic{flex:none;display:inline-flex}
+.acard.compact .live-dot{flex:none;width:7px;height:7px;border-radius:50%;background:#fff;box-shadow:0 0 0 3px rgba(255,255,255,.3)}
+.acard.compact.s-완료{background:rgba(34,160,107,.10)}.room .acard.compact.s-완료{background:rgba(34,160,107,.10)}
+.acard.compact:hover{transform:none}
+@media(max-width:960px){
+  .mon .rooms{grid-template-columns:repeat(var(--n),minmax(210px,1fr))}
+  .mon .rcards{display:flex;overflow-x:auto;margin-right:-16px;padding-right:16px}.mon .rcard{flex:0 0 150px}
+}
+@media(max-width:1099px){.mon .toolbar{flex-wrap:wrap}}
+
+.mon .room{container-type:inline-size}
+@container (max-width:200px){.acard.compact .ac-n small:not(.out){display:none}}
+.mon .room header>div{min-width:0}.mon .room header b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:13.5px}.mon .room header small{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mon .room header{gap:6px}.mon .mini{flex:none;padding:2px 8px;font-size:11.5px}
+.mon .rcard{padding:7px 12px;gap:4px}.mon .rc-meta{margin-bottom:3px;font-size:10.5px}
+.mon .sec{margin:8px 0 6px}
+.mon .dp{padding:6px 12px}.mon .dcell{height:44px}
+.mon .add{height:26px;margin:2px 8px 6px}
+@container (max-width:200px){.acard.compact .ac-done{display:none}}
+@container (max-width:130px){.mon .room .mini{display:none}}
