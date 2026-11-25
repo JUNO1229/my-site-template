@@ -473,3 +473,17 @@ button.btn-end,button.btn-restore{display:inline-flex;align-items:center;justify
   .survtbl td{border-bottom:1px solid rgba(0,0,0,.06)}.survtbl td::before{content:attr(data-label);display:block;font-size:11.5px;font-weight:700;color:var(--text2);margin-bottom:4px}
 }
 .svradio label{flex-direction:row;justify-content:flex-start;text-align:left}.svradio input[type=radio]{width:16px;height:16px;min-width:16px;padding:0;margin:0;flex:none;accent-color:var(--p1)}
+
+/* ===== 치료항목 설정 ===== */
+.tsettings .tsbar{gap:10px;flex-wrap:wrap;margin-bottom:10px}
+.tstbl td{vertical-align:middle}.tstbl tr.off td{opacity:.5}
+.tsmove{white-space:nowrap}.tsmove button{border:0;background:var(--field);border-radius:6px;width:26px;height:26px;margin-right:3px;color:var(--text2);font-size:11px}.tsmove button:hover{background:var(--psoft);color:var(--p2)}
+.tsshort{display:inline-block;padding:2px 10px;border-radius:999px;background:var(--psoft);color:var(--p2);font-weight:700}
+.tsal{color:var(--text2);font-size:12.5px;max-width:260px}.tssub{display:block;color:var(--text2);font-size:11.5px}
+.switch{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;cursor:pointer}.switch input{width:16px;height:16px;accent-color:var(--p1);padding:0;margin:0}
+.tsmodal{max-width:640px;max-height:90vh;overflow:auto}.tsmodal .row{display:flex;gap:10px;flex-wrap:wrap}.tsmodal .row>label{flex:1;min-width:140px}
+.tsrooms{max-height:130px;overflow:auto;padding:6px 8px;background:var(--field);border-radius:var(--r-m)}
+.tspreview{margin:10px 0 0;padding:10px 12px;border-radius:var(--r-m);background:var(--field);font-size:13px}.tspreview b{color:var(--p2);margin-left:6px}
+.tstbl{font-size:12.5px;table-layout:auto}.tstbl th,.tstbl td{padding:8px 7px}.tstbl .tsal{max-width:170px;white-space:normal}.tstbl td{white-space:normal}.tstbl .rowact{white-space:nowrap}.tstbl .rowact button{padding:5px 9px}
+.tstbl th:first-child,.tstbl td:first-child{padding-left:10px}
+.tstbl .switch{flex-direction:row;white-space:nowrap}.tstbl .switch span{display:inline}.tstbl .tsal{min-width:130px}

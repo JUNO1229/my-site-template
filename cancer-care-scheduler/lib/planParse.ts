@@ -1,3 +1,5 @@
+import seed from "./catalogSeed.json";
+
 /** 치료정보 자유 텍스트 → 구조 해석(제안용). 100% 자동 해석을 목표로 하지 않고, 확인이 필요한 부분을 질문으로 돌려준다. */
 export type Opt = "S" | "K" | "C" | "";
 export interface Follow { item: string; n: number | null; basis?: "week" | "month"; opt?: Opt }
@@ -34,7 +36,20 @@ const FOLLOW_NAME: Record<string, string> = { 도: "도수", 도수: "도수", �
 const FOLLOW_RX = /(도수|도|림프|림|파동|파|역박동|역)\s*\)?\s*(?:\(\s*월\s*(\d+)\s*\)|월\s*(\d+)|(\d+)\s*회?|\(\s*주\s*(\d+)\s*\))?\s*(?:\(?\s*(월\s*\d+\s*회?)?\s*([SsKk])\s*\)?)?/g;
 
 const norm = (t: string) => t.replace(/\(얼(\d+)\)/g, "(월$1)").replace(/[＋]/g, "+").replace(/\s+/g, " ").trim();
-const catOf = (code: string) => CATALOG.find((c) => c.code === code)!;
+const esc = (t: string) => t.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+/** 치료설정에서 바꾼 명칭·약식·약어를 해석기에 반영한다 (사용자가 추가한 약어/항목, 사용 안 함 처리 포함) */
+export interface CatEntry { code: string; name: string; short: string; aliases: string[]; kind: "session" | "qty"; followOnly?: boolean; active?: boolean }
+const OVER = new Map<string, CatEntry & { extra: string }>(); const EXTRA: Cat[] = [];
+export function applyCatalog(list: CatEntry[]) {
+  OVER.clear(); EXTRA.length = 0;
+  const base = new Set(CATALOG.map((c) => c.code)); const seeded = new Map(seed.items.map((i) => [i.code, new Set(i.aliases)]));
+  for (const e of list) {
+    const extra = e.aliases.filter((a) => !seeded.get(e.code)?.has(a)).sort((a, b) => b.length - a.length).map(esc).join("|");
+    if (base.has(e.code)) OVER.set(e.code, { ...e, extra });
+    else if (!e.followOnly && e.active !== false && e.aliases.length) EXTRA.push({ code: e.code, name: e.name, short: e.short || e.name, kind: e.kind === "qty" ? "q" : "s", rx: e.aliases.slice().sort((a, b) => b.length - a.length).map(esc).join("|") });
+  }
+}
+const catOf = (code: string): Cat => { const c = CATALOG.find((x) => x.code === code) ?? EXTRA.find((x) => x.code === code)!; const o = OVER.get(code); return o ? { ...c, name: o.name, short: o.short || o.name } : c; };
 
 /** 한 텍스트에서 항목 시작 위치를 찾는다 (가장 긴 약어 우선) */
 function starts(seg: string, inPj: boolean): { i: number; len: number; code: string }[] {
@@ -42,10 +57,13 @@ function starts(seg: string, inPj: boolean): { i: number; len: number; code: str
   let pos = 0;
   while (pos < seg.length) {
     let best: { i: number; len: number; code: string } | null = null;
-    for (const c of CATALOG) {
-      const m = new RegExp(c.rx, "y"); m.lastIndex = pos;
-      const r = m.exec(seg);
-      if (r && (!best || r[0].length > best.len)) best = { i: pos, len: r[0].length, code: c.code };
+    for (const c of [...CATALOG, ...EXTRA]) {
+      const o = OVER.get(c.code); if (o?.active === false) continue;
+      for (const rx of [c.rx, o?.extra].filter(Boolean) as string[]) {
+        const m = new RegExp(rx, "y"); m.lastIndex = pos;
+        const r = m.exec(seg);
+        if (r && (!best || r[0].length > best.len)) best = { i: pos, len: r[0].length, code: c.code };
+      }
     }
     if (best && best.len > 0) {
       const code = best.code, after = seg.slice(best.i + best.len);
@@ -60,7 +78,7 @@ function starts(seg: string, inPj: boolean): { i: number; len: number; code: str
 
 function parseOne(code: string, text: string): PlanItem {
   const cat = catOf(code); const it: PlanItem = { code, name: cat.name, raw: text.trim(), q: [] };
-  const rx = new RegExp("^" + cat.rx); const m = rx.exec(text); const rest = text.slice(m ? m[0].length : 0);
+  const m = new RegExp("^(?:" + cat.rx + (OVER.get(code)?.extra ? "|" + OVER.get(code)!.extra : "") + ")").exec(text); const rest = text.slice(m ? m[0].length : 0);
   if (code === "abn") {
     const v = /^압(?:노바)?([AMFQ])?/.exec(text); if (v?.[1]) it.variant = v[1];
     const st = /(\d)\s*단계/.exec(text); if (st) it.stage = Number(st[1]);

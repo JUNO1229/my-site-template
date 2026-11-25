@@ -1,0 +1,35 @@
+{
+ "items": [
+  {"code":"hf_bsd","name":"고주파 BSD","short":"고BSD","aliases":["고BSD","고주파BSD","고주파(BSD)"],"category":"치료실 시술","kind":"session","unit":"","variants":[],"maxStage":0,"followable":false,"followTargets":[],"followOnly":false,"roomItemIds":["hf-bsd"],"builtin":true},
+  {"code":"hf_onco","name":"고주파(온코)","short":"고(온)","aliases":["고(온)","고(온코)","고온","고주파(온코)","고"],"category":"치료실 시술","kind":"session","unit":"","variants":[],"maxStage":0,"followable":false,"followTargets":[],"followOnly":false,"roomItemIds":[],"builtin":true},
+  {"code":"psy","name":"싸이케어 주사","short":"싸이","aliases":["싸이","싸이케어"],"category":"주사","kind":"session","unit":"","variants":[],"maxStage":0,"followable":false,"followTargets":[],"followOnly":false,"roomItemIds":[],"builtin":true},
+  {"code":"imu","name":"이뮤알파 주사","short":"이뮤","aliases":["이뮤","이뮤알파"],"category":"주사","kind":"session","unit":"","variants":[],"maxStage":0,"followable":false,"followTargets":[],"followOnly":false,"roomItemIds":[],"builtin":true},
+  {"code":"abn","name":"압노바","short":"압","aliases":["압","압노바"],"category":"주사","kind":"session","unit":"","variants":["A","M","F","Q"],"maxStage":4,"followable":false,"followTargets":[],"followOnly":false,"roomItemIds":[],"builtin":true},
+  {"code":"isk","name":"이스카도","short":"이스카","aliases":["이스","이스카","이스카도"],"category":"주사","kind":"session","unit":"","variants":["Q"],"maxStage":3,"followable":false,"followTargets":[],"followOnly":false,"roomItemIds":[],"builtin":true},
+  {"code":"mer","name":"메리트씨 주사","short":"메리트씨","aliases":["메리트","메리트씨"],"category":"주사","kind":"session","unit":"","variants":[],"maxStage":0,"followable":false,"followTargets":[],"followOnly":false,"roomItemIds":[],"builtin":true},
+  {"code":"gct","name":"지씨타치온","short":"지씨타","aliases":["지씨타","지씨타치온","구치온"],"category":"주사","kind":"session","unit":"","variants":[],"maxStage":0,"followable":false,"followTargets":[],"followOnly":false,"roomItemIds":[],"builtin":true},
+  {"code":"nut","name":"영양제(라보솔·콤비플렉스)","short":"영양제","aliases":["영양제","라보솔","콤비","콤비플렉스"],"category":"주사","kind":"session","unit":"","variants":[],"maxStage":0,"followable":false,"followTargets":[],"followOnly":false,"roomItemIds":[],"builtin":true},
+  {"code":"vc","name":"비타민C(VC)","short":"VC","aliases":["VC","비타민C"],"category":"주사","kind":"session","unit":"V","variants":[],"maxStage":0,"followable":false,"followTargets":[],"followOnly":false,"roomItemIds":[],"builtin":true},
+  {"code":"mes","name":"메시마","short":"메시마","aliases":["메","메시마"],"category":"약·보조제","kind":"qty","unit":"포","variants":["F"],"maxStage":0,"followable":false,"followTargets":[],"followOnly":false,"roomItemIds":[],"builtin":true},
+  {"code":"gun","name":"건칠단","short":"건칠단","aliases":["건칠단","건칠"],"category":"약·보조제","kind":"qty","unit":"포","variants":[],"maxStage":0,"followable":false,"followTargets":[],"followOnly":false,"roomItemIds":[],"builtin":true},
+  {"code":"nad","name":"나드정","short":"나드정","aliases":["나드정"],"category":"약·보조제","kind":"qty","unit":"정","variants":[],"maxStage":0,"followable":false,"followTargets":[],"followOnly":false,"roomItemIds":[],"builtin":true},
+  {"code":"pdq","name":"피도큐산","short":"피도큐산","aliases":["피도큐산"],"category":"약·보조제","kind":"qty","unit":"포","variants":[],"maxStage":0,"followable":false,"followTargets":[],"followOnly":false,"roomItemIds":[],"builtin":true},
+  {"code":"glu","name":"글루치온","short":"글루치온","aliases":["글루치온","글루치온정"],"category":"약·보조제","kind":"qty","unit":"정","variants":[],"maxStage":0,"followable":false,"followTargets":[],"followOnly":false,"roomItemIds":[],"builtin":true},
+  {"code":"hbo","name":"고압산소치료","short":"고압산소","aliases":["고압산소"],"category":"치료실 시술","kind":"session","unit":"","variants":[],"maxStage":0,"followable":false,"followTargets":[],"followOnly":false,"roomItemIds":[],"builtin":true},
+  {"code":"pj","name":"페인잼머","short":"PJ","aliases":["pj","PJ","페인잼머"],"category":"치료실 시술","kind":"session","unit":"","variants":[],"maxStage":0,"followable":true,"followTargets":["도수","림프","파동","역박동"],"followOnly":false,"roomItemIds":["pj"],"builtin":true},
+  {"code":"wav","name":"파동","short":"파동","aliases":["파동","파"],"category":"치료실 시술","kind":"session","unit":"","variants":[],"maxStage":0,"followable":false,"followTargets":[],"followOnly":false,"roomItemIds":["pd"],"builtin":true},
+  {"code":"rev","name":"역박동","short":"역박동","aliases":["역박동","역"],"category":"치료실 시술","kind":"session","unit":"","variants":[],"maxStage":0,"followable":false,"followTargets":[],"followOnly":false,"roomItemIds":["rb"],"builtin":true},
+  {"code":"ds","name":"도수","short":"도수","aliases":["도수","도"],"category":"치료실 시술","kind":"session","unit":"","variants":[],"maxStage":0,"followable":false,"followTargets":[],"followOnly":true,"roomItemIds":["ds"],"builtin":true},
+  {"code":"lp","name":"림프","short":"림프","aliases":["림프","림"],"category":"치료실 시술","kind":"session","unit":"","variants":[],"maxStage":0,"followable":false,"followTargets":[],"followOnly":true,"roomItemIds":["lp1","lp2"],"builtin":true}
+ ],
+ "cycles": [
+  {"label":"주 1회","perWeek":1,"perMonth":4,"everyOtherWeek":null},
+  {"label":"주 2회","perWeek":2,"perMonth":8,"everyOtherWeek":null},
+  {"label":"주 3회","perWeek":3,"perMonth":12,"everyOtherWeek":null},
+  {"label":"주 4회","perWeek":4,"perMonth":16,"everyOtherWeek":null},
+  {"label":"주 5회","perWeek":5,"perMonth":20,"everyOtherWeek":null},
+  {"label":"격주 1회","perWeek":null,"perMonth":2,"everyOtherWeek":1},
+  {"label":"월 1회","perWeek":null,"perMonth":1,"everyOtherWeek":null},
+  {"label":"월 2회","perWeek":null,"perMonth":2,"everyOtherWeek":null}
+ ]
+}

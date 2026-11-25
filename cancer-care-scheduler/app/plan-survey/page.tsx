@@ -3,7 +3,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useStore } from "@/lib/store";
 import { api } from "@/lib/api";
 import { useToast } from "@/lib/toast";
-import { compact, describe, parsePlan, type PlanItem } from "@/lib/planParse";
+import { applyCatalog, compact, describe, parsePlan, type CatEntry, type PlanItem } from "@/lib/planParse";
 import { RULE_CASES, hash } from "@/lib/planSurvey";
 import { csvEscape } from "@/lib/util";
 import { Icon } from "@/components/Icons";
@@ -37,23 +37,25 @@ function SaveCell({ row, mine, others, canAnswer, onSave }: { row: Row; mine?: A
 
 export default function PlanSurvey() {
   const { me, db, ready } = useStore(); const { toast } = useToast();
-  const [answers, setAnswers] = useState<Ans[]>([]); const [loaded, setLoaded] = useState(false);
+  const [answers, setAnswers] = useState<Ans[]>([]); const [loaded, setLoaded] = useState(false); const [catVer, setCatVer] = useState(0);
   const [filter, setFilter] = useState<"all" | "todo" | "q">("all"); const [sec, setSec] = useState<"A" | "B">("A"); const [kw, setKw] = useState("");
   const canAnswer = !!me && me.role !== "viewer"; const canAll = me?.role === "admin" || me?.role === "manager";
   const load = useCallback(() => api<{ answers: Ans[] }>("/api/plan-survey").then((r) => { setAnswers(r.answers); setLoaded(true); }).catch((e) => toast(e.message, "err")), [toast]);
   useEffect(() => { load(); }, [load]);
+  // 치료항목 설정(명칭·약식·약어)을 해석에 반영
+  useEffect(() => { api<{ items: (CatEntry & { active: boolean })[] }>("/api/treatments").then((r) => { applyCatalog(r.items); setCatVer((v) => v + 1); }).catch(() => setCatVer((v) => v + 1)); }, []);
 
   const rowsA = useMemo<Row[]>(() => RULE_CASES.map((c) => {
     const lines = c.raw.split("\n"); const res = lines.map((l) => parsePlan(l));
     return { key: c.key, sec: "A" as const, group: c.group, raw: c.raw, items: res.map((r) => r.items), to: res.map((r, i) => (r.items.length ? compact(r.items) : lines[i].startsWith("(") ? "" : "(해석 불가)")), meaning: [c.meaning], questions: [c.question] };
-  }), []);
+  }), [catVer]);
   const rowsB = useMemo<Row[]>(() => {
     const seen = new Map<string, number>();
     for (const p of db.patients) if (p.source === "registry" && p.status !== "discharged" && p.plan.trim()) { const k = p.plan.trim(); seen.set(k, (seen.get(k) ?? 0) + 1); }
     const rows: Row[] = [...seen.entries()].map(([plan, n]) => { const r = parsePlan(plan);
       return { key: "P:" + hash(plan), sec: "B" as const, group: r.status === "ok" ? "자동 해석" : "확인 필요", raw: plan, items: [r.items], to: [r.items.length ? compact(r.items) : "(해석 불가)"], meaning: r.items.map(describe), questions: r.questions, count: n }; });
     return rows.sort((a, b) => Number(!!b.questions.length) - Number(!!a.questions.length));
-  }, [db.patients]);
+  }, [db.patients, catVer]);
 
   const mineMap = useMemo(() => new Map(answers.filter((a) => a.user === me?.username).map((a) => [a.key, a])), [answers, me]);
   const othersOf = (key: string) => (canAll ? answers.filter((a) => a.key === key && a.user !== me?.username) : []);
@@ -71,7 +73,7 @@ export default function PlanSurvey() {
     const lines = [head.join(",")]; for (const r of all) { for (const a of answers.filter((x) => x.key === r.key)) lines.push([r.sec === "A" ? "표기규칙" : "환자 치료정보", r.key, r.raw.replace(/\n/g, " / "), r.to.join(" / "), r.questions.join(" / "), a.name || a.user, a.verdict === "ok" ? "맞음" : a.verdict === "fix" ? "다름" : "", a.answer, a.at].map((v) => csvEscape(String(v))).join(",")); }
     const url = URL.createObjectURL(new Blob(["﻿" + lines.join("\n")], { type: "text/csv;charset=utf-8" })); const a = document.createElement("a"); a.href = url; a.download = "치료정보_설문_응답.csv"; a.click(); URL.revokeObjectURL(url);
   };
-  if (!ready || !loaded) return <div className="card"><p>불러오는 중…</p></div>;
+  if (!ready || !loaded || !catVer) return <div className="card"><p>불러오는 중…</p></div>;
   return (
     <div className="survey">
       <div className="toolbar"><h2>치료정보 구조 설문</h2><span className="hint">환자 치료정보를 항목·횟수가 구분되는 구조로 바꾸기 위해, 현재 기재 방식을 어떻게 해석했는지 확인받는 페이지입니다.</span></div>

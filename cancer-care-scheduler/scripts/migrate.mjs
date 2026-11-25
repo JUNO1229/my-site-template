@@ -49,6 +49,13 @@ for (const st of [`CREATE TABLE IF NOT EXISTS patient_snapshots (
 `CREATE TABLE IF NOT EXISTS plan_survey_answers (
   row_key TEXT NOT NULL, username TEXT NOT NULL, name TEXT NOT NULL DEFAULT '', verdict TEXT NOT NULL DEFAULT '', answer TEXT NOT NULL DEFAULT '',
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now(), PRIMARY KEY (row_key, username))`,
+`CREATE TABLE IF NOT EXISTS treatment_catalog (
+  code TEXT PRIMARY KEY, name TEXT NOT NULL, short TEXT NOT NULL DEFAULT '', aliases TEXT[] NOT NULL DEFAULT '{}', category TEXT NOT NULL DEFAULT '',
+  kind TEXT NOT NULL DEFAULT 'session', unit TEXT NOT NULL DEFAULT '', default_per_week INT, default_per_month INT, variants TEXT[] NOT NULL DEFAULT '{}',
+  max_stage INT NOT NULL DEFAULT 0, followable BOOLEAN NOT NULL DEFAULT false, follow_targets TEXT[] NOT NULL DEFAULT '{}', follow_only BOOLEAN NOT NULL DEFAULT false,
+  room_item_ids TEXT[] NOT NULL DEFAULT '{}', active BOOLEAN NOT NULL DEFAULT true, builtin BOOLEAN NOT NULL DEFAULT false, note TEXT NOT NULL DEFAULT '', sort INT NOT NULL DEFAULT 0)`,
+`CREATE TABLE IF NOT EXISTS treatment_cycles (
+  id SERIAL PRIMARY KEY, label TEXT NOT NULL, per_week INT, per_month INT, every_other_week INT, sort INT NOT NULL DEFAULT 0)`,
 `CREATE TABLE IF NOT EXISTS audit_log (
   id BIGSERIAL PRIMARY KEY, ts TIMESTAMPTZ NOT NULL DEFAULT now(), username TEXT, action TEXT NOT NULL, detail TEXT NOT NULL DEFAULT '')`]) await q(st);
 
