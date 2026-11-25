@@ -50,7 +50,7 @@ export default function TreatmentSettings() {
   const preview = edit ? (() => { const wk = Number(edit.wk) || 0; return `${edit.short || edit.name || "항목"}${edit.kind === "qty" ? `90${edit.unit ?? ""}` : wk ? `주${wk}` : "주2"}${edit.variants?.length || edit.variantText ? "" : ""}`; })() : "";
 
   return (
-    <div className="tsettings">
+    <div className="tsettings fillpage">
       <div className="toolbar"><h2>치료항목 설정</h2>
         <span className="hint">치료 명칭·약식 표기·치료주기를 관리합니다. 여기서 정한 약식 표기는 환자명부 치료정보 요약에, 인식 약어는 기존 표기 해석에 사용됩니다.</span></div>
       <div className="toolbar tsbar">
