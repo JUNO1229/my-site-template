@@ -47,7 +47,7 @@ export default function TreatmentSettings() {
   };
   const delCycle = async (c: Cycle) => { if (!confirm(`'${c.label}' 주기를 삭제할까요?`)) return; try { await api(`/api/treatments/cycles?id=${c.id}`, "DELETE"); load(); } catch (e) { toast((e as Error).message, "err"); } };
   const roomItems = db.items.map((i) => ({ id: i.id, label: `${db.rooms.find((r) => r.id === i.roomId)?.name ?? ""} · ${i.name}` }));
-  const preview = edit ? (() => { const wk = Number(edit.wk) || 0; return `${edit.short || edit.name || "항목"}${edit.kind === "qty" ? `90${edit.unit ?? ""}` : wk ? `주${wk}` : "주2"}${edit.variants?.length || edit.variantText ? "" : ""}`; })() : "";
+  const preview = edit ? (() => { const wk = Number(edit.wk) || 0; return `${edit.short || edit.name || "항목"}${edit.variantText?.trim() ? edit.variantText.split(",")[0].trim().toUpperCase() + (edit.maxStage || "") : ""}${edit.kind === "qty" ? `90${edit.unit ?? ""}` : wk ? `주${wk}` : "주2"}`; })() : "";
 
   return (
     <div className="tsettings fillpage">

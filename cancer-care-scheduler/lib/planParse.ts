@@ -17,7 +17,7 @@ export const CATALOG: Cat[] = [
   { code: "hf_onco", name: "고주파(온코)", short: "고(온)", kind: "s", rx: "고(?:주파)?(?:\\(?(?:온코|온|25)\\)?)?(?=[\\d(주월\\s+*]|$)" },
   { code: "psy", name: "싸이케어 주사", short: "싸이", kind: "s", rx: "싸이(?:케어)?" },
   { code: "imu", name: "이뮤알파 주사", short: "이뮤", kind: "s", rx: "이뮤(?:알파)?" },
-  { code: "abn", name: "압노바", short: "압", kind: "s", rx: "압(?:노바)?(?:[AMFQ])?" },
+  { code: "abn", name: "압노바", short: "압노", kind: "s", rx: "압(?:노바|노)?(?:[AMFQ])?" },
   { code: "isk", name: "이스카도", short: "이스카", kind: "s", rx: "이스(?:카(?:도)?)?(?:Q)?" },
   { code: "mer", name: "메리트씨 주사", short: "메리트씨", kind: "s", rx: "메리트(?:씨)?" },
   { code: "mes", name: "메시마", short: "메시마", kind: "q", rx: "메(?:시마)?(?:F)?(?=[\\d(F포\\s+*]|$)" },
@@ -78,9 +78,11 @@ function starts(seg: string, inPj: boolean): { i: number; len: number; code: str
 
 function parseOne(code: string, text: string): PlanItem {
   const cat = catOf(code); const it: PlanItem = { code, name: cat.name, raw: text.trim(), q: [] };
-  const m = new RegExp("^(?:" + cat.rx + (OVER.get(code)?.extra ? "|" + OVER.get(code)!.extra : "") + ")").exec(text); const rest = text.slice(m ? m[0].length : 0);
+  const m = new RegExp("^(?:" + cat.rx + (OVER.get(code)?.extra ? "|" + OVER.get(code)!.extra : "") + ")").exec(text); let rest = text.slice(m ? m[0].length : 0);
   if (code === "abn") {
-    const v = /^압(?:노바)?([AMFQ])?/.exec(text); if (v?.[1]) it.variant = v[1];
+    const v = /^압(?:노바|노)?([AMFQ])?/.exec(text); if (v?.[1]) it.variant = v[1];
+    // 약식 표기 규칙: 종류 바로 뒤의 숫자는 단계 (예: 압노Q4 = 압노바 Q 4단계)
+    const lm = /^압(?:노바|노)?([AMFQ])(\d)(?!\d)/.exec(text); if (lm && +lm[2] >= 1 && +lm[2] <= 4) { it.variant = lm[1]; it.stage = +lm[2]; rest = text.slice(lm[0].length); }
     const st = /(\d)\s*단계/.exec(text); if (st) it.stage = Number(st[1]);
     const vv = /\(\s*([AMFQ])\s*\d\s*단계\s*\)/.exec(text); if (vv && !it.variant) it.variant = vv[1];
     if (!it.variant) it.q.push(`압노바 종류(A·M·F·Q)가 표기되지 않았습니다 ('${it.raw}')`);
