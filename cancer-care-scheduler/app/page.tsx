@@ -47,38 +47,32 @@ export default function Monitor() {
         <div className="kchips" aria-label="일정 요약">
           <span className="kc">전체 <b><CountUp value={shown.length} /></b></span><span className="kc s-예약">예약 <b><CountUp value={count(shown, "예약")} /></b></span>
           <span className="kc s-완료">치료완료 <b><CountUp value={count(shown, "완료")} /></b></span><span className="kc s-취소">예약취소 <b><CountUp value={count(shown, "취소")} /></b></span>
-          <span className={`kc ${conflictCount ? "bad" : ""}`}>충돌 <b><CountUp value={conflictCount} /></b></span></div><span className="spacer" />
+          <span className={`kc ${conflictCount ? "bad" : ""}`}>충돌 <b><CountUp value={conflictCount} /></b></span></div>{roomId && <button className="btn-soft" onClick={() => setRoomId("")}>전체 치료실 보기</button>}<span className="spacer" />
         <div className="seg" role="tablist"><button className={view === "cards" ? "on" : ""} onClick={() => setView("cards")} role="tab" aria-selected={view === "cards"}>치료실별</button>
           <button className={view === "timeline" ? "on" : ""} onClick={() => setView("timeline")} role="tab" aria-selected={view === "timeline"}>타임라인</button></div>
         {me && me.role !== "viewer" && <button className="primary desk-only" onClick={() => openAppt({ date })}><Icon name="plus" size={18} />스케줄 등록</button>}
       </div>
       <DatePicker date={date} setDate={setDate} />
 
-      <div className="sec"><h3>치료실 현황</h3>{roomId && <button className="link" onClick={() => setRoomId("")}>필터 해제</button>}</div>
-      <div className="rcards">
-        {rooms.map((r, i) => {
-          const list = sorted.filter((a) => itemOf(a)?.roomId === r.id); const live = list.filter((a) => a.status !== "취소");
-          const done = count(list, "완료"), total = live.length, left = total - done, pct = total ? (done / total) * 100 : 0;
-          return (
-            <div key={r.id} className={`rcard g-${i % 2 ? "b" : "a"} ${roomId === r.id ? "sel" : ""}`} style={{ animationDelay: `${i * 60}ms` }} role="button" tabIndex={0} aria-pressed={roomId === r.id}
-              onClick={() => setRoomId(roomId === r.id ? "" : r.id)} onKeyDown={(e) => { if (e.key === "Enter") setRoomId(roomId === r.id ? "" : r.id); }}>
-              <div className="rc-top"><h4>{r.name}</h4><span className="rbadge">{total === 0 ? "일정 없음" : left === 0 ? "모두 완료" : `${left}건 남음`}</span></div>
-              <div className="rc-foot"><div className="rc-meta"><span>진행률 {Math.round(pct)}%</span><span>{done}/{total}</span></div><ProgressBar value={pct} /></div>
-            </div>);
-        })}
-      </div>
-
       <div className="dash">
         <div>
-          <div className="sec"><h3>{view === "cards" ? "치료실별 일정" : "시간대별 일정"}</h3></div>
+          {view === "timeline" && (
+            <div className="rfilter" role="group" aria-label="치료실 필터">
+              <button className={!roomId ? "on" : ""} onClick={() => setRoomId("")}>전체 {sorted.length}</button>
+              {rooms.map((r) => <button key={r.id} className={roomId === r.id ? "on" : ""} onClick={() => setRoomId(roomId === r.id ? "" : r.id)}>{r.name} {sorted.filter((a) => itemOf(a)?.roomId === r.id).length}</button>)}
+            </div>)}
           {view === "cards" ? (
             <div className="rooms" style={{ "--n": (roomId ? rooms.filter((r) => r.id === roomId) : rooms).length, "--cols": (roomId ? rooms.filter((r) => r.id === roomId) : rooms).map((r) => (sorted.some((a) => itemOf(a)?.roomId === r.id) ? "minmax(150px,1fr)" : "minmax(100px,.5fr)")).join(" ") } as React.CSSProperties}>
               {(roomId ? rooms.filter((r) => r.id === roomId) : rooms).map((r, ri) => {
-                const list = sorted.filter((a) => itemOf(a)?.roomId === r.id);
+                const list = sorted.filter((a) => itemOf(a)?.roomId === r.id); const total = list.filter((a) => a.status !== "취소").length, done = count(list, "완료"), left = total - done, pct = total ? (done / total) * 100 : 0;
                 return (
-                  <section key={r.id} className="room" style={{ animationDelay: `${ri * 60}ms` }}>
-                    <header><div><b><span className="dotc" style={{ background: r.color }} />{r.name}</b><small>{r.therapist}</small></div>
-                      <span className="mini">{count(list, "완료")}/{list.length - count(list, "취소")}</span></header>
+                  <section key={r.id} className="room merged" style={{ animationDelay: `${ri * 60}ms` }}>
+                    <header className={`rhead g-${ri % 2 ? "b" : "a"} ${roomId === r.id ? "sel" : ""}`} role="button" tabIndex={0} aria-pressed={roomId === r.id}
+                      title={roomId === r.id ? "전체 치료실 보기" : "이 치료실만 보기"} onClick={() => setRoomId(roomId === r.id ? "" : r.id)} onKeyDown={(e) => { if (e.key === "Enter") setRoomId(roomId === r.id ? "" : r.id); }}>
+                      <div className="rh-top"><b>{r.name}</b></div>
+                      <div className="rh-sub"><span>{r.therapist ? `담당 ${r.therapist}` : ""}</span><span className="rbadge">{total === 0 ? "일정 없음" : left === 0 ? "모두 완료" : `${left}건 남음`}</span></div>
+                      <div className="rh-bar"><ProgressBar value={pct} /><span>{done}/{total}</span></div>
+                    </header>
                     <div className="list">{list.length ? list.map((a, i) => card(a, i)) : <p className="empty">스케줄 없음</p>}</div>
                     {canEditRoom(me, r.id) && <button className="add" onClick={() => openAppt({ date, itemId: db.items.find((i) => i.roomId === r.id)?.id })}>+ 추가</button>}
                   </section>);

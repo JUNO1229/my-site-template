@@ -542,3 +542,22 @@ button.btn-end,button.btn-restore{display:inline-flex;align-items:center;justify
 .mon .add{height:26px;margin:2px 8px 6px}
 @container (max-width:200px){.acard.compact .ac-done{display:none}}
 @container (max-width:130px){.mon .room .mini{display:none}}
+
+/* ===== 통합 치료실 카드: 현황(머리글) + 일정(목록)을 한 창으로 ===== */
+.mon .room.merged{padding:0;overflow:hidden}
+.mon .rhead{display:block;padding:9px 12px 10px;color:#fff;cursor:pointer;border-radius:var(--r-l) var(--r-l) 0 0;transition:filter .15s}
+.mon .rhead.g-a{background:var(--grad-p)}.mon .rhead.g-b{background:var(--grad-a)}
+.mon .rhead:hover{filter:brightness(1.06)}.mon .rhead.sel{box-shadow:inset 0 0 0 3px rgba(255,255,255,.9)}
+.mon .rh-top{display:flex;align-items:center;justify-content:space-between;gap:6px}
+.mon .rh-top b{display:block;min-width:0;font-size:14px;font-weight:600;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mon .rh-sub{font-size:11px;color:rgba(255,255,255,.82);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin:1px 0 5px}
+.mon .rh-bar{display:flex;align-items:center;gap:8px}.mon .rh-bar .pbar{flex:1}.mon .rh-bar span{font-size:11px;font-weight:600;color:rgba(255,255,255,.92);font-variant-numeric:tabular-nums}
+@container (max-width:130px){.mon .rh-top{flex-direction:column;align-items:flex-start;gap:3px}.mon .rh-sub{display:none}}
+.mon .rfilter{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 10px}.mon .rfilter button{border:0;border-radius:999px;padding:6px 14px;background:var(--surface);box-shadow:var(--sh-card);color:var(--text2);font-size:12.5px;font-weight:500}.mon .rfilter button.on{background:var(--grad-p);color:#fff}
+.mon .list{padding-top:8px}
+.mon .room header.rhead{display:block;padding:9px 12px 10px}
+
+.mon .rh-sub{display:flex;align-items:center;justify-content:space-between;gap:6px;margin:3px 0 6px;min-height:18px}.mon .rh-sub>span:first-child{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mon .rh-top b{font-size:14.5px}
+@container (max-width:130px){.mon .rh-sub{display:flex;flex-direction:column;align-items:flex-start;gap:3px}.mon .rh-sub>span:first-child{display:none}}
+.acard.compact{min-height:36px;padding-top:5px;padding-bottom:5px}
