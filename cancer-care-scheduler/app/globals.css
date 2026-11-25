@@ -580,3 +580,4 @@ button.btn-end,button.btn-restore{display:inline-flex;align-items:center;justify
 .mon .rh-top .grip{flex:none;opacity:.55;font-size:15px;line-height:1;letter-spacing:-1px}.mon .rhead:hover .grip{opacity:.95}
 .mon .room.dragging{opacity:.45}
 .mon .room.dropover{outline:3px dashed var(--p1);outline-offset:3px}
+.svsum.big{font-size:18px;padding:2px 0 6px}

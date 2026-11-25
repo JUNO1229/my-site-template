@@ -163,6 +163,8 @@ export function parsePlan(input: string): PlanResult {
 }
 
 const freq = (it: PlanItem) => it.everyOtherWeek ? `격주${it.everyOtherWeek}` : [it.perWeek ? `주${it.perWeek}` : "", it.perMonth && !it.perWeek ? `월${it.perMonth}` : ""].join("") || (it.total ? `총${it.total}회` : "");
+/** 치료설정 기준 약식 표기 */
+export const shortOf = (code: string) => catOf(code)?.short ?? code;
 /** 변경하려는 요약 표기 */
 export function compact(items: PlanItem[]): string {
   return items.map((it) => {
@@ -178,7 +180,8 @@ export function compact(items: PlanItem[]): string {
 /** 해석문(한국어 문장) */
 export function describe(it: PlanItem): string {
   const parts: string[] = [];
-  const nm = it.name + (it.variant && it.code === "abn" ? ` ${it.variant}` : "") + (it.stage ? ` ${it.stage}단계` : "");
+  const sh = shortOf(it.code);
+  const nm = it.name + (sh && sh !== it.name ? ` [${sh}]` : "") + (it.variant && it.code === "abn" ? ` ${it.variant}` : "") + (it.stage ? ` ${it.stage}단계` : "");
   if (it.qty) parts.push(`총 ${it.qty}${it.unit ?? ""}`);
   if (it.everyOtherWeek) parts.push(`격주 ${it.everyOtherWeek}회`);
   if (it.perWeek) parts.push(`주 ${it.perWeek}회`);
