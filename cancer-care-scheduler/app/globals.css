@@ -562,3 +562,15 @@ button.btn-end,button.btn-restore{display:inline-flex;align-items:center;justify
 @container (max-width:130px){.mon .rh-sub{display:flex;flex-direction:column;align-items:flex-start;gap:3px}.mon .rh-sub>span:first-child{display:none}}
 .acard.compact{min-height:36px;padding-top:5px;padding-bottom:5px}
 .mon .dp{margin-bottom:12px}
+/* 일정 카드 글자 키움 */
+.acard.compact{min-height:40px;padding-top:6px;padding-bottom:6px;gap:7px}
+.acard.compact .ac-t{font-size:12.5px;min-width:38px}
+.acard.compact .ac-n b{font-size:15px}.acard.compact .ac-n small{font-size:11px}
+.acard.compact .ac-opt,.acard.compact .ac-it{font-size:11px}.acard.compact .ac-cancel{font-size:11px}
+.acard.compact .icon-btn{width:26px;height:26px}
+
+.acard.compact .ac-n small.out .short{display:none}
+@container (max-width:200px){.acard.compact .ac-n small.out .full{display:none}.acard.compact .ac-n small.out .short{display:inline;font-weight:700;color:var(--p2)}}
+.acard.compact{gap:5px;padding-left:7px}.acard.compact .ac-t{font-size:12px;min-width:35px}.acard.compact .ac-n b{font-size:14.5px}
+.acard.compact .ac-opt{padding:0;width:16px;height:16px;display:inline-flex;align-items:center;justify-content:center;border-radius:50%;font-size:10.5px}
+.acard.compact .icon-btn{width:22px;height:22px;margin-left:-2px}.acard.compact .icon-btn svg{width:15px;height:15px}

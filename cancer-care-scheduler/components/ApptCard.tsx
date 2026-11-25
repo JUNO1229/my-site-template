@@ -28,7 +28,7 @@ export default function ApptCard({ a, patient, item, room, conflict, today, nowM
       title={`${hm(s)}–${hm(e)} ${item?.name ?? ""}${a.option ? " · " + a.option : ""} · ${a.status}${current ? " · 진행 중" : ""}`}
       aria-label={`${a.time} ${patient?.name ?? ""} ${item?.name ?? ""} ${a.status}`}>
       <span className="ac-t">{hm(s)}</span>
-      <span className="ac-n"><b>{patient?.name ?? "?"}</b>{patient?.ward && <small className={patient.ward === "외" ? "out" : ""}>{patient.ward === "외" ? "외래" : `${patient.ward}병동`}</small>}
+      <span className="ac-n"><b>{patient?.name ?? "?"}</b>{patient?.ward && (patient.ward === "외" ? <small className="out"><span className="full">외래</span><span className="short">외</span></small> : <small>{patient.ward}병동</small>)}
         {a.option && <em className="ac-opt">{a.option}</em>}{!hideItem && item?.name && <em className="ac-it">{item.name}</em>}</span>
       {current && <i className="live-dot" title="진행 중" />}
       {conflict && <span className="warn-ic" title={conflict}><Icon name="alert" size={14} /></span>}
