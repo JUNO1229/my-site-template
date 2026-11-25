@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useStore } from "@/lib/store";
 import { useToast } from "@/lib/toast";
 import { OPTIONS, STATUSES, type Appt } from "@/lib/types";
@@ -15,7 +15,9 @@ export default function ApptModal({ draft, onClose }: { draft: Draft; onClose: (
   const [closing, setClosing] = useState(false);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
-  const [f, setF] = useState<Draft>({ time: "09:00", option: "", status: "예약", memo: "", itemId: db.items.find((i) => canEditRoom(me, i.roomId))?.id ?? db.items[0]?.id, patientId: db.patients.find((p) => p.source !== "auto" && p.status !== "discharged")?.id ?? db.patients[0]?.id, ...draft });
+  const [q, setQ] = useState(""); const [added, setAdded] = useState<string[]>([]);
+  const openedAt = useRef(Date.now()); const qRef = useRef<HTMLInputElement>(null);
+  const [f, setF] = useState<Draft>({ time: "09:00", option: "", status: "예약", memo: "", itemId: db.items.find((i) => canEditRoom(me, i.roomId))?.id ?? db.items[0]?.id, patientId: "", ...draft });
   const set = (k: keyof Appt, v: string) => setF((p) => ({ ...p, [k]: v }));
   const item = db.items.find((i) => i.id === f.itemId);
   const patient = db.patients.find((p) => p.id === f.patientId);
@@ -23,10 +25,19 @@ export default function ApptModal({ draft, onClose }: { draft: Draft; onClose: (
   const valid = !!f.patientId && !!f.itemId && !!f.time && !!f.date;
   const close = () => { setClosing(true); setTimeout(onClose, 180); };
   useEffect(() => { const k = (e: KeyboardEvent) => { if (e.key === "Escape") close(); }; document.addEventListener("keydown", k); return () => document.removeEventListener("keydown", k); }); // eslint-disable-line
-  const submit = async () => {
-    if (!valid || busy) return; setBusy(true); setErr("");
-    try { await saveAppt(f as Appt); toast(f.id ? "스케줄을 수정했습니다" : "스케줄을 등록했습니다"); close(); }
-    catch (e) { setErr((e as Error).message); setBusy(false); }
+  /** keep=true: 등록 후 창을 닫지 않고 환자만 비워 다음 환자를 이어서 입력한다 */
+  const submit = async (keep = false) => {
+    if (!valid || busy) return;
+    if (!f.id && Date.now() - openedAt.current < 600) return; // 창이 막 열릴 때의 더블클릭 오입력 방지
+    setBusy(true); setErr("");
+    try {
+      await saveAppt(f as Appt);
+      if (keep && !f.id) {
+        setAdded((a) => [...a, `${pname(patient!)} ${f.time}${item ? ` · ${item.name}` : ""}`]);
+        toast(`${pname(patient!)}님 등록 — 다음 환자를 선택하세요`); setF((p) => ({ ...p, patientId: "", memo: "" })); setQ(""); setBusy(false);
+        setTimeout(() => qRef.current?.focus(), 30);
+      } else { toast(f.id ? "스케줄을 수정했습니다" : "스케줄을 등록했습니다"); close(); }
+    } catch (e) { setErr((e as Error).message); setBusy(false); }
   };
   const del = async () => { if (!f.id || !confirm("이 스케줄을 삭제할까요?")) return; try { await deleteAppt(f.id); toast("스케줄을 삭제했습니다"); close(); } catch (e) { setErr((e as Error).message); } };
   const allowed = db.items.filter((i) => canEditRoom(me, i.roomId) || i.id === f.itemId);
@@ -36,8 +47,10 @@ export default function ApptModal({ draft, onClose }: { draft: Draft; onClose: (
         <div className="sheet-head"><span className="grab" /><h3>{f.id ? "스케줄 수정" : "스케줄 등록"}</h3>
           <button className="icon-btn" aria-label="닫기" onClick={close}><Icon name="x" /></button></div>
         <div className="sheet-body">
+          {!f.id && <label>환자 검색<input ref={qRef} value={q} onChange={(e) => setQ(e.target.value)} placeholder="이름·차트번호로 찾기" autoComplete="off" /></label>}
           <label>환자<select value={f.patientId} onChange={(e) => set("patientId", e.target.value)}>
-            {db.patients.filter((p) => (p.source !== "auto" && p.status !== "discharged") || p.id === f.patientId).map((p) => <option key={p.id} value={p.id}>{pname(p)} · 차트 {p.chartNo || "-"}</option>)}</select></label>
+            <option value="" disabled>환자를 선택하세요</option>
+            {db.patients.filter((p) => (p.source !== "auto" && p.status !== "discharged" && (!q.trim() || (pname(p) + " " + p.chartNo).toLowerCase().includes(q.trim().toLowerCase()))) || p.id === f.patientId).map((p) => <option key={p.id} value={p.id}>{pname(p)} · 차트 {p.chartNo || "-"}</option>)}</select></label>
           {patient && (patient.plan || patient.notes) && <p className="hint planhint">{patient.plan}{patient.notes && ` / ${patient.notes}`}</p>}
           <div className="row">
             <label>치료일자<DateField value={f.date} onChange={(v) => set("date", v)} /></label>
@@ -53,12 +66,14 @@ export default function ApptModal({ draft, onClose }: { draft: Draft; onClose: (
           <div className="fieldlabel">치료옵션</div>
           <div className="chips">{OPTIONS.map((o) => <button key={o || "none"} type="button" className={`chip ${f.option === o ? "on" : ""}`} onClick={() => set("option", o)}>{o || "없음"}</button>)}</div>
           <label>비고<input value={f.memo} onChange={(e) => set("memo", e.target.value)} placeholder="필요한 메모를 입력하세요" /></label>
+          {added.length > 0 && <p className="hint addedlist"><b>이번에 등록한 스케줄 {added.length}건</b><br />{added.join(" / ")}</p>}
           {err && <p className="err"><Icon name="alert" size={16} /> {err}</p>}
           {!writable && <p className="hint">조회 권한만 있어 수정할 수 없습니다.</p>}
         </div>
         <div className="sheet-foot">
           {f.id && writable && <button className="btn-ghost danger" onClick={del}><Icon name="trash" size={18} />삭제</button>}
-          {writable && <button className="cta" disabled={!valid || busy} onClick={submit}>{busy ? "저장 중…" : f.id ? "저장" : "등록"}</button>}
+          {writable && !f.id && <button className="btn-ghost" disabled={!valid || busy} onClick={() => submit(true)}>등록 후 계속 입력</button>}
+          {writable && <button className="cta" disabled={!valid || busy} onClick={() => submit(false)}>{busy ? "저장 중…" : f.id ? "저장" : added.length ? "등록 후 닫기" : "등록"}</button>}
         </div>
       </div>
     </div>
