@@ -574,3 +574,9 @@ button.btn-end,button.btn-restore{display:inline-flex;align-items:center;justify
 .acard.compact{gap:5px;padding-left:7px}.acard.compact .ac-t{font-size:12px;min-width:35px}.acard.compact .ac-n b{font-size:14.5px}
 .acard.compact .ac-opt{padding:0;width:16px;height:16px;display:inline-flex;align-items:center;justify-content:center;border-radius:50%;font-size:10.5px}
 .acard.compact .icon-btn{width:22px;height:22px;margin-left:-2px}.acard.compact .icon-btn svg{width:15px;height:15px}
+
+/* 치료실 카드 끌어서 순서 변경 */
+.mon .rhead[draggable=true]{cursor:grab}.mon .rhead[draggable=true]:active{cursor:grabbing}
+.mon .rh-top .grip{flex:none;opacity:.55;font-size:15px;line-height:1;letter-spacing:-1px}.mon .rhead:hover .grip{opacity:.95}
+.mon .room.dragging{opacity:.45}
+.mon .room.dropover{outline:3px dashed var(--p1);outline-offset:3px}
