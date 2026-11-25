@@ -1,5 +1,6 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 
 const GRAD = ["a", "b"] as const;
 export const gradOf = (i: number) => GRAD[i % 2];
@@ -41,12 +42,23 @@ export function PageSkeleton() {
 }
 /** 팝오버 메뉴(⋮) */
 export function PopMenu({ items, label = "메뉴", tone = "" }: { items: { label: string; icon?: string; onClick: () => void; danger?: boolean }[]; label?: string; tone?: string }) {
-  const [open, setOpen] = useState(false); const ref = useRef<HTMLDivElement>(null);
+  const [open, setOpen] = useState(false); const [pos, setPos] = useState<{ top: number; left: number } | null>(null);
+  const ref = useRef<HTMLDivElement>(null); const menuRef = useRef<HTMLDivElement>(null);
+  /* 메뉴는 body에 띄워(fixed) 카드·스크롤 영역에 가려지거나 잘리지 않게 한다 */
+  useLayoutEffect(() => {
+    if (!open) { setPos(null); return; }
+    const btn = ref.current?.querySelector("button"); const m = menuRef.current; if (!btn || !m) return;
+    const r = btn.getBoundingClientRect(), w = m.offsetWidth, h = m.offsetHeight;
+    const top = r.bottom + 8 + h > innerHeight - 8 ? Math.max(8, r.top - 8 - h) : r.bottom + 8;
+    setPos({ top, left: Math.min(Math.max(8, r.right - w), innerWidth - w - 8) });
+  }, [open]);
   useEffect(() => {
     if (!open) return;
-    const off = (e: MouseEvent | KeyboardEvent) => { if (e instanceof KeyboardEvent ? e.key === "Escape" : !ref.current?.contains(e.target as Node)) setOpen(false); };
+    const off = (e: MouseEvent | KeyboardEvent) => { if (e instanceof KeyboardEvent ? e.key === "Escape" : !ref.current?.contains(e.target as Node) && !menuRef.current?.contains(e.target as Node)) setOpen(false); };
+    const close = () => setOpen(false);
     document.addEventListener("mousedown", off); document.addEventListener("keydown", off);
-    return () => { document.removeEventListener("mousedown", off); document.removeEventListener("keydown", off); };
+    window.addEventListener("scroll", close, true); window.addEventListener("resize", close);
+    return () => { document.removeEventListener("mousedown", off); document.removeEventListener("keydown", off); window.removeEventListener("scroll", close, true); window.removeEventListener("resize", close); };
   }, [open]);
   if (!items.length) return null;
   return (
@@ -54,8 +66,9 @@ export function PopMenu({ items, label = "메뉴", tone = "" }: { items: { label
       <button className={`icon-btn ${tone}`} aria-label={label} aria-haspopup="menu" aria-expanded={open} onClick={() => setOpen((o) => !o)}>
         <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="5" r="1.6" /><circle cx="12" cy="12" r="1.6" /><circle cx="12" cy="19" r="1.6" /></svg>
       </button>
-      {open && <div className="popmenu" role="menu">{items.map((it, i) => (
-        <button key={i} role="menuitem" className={it.danger ? "danger" : ""} onClick={() => { setOpen(false); it.onClick(); }}>{it.label}</button>))}</div>}
+      {open && createPortal(
+        <div className="popmenu popmenu-fixed" role="menu" ref={menuRef} onClick={(e) => e.stopPropagation()} style={{ top: pos?.top ?? 0, left: pos?.left ?? 0, visibility: pos ? "visible" : "hidden" }}>{items.map((it, i) => (
+          <button key={i} role="menuitem" className={it.danger ? "danger" : ""} onClick={() => { setOpen(false); it.onClick(); }}>{it.label}</button>))}</div>, document.body)}
     </div>
   );
 }
