@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { analyze, type ImportPlan } from "@/lib/importer";
 import { api } from "@/lib/api";
+import { confirmType } from "@/lib/util";
 import { useStore } from "@/lib/store";
 
 const chunk = <T,>(a: T[], n: number) => Array.from({ length: Math.ceil(a.length / n) }, (_, i) => a.slice(i * n, i * n + n));
@@ -21,10 +22,10 @@ export default function ImportPanel() {
   };
   const run = async () => {
     if (!plan) return;
-    if (wipe && !confirm("현재 등록된 환자·스케줄(데모 포함)을 모두 삭제한 뒤 가져옵니다. 계속할까요?")) return;
+    if (wipe && !confirmType("현재 등록된 환자·스케줄(데모 포함)을 모두 삭제한 뒤 가져옵니다.\n(삭제 직전 자동 백업이 저장되며, 관리 탭에서 복원할 수 있습니다)", "삭제")) return;
     setBusy(true); setErr(""); setLog([]);
     try {
-      if (wipe) { await api("/api/admin/data", "POST", { action: "clear" }); say("기존 환자·스케줄 삭제 완료"); }
+      if (wipe) { await api("/api/admin/data", "POST", { action: "clear", confirm: "삭제" }); say("기존 환자·스케줄 삭제 완료"); }
       let ins = 0, upd = 0;
       for (const c of chunk(plan.patients, 500)) { const r = await api<{ inserted: number; updated: number }>("/api/admin/import", "POST", { kind: "patients", rows: c }); ins += r.inserted; upd += r.updated; }
       if (plan.patients.length) say(`환자명부: 신규 ${ins}명, 갱신 ${upd}명`);

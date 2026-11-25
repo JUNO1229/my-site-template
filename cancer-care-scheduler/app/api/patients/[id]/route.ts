@@ -10,6 +10,7 @@ export const PUT = route(async (req, ctx, me) => {
 }, { roles: ["admin", "manager"] });
 export const DELETE = route(async (_r, ctx, me) => {
   const { id } = await ctx.params;
+  const p = (await q("SELECT name,ward,chart_no,(SELECT count(*)::int FROM appts WHERE patient_id=$1) AS n FROM patients WHERE id=$1", [id]))[0];
   await q("DELETE FROM patients WHERE id=$1", [id]);
-  await audit(me.username, "patient_delete", id);
+  await audit(me.username, "patient_delete", p ? `${p.name}(${p.ward}) 차트${p.chart_no || "-"} · 스케줄 ${p.n}건 함께 삭제` : id);
 }, { roles: ["admin"] });

@@ -3,6 +3,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useStore } from "@/lib/store";
 import { ROLE_DESC, ROLE_LABEL, isAdmin, type Role } from "@/lib/perm";
 import { api } from "@/lib/api";
+import { confirmType } from "@/lib/util";
 import ImportPanel from "@/components/ImportPanel";
 import { useToast } from "@/lib/toast";
 
@@ -17,6 +18,13 @@ export default function Admin() {
   const [users, setUsers] = useState<U[]>([]); const [logs, setLogs] = useState<Log[]>([]);
   const [edit, setEdit] = useState<(Partial<U> & { password?: string; resetPassword?: string }) | null>(null);
   const [err, setErr] = useState(""); const [msg, setMsg] = useState("");
+  const [backups, setBackups] = useState<{ id: number; createdAt: string; reason: string; by: string | null; patients: number; appts: number }[]>([]);
+  const loadBackups = useCallback(() => { api<{ backups: typeof backups }>("/api/admin/data").then((r) => setBackups(r.backups)).catch(() => {}); }, []);
+  useEffect(() => { if (tab === "data" && isAdmin(me)) loadBackups(); }, [tab, me, loadBackups]);
+  const restore = async (b: { id: number; createdAt: string }) => {
+    if (!confirmType(`${fmt(b.createdAt)} 백업으로 환자·스케줄을 되돌립니다.\n(현재 상태도 먼저 자동 백업됩니다)`, "복원")) return;
+    try { await api("/api/admin/data", "POST", { action: "restore", id: b.id, confirm: "복원" }); await refresh(); loadBackups(); setMsg("백업으로 복원했습니다"); } catch (e) { setErr((e as Error).message); }
+  };
   const { toast } = useToast();
   const load = useCallback(() => {
     api<{ users: U[] }>("/api/users").then((r) => setUsers(r.users)).catch((e) => setErr(e.message));
@@ -34,12 +42,12 @@ export default function Admin() {
     } catch (e) { setErr((e as Error).message); }
   };
   const purge = async () => {
-    if (!confirm("스케줄 기록에서 자동 생성된 과거 환자와 그 환자의 스케줄을 모두 삭제합니다. 되돌릴 수 없습니다.")) return;
-    try { const r = await api<{ deleted: number }>("/api/admin/data", "POST", { action: "purge_auto" }); await refresh(); setMsg(`자동 생성 환자 ${r.deleted}명과 스케줄을 삭제했습니다`); } catch (e) { setErr((e as Error).message); }
+    if (!confirmType("스케줄 기록에서 자동 생성된 과거 환자와 그 환자의 스케줄을 모두 삭제합니다.\n(직전 상태는 자동 백업됩니다)", "삭제")) return;
+    try { const r = await api<{ deleted: number }>("/api/admin/data", "POST", { action: "purge_auto", confirm: "삭제" }); await refresh(); setMsg(`자동 생성 환자 ${r.deleted}명과 스케줄을 삭제했습니다`); } catch (e) { setErr((e as Error).message); }
   };
   const data = async (action: "demo" | "clear") => {
-    if (!confirm(action === "clear" ? "모든 환자와 스케줄을 삭제합니다. 되돌릴 수 없습니다." : "현재 환자·스케줄을 삭제하고 가상 데모 데이터로 교체합니다.")) return;
-    try { await api("/api/admin/data", "POST", { action }); await refresh(); setMsg(action === "clear" ? "환자·스케줄을 모두 삭제했습니다" : "데모 데이터를 불러왔습니다"); } catch (e) { setErr((e as Error).message); }
+    if (!confirmType(action === "clear" ? "모든 환자와 스케줄을 삭제합니다.\n(직전 상태는 자동 백업됩니다)" : "현재 환자·스케줄을 삭제하고 가상 데모 데이터로 교체합니다.\n(직전 상태는 자동 백업됩니다)", "삭제")) return;
+    try { await api("/api/admin/data", "POST", { action, confirm: "삭제" }); await refresh(); loadBackups(); setMsg(action === "clear" ? "환자·스케줄을 모두 삭제했습니다" : "데모 데이터를 불러왔습니다"); } catch (e) { setErr((e as Error).message); }
   };
   const toggleRoom = (id: string) => setEdit((e) => e && { ...e, roomIds: e.roomIds?.includes(id) ? e.roomIds.filter((x) => x !== id) : [...(e.roomIds ?? []), id] });
 
@@ -62,7 +70,11 @@ export default function Admin() {
           <tbody>{logs.map((l, i) => (<tr key={i}><td>{fmt(l.ts)}</td><td>{l.username ?? "-"}</td><td>{l.action}</td><td>{l.detail}</td></tr>))}</tbody></table></div>)}
       {tab === "data" && (<><ImportPanel />
         <div className="card"><p>현재 환자명부와 스케줄은 <b>가상 데모 데이터</b>일 수 있습니다. 실제 운영 전에 삭제하고 시작하세요.</p>
-          <div className="row"><button onClick={() => data("demo")}>데모 데이터로 교체</button><button onClick={purge}>명부에 없는 자동 생성 환자·스케줄 정리</button><button className="danger" onClick={() => data("clear")}>환자·스케줄 전체 삭제</button></div></div></>)}
+          <div className="row"><button onClick={() => data("demo")}>데모 데이터로 교체</button><button onClick={purge}>명부에 없는 자동 생성 환자·스케줄 정리</button><button className="danger" onClick={() => data("clear")}>환자·스케줄 전체 삭제</button></div></div>
+        <div className="card"><p><b>삭제 직전 자동 백업</b> (최근 10개) — 전체 삭제·데모 교체·정리·가져오기 시 삭제 직전 상태가 저장되며, 아래에서 복원할 수 있습니다.</p>
+          {backups.length === 0 ? <p className="hint">저장된 백업이 없습니다.</p> : (
+            <table className="tbl"><thead><tr><th>저장 시각</th><th>사유</th><th>환자</th><th>스케줄</th><th>실행자</th><th /></tr></thead>
+              <tbody>{backups.map((b) => (<tr key={b.id}><td>{fmt(b.createdAt)}</td><td>{b.reason}</td><td>{b.patients}명</td><td>{b.appts}건</td><td>{b.by ?? "-"}</td><td><button onClick={() => restore(b)}>복원</button></td></tr>))}</tbody></table>)}</div></>)}
       {edit && (
         <div className="overlay" onClick={() => setEdit(null)}><div className="modal" onClick={(e) => e.stopPropagation()}>
           <h3>{edit.id ? "계정 수정" : "계정 발급"}</h3>

@@ -2,7 +2,7 @@ import { audit, body, HttpError, route } from "@/lib/server/auth";
 import { q } from "@/lib/server/db";
 import { mAppt } from "@/lib/server/map";
 import { isDate, need } from "@/lib/server/validate";
-import { validAppt } from "@/lib/server/appt";
+import { checkConflicts, validAppt } from "@/lib/server/appt";
 import crypto from "node:crypto";
 
 export const dynamic = "force-dynamic";
@@ -17,9 +17,10 @@ export const GET = route(async (req) => {
 });
 
 export const POST = route(async (req, _c, me) => {
-  const v = await validAppt(await body(req), me); const id = crypto.randomUUID();
+  const b = await body(req); const v = await validAppt(b, me); const id = crypto.randomUUID();
+  const forced = await checkConflicts(v, undefined, me, b.force === true);
   await q("INSERT INTO appts(id,patient_id,appt_date,appt_time,item_id,opt,status,memo,created_by) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9)",
     [id, v.patientId, v.date, v.time, v.itemId, v.opt, v.status, v.memo, me.username]);
-  await audit(me.username, "appt_create", `${v.date} ${v.time} ${v.itemId} patient=${v.patientId}`);
+  await audit(me.username, "appt_create", `${v.date} ${v.time} ${v.itemId} patient=${v.patientId}${forced ? " (중복·정원 예외 등록)" : ""}`);
   return { id };
 }, { roles: ["admin", "manager", "therapist"] });

@@ -9,6 +9,8 @@ export const dow = (s: string) => DOW[parse(s).getDay()];
 export const label = (s: string) => `${s}(${dow(s)})`;
 export const mondayOf = (s: string) => { const d = parse(s); const k = (d.getDay() + 6) % 7; return addDays(s, -k); };
 export const toMin = (t: string) => { const [h, m] = t.split(":").map(Number); return h * 60 + m; };
+/** 위험한 작업 전 확인 문구를 직접 입력하게 한다 */
+export const confirmType = (msg: string, word: string) => (window.prompt(`${msg}\n\n계속하려면 '${word}' 를 입력하세요.`) ?? "").trim() === word;
 export const uid = () => Math.random().toString(36).slice(2, 10);
 export const todayStr = () => ymd(new Date());
 

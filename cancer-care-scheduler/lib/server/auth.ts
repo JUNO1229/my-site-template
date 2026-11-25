@@ -7,7 +7,7 @@ import type { Me, Role } from "../perm";
 export const COOKIE = "ccs_session";
 const TTL_MS = 12 * 3600 * 1000;
 
-export class HttpError extends Error { constructor(public status: number, msg: string) { super(msg); } }
+export class HttpError extends Error { constructor(public status: number, msg: string, public code?: string) { super(msg); } }
 
 export function hashPassword(pw: string) {
   const salt = crypto.randomBytes(16);
@@ -65,7 +65,7 @@ export function route(fn: Handler, opts: { public?: boolean; roles?: Role[]; all
       return NextResponse.json((await fn(req, ctx, me as Me)) ?? { ok: true });
     } catch (e) {
       if (e instanceof HttpError) {
-        const res = NextResponse.json({ error: e.message }, { status: e.status });
+        const res = NextResponse.json({ error: e.message, ...(e.code ? { code: e.code } : {}) }, { status: e.status });
         // 로그인 정보가 유효하지 않으면 남은 쿠키를 지워 로그인 화면 ↔ 첫 화면 무한 반복을 막는다
         if (e.status === 401) res.cookies.set(COOKIE, "", { httpOnly: true, secure: process.env.NODE_ENV === "production", sameSite: "lax", path: "/", maxAge: 0 });
         return res;

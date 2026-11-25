@@ -7,6 +7,6 @@ export async function api<T = unknown>(url: string, method = "GET", data?: unkno
     if (Date.now() - last > 5000) { try { sessionStorage.setItem("ccs-redirect", String(Date.now())); } catch { /* ignore */ } location.href = "/login?expired=1"; }
     throw new Error("로그인이 필요합니다");
   }
-  if (!r.ok) throw new Error((j as { error?: string }).error || "요청에 실패했습니다");
+  if (!r.ok) { const err = new Error((j as { error?: string }).error || "요청에 실패했습니다") as Error & { code?: string }; err.code = (j as { code?: string }).code; throw err; }
   return j as T;
 }

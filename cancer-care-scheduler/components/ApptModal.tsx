@@ -14,8 +14,8 @@ export default function ApptModal({ draft, onClose }: { draft: Draft; onClose: (
   const { toast } = useToast();
   const [closing, setClosing] = useState(false);
   const [busy, setBusy] = useState(false);
-  const [err, setErr] = useState("");
-  const [q, setQ] = useState(""); const [added, setAdded] = useState<string[]>([]);
+  const [err, setErr] = useState(""); const [canForce, setCanForce] = useState(false);
+  const [lastKeep, setLastKeep] = useState(false); const [q, setQ] = useState(""); const [added, setAdded] = useState<string[]>([]);
   const openedAt = useRef(Date.now()); const qRef = useRef<HTMLInputElement>(null);
   const [f, setF] = useState<Draft>({ time: "09:00", option: "", status: "예약", memo: "", itemId: db.items.find((i) => canEditRoom(me, i.roomId))?.id ?? db.items[0]?.id, patientId: "", ...draft });
   const set = (k: keyof Appt, v: string) => setF((p) => ({ ...p, [k]: v }));
@@ -26,18 +26,18 @@ export default function ApptModal({ draft, onClose }: { draft: Draft; onClose: (
   const close = () => { setClosing(true); setTimeout(onClose, 180); };
   useEffect(() => { const k = (e: KeyboardEvent) => { if (e.key === "Escape") close(); }; document.addEventListener("keydown", k); return () => document.removeEventListener("keydown", k); }); // eslint-disable-line
   /** keep=true: 등록 후 창을 닫지 않고 환자만 비워 다음 환자를 이어서 입력한다 */
-  const submit = async (keep = false) => {
+  const submit = async (keep = false, force = false) => {
     if (!valid || busy) return;
     if (!f.id && Date.now() - openedAt.current < 600) return; // 창이 막 열릴 때의 더블클릭 오입력 방지
-    setBusy(true); setErr("");
+    setBusy(true); setErr(""); setCanForce(false);
     try {
-      await saveAppt(f as Appt);
+      await saveAppt({ ...f, force } as unknown as Appt);
       if (keep && !f.id) {
         setAdded((a) => [...a, `${pname(patient!)} ${f.time}${item ? ` · ${item.name}` : ""}`]);
         toast(`${pname(patient!)}님 등록 — 다음 환자를 선택하세요`); setF((p) => ({ ...p, patientId: "", memo: "" })); setQ(""); setBusy(false);
         setTimeout(() => qRef.current?.focus(), 30);
       } else { toast(f.id ? "스케줄을 수정했습니다" : "스케줄을 등록했습니다"); close(); }
-    } catch (e) { setErr((e as Error).message); setBusy(false); }
+    } catch (e) { setErr((e as Error).message); setCanForce((e as Error & { code?: string }).code === "conflict"); setLastKeep(keep); setBusy(false); }
   };
   const del = async () => { if (!f.id || !confirm("이 스케줄을 삭제할까요?")) return; try { await deleteAppt(f.id); toast("스케줄을 삭제했습니다"); close(); } catch (e) { setErr((e as Error).message); } };
   const allowed = db.items.filter((i) => canEditRoom(me, i.roomId) || i.id === f.itemId);
@@ -68,6 +68,7 @@ export default function ApptModal({ draft, onClose }: { draft: Draft; onClose: (
           <label>비고<input value={f.memo} onChange={(e) => set("memo", e.target.value)} placeholder="필요한 메모를 입력하세요" /></label>
           {added.length > 0 && <p className="hint addedlist"><b>이번에 등록한 스케줄 {added.length}건</b><br />{added.join(" / ")}</p>}
           {err && <p className="err"><Icon name="alert" size={16} /> {err}</p>}
+          {canForce && <button type="button" className="btn-ghost danger" disabled={busy} onClick={() => confirm("중복·정원 초과를 확인했습니다. 예외로 등록할까요?") && submit(lastKeep, true)}>그래도 등록 (예외)</button>}
           {!writable && <p className="hint">조회 권한만 있어 수정할 수 없습니다.</p>}
         </div>
         <div className="sheet-foot">
