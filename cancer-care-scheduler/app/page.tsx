@@ -26,7 +26,6 @@ export default function Monitor() {
   const count = (list: Appt[], s: string) => list.filter((a) => a.status === s).length;
   const dur = (a: Appt) => itemOf(a)?.duration ?? 50;
   const conflictCount = shown.filter((a) => conflicts.has(a.id)).length; // 선택한 치료실 기준
-  const upcoming = shown.filter((a) => a.status === "예약" && (date !== today || toMin(a.time) + dur(a) > nowMin)).slice(0, 6);
 
   useEffect(() => { const d = new URLSearchParams(location.search).get("date"); if (d && /^\d{4}-\d{2}-\d{2}$/.test(d)) setDate(d); }, []);
   useEffect(() => {
@@ -78,7 +77,7 @@ export default function Monitor() {
         <div className={`kpi ${conflictCount ? "bad" : ""}`}><b><CountUp value={conflictCount} /></b>충돌</div>
       </div>
 
-      <div className={`dash ${view === "cards" ? "has-aside" : ""}`}>
+      <div className="dash">
         <div>
           <div className="sec"><h3>{view === "cards" ? "치료실별 일정" : "시간대별 일정"}</h3></div>
           {view === "cards" ? (
@@ -98,23 +97,6 @@ export default function Monitor() {
             <Timeline shown={shown} card={card} nowMin={nowMin} isToday={date === today} />
           )}
         </div>
-        {view === "cards" && (
-          <aside>
-            <div className="sec"><h3>다음 치료 일정</h3><button className="link" onClick={() => setView("timeline")}>전체보기</button></div>
-            <div className="tlist">
-              {upcoming.length === 0 && <p className="empty">남은 예약이 없습니다 🎉</p>}
-              {upcoming.map((a, i) => {
-                const p = db.patients.find((x) => x.id === a.patientId); const it = itemOf(a); const r = roomOf(a); const can = canEditRoom(me, r?.id);
-                return (
-                  <div key={a.id} className="titem" style={{ animationDelay: `${i * 50}ms` }} onClick={() => openAppt(a)}>
-                    <span className={`ibox g-${i % 2 ? "b" : "a"}`}>{a.time}</span>
-                    <div className="grow"><b>{p?.name}</b><small>{it?.name}{a.option && ` · ${a.option}`} · {r?.name}</small></div>
-                    <PopMenu label="일정 메뉴" items={[...(can ? [{ label: "완료 처리", onClick: () => setStatus(a, "완료") }, { label: "예약 취소", danger: true, onClick: () => setStatus(a, "취소") }] : []), { label: "상세·수정", onClick: () => openAppt(a) }]} />
-                  </div>);
-              })}
-            </div>
-          </aside>
-        )}
       </div>
     </>
   );
