@@ -8,6 +8,7 @@ export const MENU: { href: string; label: string; icon: string; roles?: Role[] }
   { href: "/monthly", label: "월간 치료현황", icon: "cal2" },
   { href: "/calendar", label: "환자별 치료캘린더", icon: "calendar" },
   { href: "/list", label: "기간별 리스트", icon: "list" },
+  { href: "/plan-survey", label: "치료정보 구조 설문", icon: "list" },
   { href: "/settings", label: "치료실 설정", icon: "sliders", roles: ["admin"] },
   { href: "/sickrooms", label: "병실관리", icon: "bed", roles: ["admin", "manager", "viewer"] },
   { href: "/admin", label: "계정·접속기록", icon: "shield", roles: ["admin"] },

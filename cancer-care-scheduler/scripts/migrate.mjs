@@ -46,6 +46,9 @@ for (const st of [`CREATE TABLE IF NOT EXISTS patient_snapshots (
 `CREATE TABLE IF NOT EXISTS data_backups (
   id BIGSERIAL PRIMARY KEY, created_at TIMESTAMPTZ NOT NULL DEFAULT now(), reason TEXT NOT NULL DEFAULT '', created_by TEXT,
   n_patients INT NOT NULL DEFAULT 0, n_appts INT NOT NULL DEFAULT 0, patients JSONB NOT NULL, appts JSONB NOT NULL)`,
+`CREATE TABLE IF NOT EXISTS plan_survey_answers (
+  row_key TEXT NOT NULL, username TEXT NOT NULL, name TEXT NOT NULL DEFAULT '', verdict TEXT NOT NULL DEFAULT '', answer TEXT NOT NULL DEFAULT '',
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now(), PRIMARY KEY (row_key, username))`,
 `CREATE TABLE IF NOT EXISTS audit_log (
   id BIGSERIAL PRIMARY KEY, ts TIMESTAMPTZ NOT NULL DEFAULT now(), username TEXT, action TEXT NOT NULL, detail TEXT NOT NULL DEFAULT '')`]) await q(st);
 

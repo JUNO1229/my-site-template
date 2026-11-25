@@ -444,3 +444,32 @@ button.btn-end,button.btn-restore{display:inline-flex;align-items:center;justify
 :root[data-theme=dark] .tmpnote{background:rgba(217,119,6,.16);color:#fcd34d}:root[data-theme=dark] .tmpbadge{background:rgba(217,119,6,.28);color:#fcd34d}
 .tmpreg{margin-top:8px;padding:10px 12px;border-radius:var(--r-m);background:var(--field);display:grid;gap:8px}.tmpreg .row{display:flex;gap:8px}.tmpreg input{flex:1}
 .linkbtn{border:0;background:none;color:var(--p2);font-weight:600;font-size:13px;padding:4px 0;text-align:left}.linkbtn:hover{text-decoration:underline}
+
+/* ===== 치료정보 구조 설문 ===== */
+.survey .svintro{margin-bottom:12px;line-height:1.6}.survey .svintro ol{margin:6px 0 8px 18px;padding:0}.survey .svintro li{margin:2px 0}
+.survey .svbar{gap:10px;flex-wrap:wrap;margin-bottom:10px}
+.svwrap{overflow:auto;max-height:none}
+.survtbl{width:100%;border-collapse:separate;border-spacing:0;table-layout:fixed;font-size:13.5px}
+.survtbl th{position:sticky;top:0;z-index:5;background:var(--thead,#e6dcf5);color:var(--text);padding:10px 12px;text-align:center;font-weight:700}
+:root[data-theme=dark] .survtbl th{background:#3a2f55}
+.survtbl th:nth-child(1){width:17%}.survtbl th:nth-child(2){width:21%}.survtbl th:nth-child(3){width:20%}.survtbl th:nth-child(4){width:20%}.survtbl th:nth-child(5){width:22%}
+.survtbl td{vertical-align:top;padding:12px;border-bottom:1px solid rgba(0,0,0,.07);background:var(--surface)}
+.survtbl tr.hasq td:nth-child(4){background:#fffbeb}:root[data-theme=dark] .survtbl tr.hasq td:nth-child(4){background:rgba(217,119,6,.12)}
+.svtag{display:inline-block;font-size:11.5px;font-weight:700;color:var(--p2);background:var(--psoft);border-radius:999px;padding:2px 10px;margin-bottom:6px}
+.svraw{margin:0;white-space:pre-wrap;word-break:break-all;font:inherit;font-weight:600;line-height:1.55}
+.svnew{margin-bottom:8px}.svsum{font-weight:700;color:var(--p2);margin-bottom:5px;line-height:1.45}.svsum.off,.svmean.off{color:var(--text2);font-weight:500}
+.svchips{display:flex;flex-wrap:wrap;gap:4px}.svchip{font-size:12px;padding:3px 9px;border-radius:999px;background:var(--field);color:var(--text)}.svchip.q{background:#fef3c7;color:#92400e}
+.svmean{margin:0 0 6px;line-height:1.55}
+.svq{margin:0;padding-left:18px;line-height:1.55}.svq li{margin-bottom:6px}.svok{color:var(--text2)}
+.svans{display:grid;gap:8px}.svradio{display:flex;flex-direction:column;gap:5px}
+.svradio label{display:flex;align-items:center;gap:6px;padding:6px 10px;border-radius:var(--r-m);background:var(--field);cursor:pointer;font-size:13px}
+.svradio label.on.ok{background:#dcfce7;color:#166534;font-weight:700}.svradio label.on.fix{background:#fee2e2;color:#991b1b;font-weight:700}
+.svans textarea{width:100%;border:0;border-radius:var(--r-m);background:var(--field);padding:10px;font:inherit;resize:vertical;min-height:70px;color:var(--text)}
+.svstat{font-size:12px;color:var(--text2);min-height:16px}
+.svothers{border-top:1px dashed rgba(0,0,0,.15);padding-top:6px;font-size:12.5px}.svothers p{margin:3px 0}.svothers .tag{display:inline-block;padding:0 8px;border-radius:999px;background:var(--field);font-size:11px}.svothers .tag.v-ok{background:#dcfce7;color:#166534}.svothers .tag.v-fix{background:#fee2e2;color:#991b1b}
+@media(max-width:1000px){
+  .survtbl,.survtbl tbody,.survtbl tr,.survtbl td{display:block;width:100%}.survtbl thead{display:none}
+  .survtbl tr{background:var(--surface);border-radius:var(--r-l);box-shadow:var(--sh-card);margin-bottom:12px;overflow:hidden}
+  .survtbl td{border-bottom:1px solid rgba(0,0,0,.06)}.survtbl td::before{content:attr(data-label);display:block;font-size:11.5px;font-weight:700;color:var(--text2);margin-bottom:4px}
+}
+.svradio label{flex-direction:row;justify-content:flex-start;text-align:left}.svradio input[type=radio]{width:16px;height:16px;min-width:16px;padding:0;margin:0;flex:none;accent-color:var(--p1)}
