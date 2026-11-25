@@ -28,7 +28,7 @@ export const POST = route(async (req) => {
   if (b.kind === "appts") {
     const items = new Set((await q("SELECT id FROM items")).map((i) => i.id as string));
     const data = rows.filter((r) => str(r.name, 50) && isDate(r.appt_date) && isTime(r.appt_time) && items.has(str(r.item_id)) && STATUS.includes(str(r.status)) && OPTS.includes(str(r.opt)))
-      .map((r) => ({ name: str(r.name, 50), ward: str(r.ward, 5), appt_date: r.appt_date, appt_time: r.appt_time, item_id: str(r.item_id), opt: str(r.opt), status: str(r.status), memo: str(r.memo, 300) }));
+      .map((r) => ({ name: str(r.name, 50), ward: str(r.ward, 5), appt_date: r.appt_date, appt_time: r.appt_time, item_id: str(r.item_id), opt: str(r.opt) === "J" ? "" : str(r.opt), status: str(r.status), memo: str(r.memo, 300) }));
     const r = await q(`WITH x AS (SELECT * FROM json_to_recordset($1::json) AS t(name text,ward text,appt_date text,appt_time text,item_id text,opt text,status text,memo text)),
       ins AS (INSERT INTO appts(id,patient_id,appt_date,appt_time,item_id,opt,status,memo,created_by)
         SELECT gen_random_uuid()::text,p.id,x.appt_date,x.appt_time,x.item_id,x.opt,x.status,x.memo,'import' FROM x JOIN patients p ON p.name=x.name AND p.ward=x.ward

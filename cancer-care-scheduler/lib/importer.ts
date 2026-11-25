@@ -100,7 +100,7 @@ export function analyze(files: { name: string; text: string }[]): ImportPlan {
         const item = mapTreatment(r[cT] ?? ""); if (!item) { bump(plan.unknownTreat, clean(r[cT] ?? "") || "(빈 값)"); continue; }
         const sp = splitPatient(patRaw); if (!sp.name) continue;
         const o = clean(r[cT + 1] ?? ""); n++;
-        sched.push({ name: sp.name, ward: sp.ward, d, t, item, opt: OPTS.has(o) ? o : "", st: mapStatus(r[cT + 2] ?? ""), info: clean(r[cT + 3] ?? ""), note: clean(r[cT + 4] ?? "") });
+        sched.push({ name: sp.name, ward: sp.ward, d, t, item, opt: OPTS.has(o) && o !== "J" ? o : "", st: mapStatus(r[cT + 2] ?? ""), info: clean(r[cT + 3] ?? ""), note: clean(r[cT + 4] ?? "") });
       }
       plan.files.push({ name: f.name, kind: "스케줄", rows: n });
     }

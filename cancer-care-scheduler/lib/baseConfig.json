@@ -45,8 +45,8 @@
     {
       "id": "rb",
       "name": "역박동",
-      "therapist": "박광희",
-      "active": false,
+      "therapist": "",
+      "active": true,
       "color": "#0891b2"
     }
   ],
@@ -188,7 +188,7 @@
         "15:10",
         "16:00"
       ],
-      "capacity": 6
+      "capacity": 1
     },
     {
       "id": "rb",

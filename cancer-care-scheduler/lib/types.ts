@@ -1,7 +1,9 @@
 export type Ward = "1" | "3" | "5" | "외";
 export type Status = "예약" | "완료" | "취소";
 export const STATUSES: Status[] = ["예약", "완료", "취소"];
-export const OPTIONS = ["", "K", "C", "S", "J", "무료"] as const;
+/** 치료옵션 — 표시 없음(기본)은 J(젬마 연계)와 같다. K=미뤄뒀다 받는 치료, C=쿠폰, S=서비스 */
+export const OPTIONS = ["", "K", "C", "S", "무료"] as const;
+export const OPTION_LABEL: Record<string, string> = { "": "기본(J)", K: "K 연기 후 수령", C: "C 쿠폰", S: "S 서비스", 무료: "무료" };
 
 export interface Item { id: string; roomId: string; name: string; duration: number; capacity: number; slots: string[] }
 export interface Room { id: string; name: string; therapist: string; active: boolean; color: string }
