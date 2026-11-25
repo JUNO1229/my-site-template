@@ -43,8 +43,7 @@ export default function Monitor() {
     <div className="mon">
       <div className="toolbar">
         <h2>치료실 통합모니터링</h2>
-        <span className="pill ok livepill" title="1분마다 자동 갱신"><i className="dot" />실시간</span>
-        <div className="kchips" aria-label="일정 요약">
+                <div className="kchips" aria-label="일정 요약">
           <span className="kc">전체 <b><CountUp value={shown.length} /></b></span><span className="kc s-예약">예약 <b><CountUp value={count(shown, "예약")} /></b></span>
           <span className="kc s-완료">치료완료 <b><CountUp value={count(shown, "완료")} /></b></span><span className="kc s-취소">예약취소 <b><CountUp value={count(shown, "취소")} /></b></span>
           <span className={`kc ${conflictCount ? "bad" : ""}`}>충돌 <b><CountUp value={conflictCount} /></b></span></div>{roomId && <button className="btn-soft" onClick={() => setRoomId("")}>전체 치료실 보기</button>}<span className="spacer" />

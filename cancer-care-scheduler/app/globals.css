@@ -561,3 +561,4 @@ button.btn-end,button.btn-restore{display:inline-flex;align-items:center;justify
 .mon .rh-top b{font-size:14.5px}
 @container (max-width:130px){.mon .rh-sub{display:flex;flex-direction:column;align-items:flex-start;gap:3px}.mon .rh-sub>span:first-child{display:none}}
 .acard.compact{min-height:36px;padding-top:5px;padding-bottom:5px}
+.mon .dp{margin-bottom:12px}
