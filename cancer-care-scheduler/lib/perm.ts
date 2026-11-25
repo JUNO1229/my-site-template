@@ -8,7 +8,8 @@ export const ROLE_DESC: Record<Role, string> = {
   therapist: "배정된 치료실 스케줄만 등록/수정, 나머지는 조회",
   viewer: "모니터링·조회만 가능",
 };
-export interface Me { id: number; username: string; name: string; role: Role; roomIds: string[]; mustChange: boolean }
+export interface Me { id: number; username: string; name: string; role: Role; roomIds: string[]; mustChange: boolean;
+  /** 관리자가 이 사용자 화면으로 보는 중일 때만 존재 (사용자 화면 점검) */ viewAs?: { by: string; byName: string; rw: boolean } }
 export const isAdmin = (m?: Me | null) => m?.role === "admin";
 export const canEditPatients = (m?: Me | null) => m?.role === "admin" || m?.role === "manager";
 export const canEditRoom = (m: Me | null | undefined, roomId?: string) =>

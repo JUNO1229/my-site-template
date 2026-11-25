@@ -51,14 +51,27 @@ export async function audit(username: string | null, action: string, detail = ""
 }
 
 type Handler = (req: Request, ctx: { params: Promise<Record<string, string>> }, me: Me) => Promise<unknown>;
-export function route(fn: Handler, opts: { public?: boolean; roles?: Role[]; allowMustChange?: boolean } = {}) {
+export const VIEWAS = "ccs_viewas";
+/** 관리자가 "사용자 화면 점검" 중이면 그 사용자의 권한·데이터 범위로 요청을 처리한다 (기본 읽기 전용). */
+async function applyViewAs(real: Me): Promise<Me> {
+  if (real.role !== "admin") return real;
+  const v = (await cookies()).get(VIEWAS)?.value; if (!v) return real;
+  const [name, flag] = v.split("|");
+  const r = await q("SELECT id,username,name,role,room_ids FROM users WHERE username=$1 AND active", [name]);
+  if (!r[0] || r[0].id === real.id) return real;
+  const u = r[0], rw = flag === "rw";
+  return { id: u.id, username: rw ? `${u.username}(관리자 ${real.username} 대행)` : u.username, name: u.name, role: u.role as Role, roomIds: u.room_ids, mustChange: false, viewAs: { by: real.username, byName: real.name, rw } };
+}
+export function route(fn: Handler, opts: { public?: boolean; roles?: Role[]; allowMustChange?: boolean; noViewAs?: boolean } = {}) {
   return async (req: Request, ctx: { params: Promise<Record<string, string>> }) => {
     try {
       if (req.method !== "GET") { // CSRF: 동일 출처 요청만 허용
         const origin = req.headers.get("origin"); const host = req.headers.get("host");
         if (!origin || !host || new URL(origin).host !== host) throw new HttpError(403, "허용되지 않은 요청입니다");
       }
-      const me = await currentUser();
+      let me = await currentUser();
+      if (me && !opts.noViewAs) me = await applyViewAs(me);
+      if (me?.viewAs && !me.viewAs.rw && req.method !== "GET") throw new HttpError(403, "사용자 화면 점검(읽기 전용) 중에는 저장할 수 없습니다. 상단 바에서 '저장 허용'을 켜거나 점검을 종료하세요");
       if (!opts.public && !me) throw new HttpError(401, "로그인이 필요합니다");
       if (me && opts.roles && !opts.roles.includes(me.role)) throw new HttpError(403, "권한이 없습니다");
       if (me && me.mustChange && req.method !== "GET" && !opts.allowMustChange) throw new HttpError(403, "먼저 비밀번호를 변경해 주세요");

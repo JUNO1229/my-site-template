@@ -5,15 +5,17 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Icon } from "./Icons";
 import { Avatar } from "./Ui";
 import { useStore, useAppts } from "@/lib/store";
+import { useToast } from "@/lib/toast";
 import { useUi, useNow } from "@/lib/ui";
-import { ROLE_LABEL, canViewSickrooms, isAdmin } from "@/lib/perm";
+import { ROLE_LABEL } from "@/lib/perm";
 import { api } from "@/lib/api";
+import { menuFor } from "@/lib/menu";
 import { findConflicts, toMin, todayStr } from "@/lib/util";
 import LiveClock from "./LiveClock";
 
 export default function Shell({ children }: { children: React.ReactNode }) {
   const path = usePathname(); const router = useRouter();
-  const { me, db, ready } = useStore(); const { openAppt, theme, toggleTheme } = useUi();
+  const { me, db, ready, refresh } = useStore(); const { openAppt, theme, toggleTheme } = useUi();
   const [drawer, setDrawer] = useState(false); const [bell, setBell] = useState(false);
   const bellRef = useRef<HTMLDivElement>(null);
   const today = todayStr(); const now = useNow(); const nowMin = now.getHours() * 60 + now.getMinutes();
@@ -40,14 +42,12 @@ export default function Shell({ children }: { children: React.ReactNode }) {
   }, [appts, db.items, nowMin]);
 
   if (path.startsWith("/login")) return <>{children}</>;
-  const menu: [string, string, string][] = [
-    ["/patients", "환자명부", "users"], ["/patient-history", "이전환자명부", "history"], ["/", "치료실 통합모니터링", "activity"], ["/rooms", "치료실별 스케줄", "grid"], ["/monthly", "월간 치료현황", "cal2"], ["/calendar", "환자별 치료캘린더", "calendar"], ["/list", "기간별 리스트", "list"],
-    ...(isAdmin(me) ? [["/settings", "치료실 설정", "sliders"] as [string, string, string]] : []),
-    ...(canViewSickrooms(me) ? [["/sickrooms", "병실관리", "bed"] as [string, string, string]] : []),
-    ...(isAdmin(me) ? [["/admin", "계정·접속기록", "shield"] as [string, string, string]] : []),
-  ];
+  const menu: [string, string, string][] = menuFor(me?.role).map((m) => [m.href, m.label, m.icon]);
   const tabs: [string, string, string][] = [["/patients", "환자명부", "users"], ["/", "치료실 통합모니터링", "activity"], ["/rooms", "치료실", "grid"], ["/calendar", "환자별 치료캘린더", "calendar"]];
   const on = (h: string) => (h === "/" ? path === "/" : path.startsWith(h));
+  const { toast } = useToast();
+  const toggleRw = async () => { try { await api("/api/admin/viewas", "POST", { username: me!.username.split("(")[0], rw: !me!.viewAs!.rw }); await refresh(); } catch (e) { toast((e as Error).message, "err"); } };
+  const endView = async () => { try { await api("/api/admin/viewas", "POST", { username: "" }); location.href = "/devmon"; } catch (e) { toast((e as Error).message, "err"); } };
   const logout = async () => { await api("/api/auth/logout", "POST").catch(() => {}); location.href = "/login"; };
   const Item = ({ h, t, ic }: { h: string; t: string; ic: string }) => (
     <Link href={h} className={`nav-item ${on(h) ? "on" : ""}`} aria-current={on(h) ? "page" : undefined}><Icon name={ic} filled={false} /><span>{t}</span></Link>);
@@ -69,6 +69,12 @@ export default function Shell({ children }: { children: React.ReactNode }) {
       </aside>
 
       <div className="main-col">
+        {me?.viewAs && (
+          <div className="viewas-bar" role="status">
+            <Icon name="eye" size={18} /><span><b>{me.name}</b>({ROLE_LABEL[me.role]}{me.role === "therapist" && me.roomIds.length ? ` · ${me.roomIds.map((id) => db.rooms.find((r) => r.id === id)?.name ?? id).join(", ")}` : ""}) 화면으로 보는 중 — {me.viewAs.rw ? "저장 허용(실제 데이터가 바뀝니다)" : "읽기 전용"}</span>
+            <button onClick={toggleRw}>{me.viewAs.rw ? "읽기 전용으로" : "저장 허용"}</button>
+            <button className="end" onClick={endView}>점검 종료</button>
+          </div>)}
         <header className="topbar">
           <button className="icon-btn menu-btn" aria-label="메뉴 열기" onClick={() => setDrawer(true)}><Icon name="menu" /></button>
           <Link href="/account" className="greet" aria-label="내 계정">

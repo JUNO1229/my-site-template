@@ -13,4 +13,4 @@ export const POST = route(async (req, _c, me) => {
   const t = (await cookies()).get(COOKIE)?.value!;
   await q("DELETE FROM sessions WHERE user_id=$1 AND token_hash<>$2", [me.id, crypto.createHash("sha256").update(t).digest("hex")]);
   await audit(me.username, "password_change");
-}, { allowMustChange: true });
+}, { allowMustChange: true, noViewAs: true });
