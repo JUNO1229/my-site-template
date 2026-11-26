@@ -628,3 +628,8 @@ button.btn-end,button.btn-restore{display:inline-flex;align-items:center;justify
   .sidebar .usercard{padding:8px 10px}
   .sidebar .side-actions .btn-soft{height:38px}
 }
+
+/* 치료실별 스케줄(주간): 통합모니터링과 같은 압축·화면 채움 레이아웃 */
+.roomweek .room.sel{box-shadow:0 0 0 2px var(--p1),var(--sh-card)}
+.roomweek .room header{padding:10px 12px 6px}.roomweek .room header b{font-size:14.5px}.roomweek .room header small{color:var(--p2);font-weight:600}
+.roomweek .dp{margin-bottom:12px}

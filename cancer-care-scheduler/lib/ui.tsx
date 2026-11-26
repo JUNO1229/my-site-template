@@ -1,5 +1,5 @@
 "use client";
-import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import ApptModal, { type Draft } from "@/components/ApptModal";
 import { useStore } from "./store";
 import { useToast } from "./toast";
@@ -45,4 +45,21 @@ export function useStatusChange() {
       } else toast((e as Error).message, "err");
     }
   }, [saveAppt, toast]);
+}
+
+/** 일정 영역을 화면 아래 끝까지 채운다: 영역 높이 = 창 높이 − 영역 시작 위치. 한 칸에 10타임이 꽉 차는 줄 높이(--rowh)도 함께 계산 (데스크톱만) */
+export function useFitRows(deps: unknown[]) {
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const fit = () => {
+      const el = ref.current; if (!el) return;
+      if (window.innerWidth < 961) { el.style.height = ""; el.style.removeProperty("--rowh"); return; }
+      const h = Math.max(360, window.innerHeight - el.getBoundingClientRect().top - window.scrollY - 14);
+      el.style.height = `${h}px`;
+      const list = el.querySelector<HTMLElement>(".list"); if (list) el.style.setProperty("--rowh", `${Math.max(24, (list.clientHeight - 12 - 9 * 4) / 10)}px`);
+    };
+    fit(); const t = setTimeout(fit, 300); window.addEventListener("resize", fit);
+    return () => { clearTimeout(t); window.removeEventListener("resize", fit); };
+  }, deps); // eslint-disable-line react-hooks/exhaustive-deps
+  return ref;
 }

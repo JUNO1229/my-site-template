@@ -1,11 +1,11 @@
 "use client";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import DatePicker from "@/components/DatePicker";
 import ApptCard from "@/components/ApptCard";
 import { CountUp, PageSkeleton, ProgressBar } from "@/components/Ui";
 import { Icon } from "@/components/Icons";
 import { useAppts, useStore } from "@/lib/store";
-import { useNow, useStatusChange, useUi } from "@/lib/ui";
+import { useFitRows, useNow, useStatusChange, useUi } from "@/lib/ui";
 import { canEditRoom } from "@/lib/perm";
 import { api } from "@/lib/api";
 import { useToast } from "@/lib/toast";
@@ -52,19 +52,7 @@ export default function Monitor() {
     const t = setTimeout(() => document.getElementById("nowline")?.scrollIntoView({ behavior: "smooth", block: "center" }), 350);
     return () => clearTimeout(t);
   }, [view, date, today, ready]);
-  // 치료실 영역을 화면 아래 끝까지 채운다: 영역 높이 = 창 높이 − 영역 시작 위치. 한 치료실 10타임이 영역을 가득 채우는 줄 높이(--rowh)도 함께 계산
-  const roomsRef = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    const fit = () => {
-      const el = roomsRef.current; if (!el) return;
-      if (window.innerWidth < 961) { el.style.height = ""; el.style.removeProperty("--rowh"); return; }
-      const h = Math.max(360, window.innerHeight - el.getBoundingClientRect().top - window.scrollY - 14);
-      el.style.height = `${h}px`;
-      const list = el.querySelector<HTMLElement>(".list"); if (list) el.style.setProperty("--rowh", `${Math.max(24, (list.clientHeight - 12 - 9 * 4) / 10)}px`);
-    };
-    fit(); const t = setTimeout(fit, 300); window.addEventListener("resize", fit);
-    return () => { clearTimeout(t); window.removeEventListener("resize", fit); };
-  }, [ready, view, roomId, date, appts.length, db.rooms.length]);
+  const roomsRef = useFitRows([ready, view, roomId, date, appts.length, db.rooms.length]);
   if (!ready) return <PageSkeleton />;
 
   const card = (a: Appt, i: number) => (
