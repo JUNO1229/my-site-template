@@ -191,10 +191,10 @@ export function describe(it: PlanItem): string {
   else if (it.perMonth && it.perWeek) parts.push(`월 ${it.perMonth}회`);
   if (it.total) parts.push(`총 ${it.total}회`);
   let s = `${nm}${parts.length ? " " + parts.join(", ") : ""}`;
-  if (it.option === "S") s += " (서비스)"; if (it.option === "K") s += " (연기 수령)";
+  if (it.option) s += ` (옵션 ${it.option})`;
   if (it.follow?.length) {
     const b = it.followBasis === "month" ? "월" : it.followBasis === "week" ? "주" : "기간 불명";
-    s += ` — 매 회 후속치료: ${it.follow.map((f) => `${f.item}${f.n != null ? ` ${f.n}회` : ""}${f.opt === "S" ? "(서비스)" : f.opt === "K" ? "(연기)" : ""}`).join(", ")} [${b} 기준]`;
+    s += ` — 매 회 후속치료: ${it.follow.map((f) => `${f.item}${f.n != null ? ` ${f.n}회` : ""}${f.opt ? `(${f.opt})` : ""}`).join(", ")} [${b} 기준]`;
   }
   return s;
 }

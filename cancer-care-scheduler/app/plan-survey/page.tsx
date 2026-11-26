@@ -14,7 +14,7 @@ interface Row { key: string; sec: "A" | "B"; group: string; raw: string; items: 
 
 const chipText = (it: PlanItem) => {
   const f = [it.qty ? `${it.qty}${it.unit ?? ""}` : "", it.everyOtherWeek ? `격주${it.everyOtherWeek}` : "", it.perWeek ? `주${it.perWeek}` : "", it.perMonth ? `월${it.perMonth}` : "", it.total ? `총${it.total}회` : ""].filter(Boolean).join("·");
-  return `${shortOf(it.code)}${it.variant && it.code === "abn" ? " " + it.variant : ""}${it.stage ? ` ${it.stage}단계` : ""}${f ? " · " + f : ""}${it.option ? ` · ${it.option === "S" ? "서비스" : "연기(K)"}` : ""}`;
+  return `${shortOf(it.code)}${it.variant && it.code === "abn" ? " " + it.variant : ""}${it.stage ? ` ${it.stage}단계` : ""}${f ? " · " + f : ""}${it.option ? ` · ${it.option === "S" ? "S" : "K"}` : ""}`;
 };
 
 function SaveCell({ row, mine, others, canAnswer, onSave }: { row: Row; mine?: Ans; others: Ans[]; canAnswer: boolean; onSave: (key: string, verdict: string, answer: string) => Promise<void> }) {
@@ -84,7 +84,7 @@ export default function PlanSurvey() {
           <li><b>④</b>에 질문이 있으면 답해 주시고, 질문이 없으면 해석이 맞는지만 <b>⑤</b>에서 골라 주세요. (다르면 올바른 뜻을 적어 주세요)</li>
           <li>입력하면 자동 저장되고, 언제든 다시 열어 고칠 수 있습니다. 환자 이름은 표시하지 않습니다.</li></ol>
         <small className="hint" style={{ display: "block", marginBottom: 6 }}>약식 표기·인식 약어는 <b>치료항목 설정</b>에서 정한 값을 기준으로 표시됩니다.{(me?.role === "admin" || me?.role === "manager") && <> <Link href="/treatment-settings" className="linkbtn" style={{ display: "inline" }}>치료항목 설정 열기 →</Link></>}</small>
-        <small className="hint">용어: 주N = 주 N회, 월N = 월 N회, 격주N = 2주에 N회 · 옵션 S = 서비스, K = 미뤄뒀다 받는 치료, C = 쿠폰, 옵션 없음 = J(젬마 연계, 기본) · 포·정 = 총 수량 · 페인잼머(PJ) 뒤의 도수·림프·파동·역박동 = 후속치료</small>
+        <small className="hint">용어: 주N = 주 N회, 월N = 월 N회, 격주N = 2주에 N회 · 옵션은 이니셜(J·K·C·S)로 표시 · 포·정 = 총 수량 · 페인잼머(PJ) 뒤의 도수·림프·파동·역박동 = 후속치료</small>
       </div>
       <div className="toolbar svbar">
         <div className="seg"><button className={sec === "A" ? "on" : ""} onClick={() => setSec("A")}>표기 규칙 확인 {doneA}/{rowsA.length}</button><button className={sec === "B" ? "on" : ""} onClick={() => setSec("B")}>현재 환자 치료정보 {doneB}/{rowsB.length}</button></div>

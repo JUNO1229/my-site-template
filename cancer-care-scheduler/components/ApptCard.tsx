@@ -7,7 +7,6 @@ import { canEditRoom, type Me } from "@/lib/perm";
 import { toMin } from "@/lib/util";
 import type { Appt, Item, Patient, Room, Status } from "@/lib/types";
 
-const OPT_TEXT: Record<string, string> = { K: "K · 미뤄뒀다 받는 치료", C: "C · 쿠폰", S: "S · 서비스", 기타: "기타" };
 /** 카드에 마우스를 올리면 뜨는 상세 정보창 (시스템 스타일) */
 function HoverTip({ anchor, children }: { anchor: HTMLElement; children: React.ReactNode }) {
   const ref = useRef<HTMLDivElement>(null); const [pos, setPos] = useState<{ top: number; left: number } | null>(null);
@@ -57,7 +56,7 @@ export default function ApptCard({ a, patient, item, room, conflict, today, nowM
         <dl>
           <dt>시간</dt><dd>{hm(s)} – {hm(e)}{current && <i className="ht-live">진행 중</i>}</dd>
           <dt>치료</dt><dd>{room?.name}{item && item.name !== room?.name ? ` · ${item.name}` : ""}</dd>
-          <dt>옵션</dt><dd>{a.option ? OPT_TEXT[a.option] ?? a.option : "J · 기본"}</dd>
+          <dt>옵션</dt><dd>{a.option || "J"}</dd>
           {a.memo && <><dt>비고</dt><dd>{a.memo}</dd></>}
         </dl>
         {conflict && <p className="ht-warn"><Icon name="alert" size={13} /> {conflict}</p>}
