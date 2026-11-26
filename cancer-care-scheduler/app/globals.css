@@ -617,3 +617,14 @@ button.btn-end,button.btn-restore{display:inline-flex;align-items:center;justify
   .mon .rooms.fit .acard.compact .ac-t{font-size:clamp(12px,calc(var(--rowh,40px)*.28),15px);min-width:calc(clamp(12px,calc(var(--rowh,40px)*.28),15px)*3)}
   .mon .rooms.fit .acard.compact .ac-n small{font-size:clamp(10.5px,calc(var(--rowh,40px)*.24),13px)}
 }
+/* 사이드바: 메뉴가 화면 높이에 맞게 줄어들어 스크롤 없이 한 화면에 들어오게 */
+@media(min-width:961px){
+  .sidebar{padding:16px 16px 14px;gap:12px}
+  .sidebar .side-cta{height:44px}
+  .sidebar nav{flex:1 1 auto;min-height:0;gap:2px}
+  .sidebar .nav-item{flex:1 1 0;min-height:30px;max-height:46px;height:auto}
+  .sidebar .nav-item.on::before{top:18%;bottom:18%}
+  .sidebar .side-foot{margin-top:0;gap:8px;flex:none}
+  .sidebar .usercard{padding:8px 10px}
+  .sidebar .side-actions .btn-soft{height:38px}
+}
