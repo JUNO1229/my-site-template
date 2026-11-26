@@ -604,3 +604,16 @@ button.btn-end,button.btn-restore{display:inline-flex;align-items:center;justify
 .msel-pop label.chk{padding:8px 10px;border-radius:var(--r-m);white-space:nowrap;cursor:pointer;font-weight:500}.msel-pop label.chk:hover{background:var(--field)}.msel-pop label.all{border-bottom:1px solid rgba(0,0,0,.07);border-radius:var(--r-m) var(--r-m) 0 0;margin-bottom:2px}
 .listtbl{table-layout:fixed;width:100%}.listtbl th,.listtbl td{text-align:center}.listtbl td{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-variant-numeric:tabular-nums}
 @media(max-width:800px){.listtbl{table-layout:auto;min-width:560px}.listtbl td{overflow:visible}}
+
+/* 치료실 영역을 화면에 가득 채우기: 치료실당 10타임이 영역을 꽉 채우는 줄 높이 */
+@media(min-width:961px){
+  main:has(.mon){padding-bottom:14px}
+  .mon .rooms.fit{align-items:stretch;overflow-y:hidden}
+  .mon .rooms.fit .room{height:100%;min-height:0}
+  .mon .rooms.fit .list{flex:1;min-height:0;display:grid;grid-template-rows:repeat(var(--rows,10),minmax(0,1fr));gap:4px;padding:6px 8px;overflow:hidden}
+  .mon .rooms.fit .list>.empty{grid-row:1/span 2;align-self:center}
+  .mon .rooms.fit .acard.compact{min-height:0;height:100%;padding-top:0;padding-bottom:0}
+  .mon .rooms.fit .acard.compact .ac-n b{font-size:clamp(14px,calc(var(--rowh,40px)*.34),19px)}
+  .mon .rooms.fit .acard.compact .ac-t{font-size:clamp(12px,calc(var(--rowh,40px)*.28),15px);min-width:calc(clamp(12px,calc(var(--rowh,40px)*.28),15px)*3)}
+  .mon .rooms.fit .acard.compact .ac-n small{font-size:clamp(10.5px,calc(var(--rowh,40px)*.24),13px)}
+}

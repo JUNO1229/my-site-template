@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import DatePicker from "@/components/DatePicker";
 import ApptCard from "@/components/ApptCard";
 import { CountUp, PageSkeleton, ProgressBar } from "@/components/Ui";
@@ -52,6 +52,19 @@ export default function Monitor() {
     const t = setTimeout(() => document.getElementById("nowline")?.scrollIntoView({ behavior: "smooth", block: "center" }), 350);
     return () => clearTimeout(t);
   }, [view, date, today, ready]);
+  // 치료실 영역을 화면 아래 끝까지 채운다: 영역 높이 = 창 높이 − 영역 시작 위치. 한 치료실 10타임이 영역을 가득 채우는 줄 높이(--rowh)도 함께 계산
+  const roomsRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const fit = () => {
+      const el = roomsRef.current; if (!el) return;
+      if (window.innerWidth < 961) { el.style.height = ""; el.style.removeProperty("--rowh"); return; }
+      const h = Math.max(360, window.innerHeight - el.getBoundingClientRect().top - window.scrollY - 14);
+      el.style.height = `${h}px`;
+      const list = el.querySelector<HTMLElement>(".list"); if (list) el.style.setProperty("--rowh", `${Math.max(24, (list.clientHeight - 12 - 9 * 4) / 10)}px`);
+    };
+    fit(); const t = setTimeout(fit, 300); window.addEventListener("resize", fit);
+    return () => { clearTimeout(t); window.removeEventListener("resize", fit); };
+  }, [ready, view, roomId, date, appts.length, db.rooms.length]);
   if (!ready) return <PageSkeleton />;
 
   const card = (a: Appt, i: number) => (
@@ -80,7 +93,7 @@ export default function Monitor() {
               {rooms.map((r) => <button key={r.id} className={roomId === r.id ? "on" : ""} onClick={() => setRoomId(roomId === r.id ? "" : r.id)}>{r.name} {sorted.filter((a) => itemOf(a)?.roomId === r.id).length}</button>)}
             </div>)}
           {view === "cards" ? (
-            <div className="rooms" style={{ "--n": (roomId ? rooms.filter((r) => r.id === roomId) : rooms).length, "--cols": (roomId ? rooms.filter((r) => r.id === roomId) : rooms).map((r) => (sorted.some((a) => itemOf(a)?.roomId === r.id) ? "minmax(150px,1fr)" : "minmax(100px,.5fr)")).join(" ") } as React.CSSProperties}>
+            <div className="rooms fit" ref={roomsRef} style={{ "--n": (roomId ? rooms.filter((r) => r.id === roomId) : rooms).length, "--cols": (roomId ? rooms.filter((r) => r.id === roomId) : rooms).map((r) => (sorted.some((a) => itemOf(a)?.roomId === r.id) ? "minmax(150px,1fr)" : "minmax(100px,.5fr)")).join(" ") } as React.CSSProperties}>
               {(roomId ? rooms.filter((r) => r.id === roomId) : rooms).map((r, ri) => {
                 const list = sorted.filter((a) => itemOf(a)?.roomId === r.id); const total = list.filter((a) => a.status !== "취소").length, done = count(list, "완료"), left = total - done, pct = total ? (done / total) * 100 : 0;
                 return (
@@ -93,7 +106,7 @@ export default function Monitor() {
                       <div className="rh-sub"><span>{r.therapist ? `담당 ${r.therapist}` : ""}</span><span className="rbadge">{total === 0 ? "일정 없음" : left === 0 ? "모두 완료" : `${left}건 남음`}</span></div>
                       <div className="rh-bar"><ProgressBar value={pct} /><span>{done}/{total}</span></div>
                     </header>
-                    <div className="list">{list.length ? list.map((a, i) => card(a, i)) : <p className="empty">스케줄 없음</p>}</div>
+                    <div className="list" style={{ "--rows": Math.max(10, list.length) } as React.CSSProperties}>{list.length ? list.map((a, i) => card(a, i)) : <p className="empty">스케줄 없음</p>}</div>
                     {canEditRoom(me, r.id) && <button className="add" onClick={() => openAppt({ date, itemId: db.items.find((i) => i.roomId === r.id)?.id })}>+ 추가</button>}
                   </section>);
               })}
