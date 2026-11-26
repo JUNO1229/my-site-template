@@ -2,7 +2,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useStore } from "@/lib/store";
 import { useToast } from "@/lib/toast";
-import { OPTIONS, OPTION_LABEL, STATUSES, type Appt } from "@/lib/types";
+import { OPTIONS, OPTION_HINT, OPTION_LABEL, STATUSES, type Appt } from "@/lib/types";
 import { pname } from "@/lib/util";
 import { canEditRoom } from "@/lib/perm";
 import { Icon } from "./Icons";
@@ -80,7 +80,7 @@ export default function ApptModal({ draft, onClose }: { draft: Draft; onClose: (
           <div className="fieldlabel">치료상태</div>
           <div className="chips">{STATUSES.map((s) => <button key={s} type="button" className={`chip ${f.status === s ? "on" : ""}`} onClick={() => set("status", s)}>{s}</button>)}</div>
           <div className="fieldlabel">치료옵션</div>
-          <div className="chips">{OPTIONS.map((o) => <button key={o || "none"} type="button" className={`chip ${(f.option === o || (o === "" && f.option === "J")) ? "on" : ""}`} onClick={() => set("option", o)}>{OPTION_LABEL[o]}</button>)}</div>
+          <div className="chips">{OPTIONS.map((o) => <button key={o || "none"} type="button" className={`chip ${(f.option === o || (o === "" && f.option === "J")) ? "on" : ""}`} title={OPTION_HINT[o]} onClick={() => set("option", o)}>{OPTION_LABEL[o]}</button>)}</div>
           <label>비고<input value={f.memo} onChange={(e) => set("memo", e.target.value)} placeholder="필요한 메모를 입력하세요" /></label>
           {added.length > 0 && <p className="hint addedlist"><b>이번에 등록한 스케줄 {added.length}건</b><br />{added.join(" / ")}</p>}
           {err && <p className="err"><Icon name="alert" size={16} /> {err}</p>}

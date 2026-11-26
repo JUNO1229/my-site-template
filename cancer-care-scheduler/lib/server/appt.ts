@@ -6,7 +6,7 @@ import { canEditRoom, type Me } from "../perm";
 export async function validAppt(b: Record<string, unknown>, me: Me) {
   need(isDate(b.date) && isTime(b.time), "날짜/시간이 올바르지 않습니다");
   need(typeof b.patientId === "string" && typeof b.itemId === "string", "환자와 치료를 선택해 주세요");
-  const status = str(b.status) || "예약", opt = str(b.option) === "J" ? "" : str(b.option); // 옵션 없음 = J(기본)
+  const status = str(b.status) || "예약", opt = str(b.option) === "J" ? "" : str(b.option) === "무료" ? "기타" : str(b.option); // 옵션 없음 = J(기본)
   need(STATUS.includes(status) && OPTS.includes(opt), "상태/옵션이 올바르지 않습니다");
   const item = (await q("SELECT room_id FROM items WHERE id=$1", [b.itemId]))[0];
   need(item, "치료항목이 없습니다");
