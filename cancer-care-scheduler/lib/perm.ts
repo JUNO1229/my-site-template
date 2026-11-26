@@ -9,10 +9,13 @@ export const ROLE_DESC: Record<Role, string> = {
   viewer: "모니터링·조회만 가능",
 };
 export interface Me { id: number; username: string; name: string; role: Role; roomIds: string[]; mustChange: boolean;
+  /** 치료실 담당자의 관리 범위: true 면 모든 치료실의 스케줄을 등록·수정할 수 있다(치료실 총괄) */ allRooms?: boolean;
   /** 관리자가 이 사용자 화면으로 보는 중일 때만 존재 (사용자 화면 점검) */ viewAs?: { by: string; byName: string; rw: boolean } }
 export const isAdmin = (m?: Me | null) => m?.role === "admin";
 export const canEditPatients = (m?: Me | null) => m?.role === "admin" || m?.role === "manager";
 export const canEditRoom = (m: Me | null | undefined, roomId?: string) =>
-  !!m && (m.role === "admin" || m.role === "manager" || (m.role === "therapist" && !!roomId && m.roomIds.includes(roomId)));
+  !!m && (m.role === "admin" || m.role === "manager" || (m.role === "therapist" && !!roomId && (m.allRooms === true || m.roomIds.includes(roomId))));
+/** 화면 표시용 권한 이름 (치료실 총괄 담당자 구분) */
+export const roleLabel = (m: { role: Role; allRooms?: boolean }) => (m.role === "therapist" && m.allRooms ? "치료실 총괄 담당자" : ROLE_LABEL[m.role]);
 export const canEditSickrooms = (m?: Me | null) => m?.role === "admin" || m?.role === "manager";
 export const canViewSickrooms = (m?: Me | null) => !!m && m.role !== "therapist"; // 치료실 담당자에게는 병실 정보를 제공하지 않음

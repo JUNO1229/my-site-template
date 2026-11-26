@@ -7,7 +7,7 @@ import { confirmType } from "@/lib/util";
 import ImportPanel from "@/components/ImportPanel";
 import { useToast } from "@/lib/toast";
 
-interface U { id: number; username: string; name: string; role: Role; roomIds: string[]; active: boolean; mustChange: boolean; lastLogin: string | null }
+interface U { id: number; username: string; name: string; role: Role; roomIds: string[]; allRooms?: boolean; active: boolean; mustChange: boolean; lastLogin: string | null }
 interface Log { ts: string; username: string | null; action: string; detail: string }
 const ROLES = Object.keys(ROLE_LABEL) as Role[];
 const fmt = (s: string | null) => (s ? new Date(s).toLocaleString("ko-KR", { timeZone: "Asia/Seoul" }) : "-");
@@ -62,7 +62,7 @@ export default function Admin() {
           <span className="hint">{ROLES.map((r) => `${ROLE_LABEL[r]}: ${ROLE_DESC[r]}`).join("  |  ")}</span></div>
         <div className="tblwrap"><table className="tbl"><thead><tr><th>아이디</th><th>이름</th><th>권한</th><th>담당 치료실</th><th>상태</th><th>최근 로그인</th><th /></tr></thead>
           <tbody>{users.map((u) => (<tr key={u.id}><td>{u.username}</td><td>{u.name}</td><td>{ROLE_LABEL[u.role]}</td>
-            <td>{u.role === "therapist" ? u.roomIds.map((id) => db.rooms.find((r) => r.id === id)?.name ?? id).join(", ") : "전체"}</td>
+            <td>{u.role === "therapist" ? <>{u.roomIds.map((id) => db.rooms.find((r) => r.id === id)?.name ?? id).join(", ") || "-"}{u.allRooms && <em className="tmpbadge" style={{ background: "#dbeafe", color: "#1e40af" }}>전체 치료실 관리</em>}</> : "전체"}</td>
             <td>{!u.active ? "사용중지" : u.mustChange ? "비밀번호 변경 대기" : "정상"}</td><td>{fmt(u.lastLogin)}</td>
             <td><button onClick={() => setEdit({ ...u })}>수정</button></td></tr>))}</tbody></table></div></>)}
       {tab === "audit" && (
@@ -83,6 +83,10 @@ export default function Admin() {
           <label>권한<select value={edit.role} onChange={(e) => setEdit({ ...edit, role: e.target.value as Role })}>{ROLES.map((r) => <option key={r} value={r}>{ROLE_LABEL[r]}</option>)}</select></label>
           {edit.role === "therapist" && <div className="chips">{db.rooms.map((r) => (
             <label key={r.id} className="chk"><input type="checkbox" checked={edit.roomIds?.includes(r.id) ?? false} onChange={() => toggleRoom(r.id)} />{r.name}</label>))}</div>}
+          {edit.role === "therapist" && <div className="scopebox"><div className="fieldlabel" style={{ margin: 0 }}>관리 범위</div>
+            <label className="chk"><input type="radio" name="scope" checked={!edit.allRooms} onChange={() => setEdit({ ...edit, allRooms: false })} />담당 치료실만 — 위에서 선택한 치료실의 스케줄만 등록·수정</label>
+            <label className="chk"><input type="radio" name="scope" checked={!!edit.allRooms} onChange={() => setEdit({ ...edit, allRooms: true })} />전체 치료실 관리(치료실 총괄) — 모든 치료실의 스케줄을 등록·수정. 위 선택은 본인 담당 치료실로 표시</label>
+            <small className="hint">환자명부 수정·계약금액·병실관리 권한은 주어지지 않습니다(상담실 권한과 구분).</small></div>}
           {edit.id
             ? <><label>비밀번호 재설정(입력 시 임시 비밀번호로 변경, 다음 로그인 때 변경 요구)<input type="text" value={edit.resetPassword ?? ""} onChange={(e) => setEdit({ ...edit, resetPassword: e.target.value })} placeholder="비워두면 변경 없음" /></label>
               <label className="chk"><input type="checkbox" checked={edit.active ?? true} onChange={(e) => setEdit({ ...edit, active: e.target.checked })} />사용 중</label></>

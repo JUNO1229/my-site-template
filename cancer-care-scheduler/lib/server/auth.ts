@@ -40,11 +40,11 @@ export async function currentUser(): Promise<Me | null> {
   const t = (await cookies()).get(COOKIE)?.value;
   if (!t) return null;
   const r = await q(
-    `SELECT u.id,u.username,u.name,u.role,u.room_ids,u.must_change FROM sessions s JOIN users u ON u.id=s.user_id
+    `SELECT u.id,u.username,u.name,u.role,u.room_ids,u.must_change,u.all_rooms FROM sessions s JOIN users u ON u.id=s.user_id
      WHERE s.token_hash=$1 AND s.expires_at>now() AND u.active`, [sha(t)]);
   if (!r[0]) return null;
   const u = r[0];
-  return { id: u.id, username: u.username, name: u.name, role: u.role as Role, roomIds: u.room_ids, mustChange: u.must_change };
+  return { id: u.id, username: u.username, name: u.name, role: u.role as Role, roomIds: u.room_ids, mustChange: u.must_change, allRooms: u.role === "therapist" && u.all_rooms === true };
 }
 export async function audit(username: string | null, action: string, detail = "") {
   try { await q("INSERT INTO audit_log(username,action,detail) VALUES($1,$2,$3)", [username, action, detail.slice(0, 500)]); } catch { /* ignore */ }
@@ -57,10 +57,10 @@ async function applyViewAs(real: Me): Promise<Me> {
   if (real.role !== "admin") return real;
   const v = (await cookies()).get(VIEWAS)?.value; if (!v) return real;
   const [name, flag] = v.split("|");
-  const r = await q("SELECT id,username,name,role,room_ids FROM users WHERE username=$1 AND active", [name]);
+  const r = await q("SELECT id,username,name,role,room_ids,all_rooms FROM users WHERE username=$1 AND active", [name]);
   if (!r[0] || r[0].id === real.id) return real;
   const u = r[0], rw = flag === "rw";
-  return { id: u.id, username: rw ? `${u.username}(관리자 ${real.username} 대행)` : u.username, name: u.name, role: u.role as Role, roomIds: u.room_ids, mustChange: false, viewAs: { by: real.username, byName: real.name, rw } };
+  return { id: u.id, username: rw ? `${u.username}(관리자 ${real.username} 대행)` : u.username, name: u.name, role: u.role as Role, roomIds: u.room_ids, allRooms: u.role === "therapist" && u.all_rooms === true, mustChange: false, viewAs: { by: real.username, byName: real.name, rw } };
 }
 export function route(fn: Handler, opts: { public?: boolean; roles?: Role[]; allowMustChange?: boolean; noViewAs?: boolean } = {}) {
   return async (req: Request, ctx: { params: Promise<Record<string, string>> }) => {

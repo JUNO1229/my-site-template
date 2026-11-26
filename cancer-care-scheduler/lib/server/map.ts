@@ -6,6 +6,6 @@ export const mPatient = (r: any, withAmount = false) => ({ id: r.id, chartNo: r.
   ...(withAmount ? { contractAmount: r.contract_amount } : {}) });
 export const mAppt = (r: any) => ({ id: r.id, patientId: r.patient_id, date: r.appt_date, time: r.appt_time,
   itemId: r.item_id, option: r.opt, status: r.status, memo: r.memo });
-export const mUser = (r: any) => ({ id: r.id, username: r.username, name: r.name, role: r.role, roomIds: r.room_ids,
+export const mUser = (r: any) => ({ id: r.id, username: r.username, name: r.name, role: r.role, roomIds: r.room_ids, allRooms: r.all_rooms === true,
   active: r.active, mustChange: r.must_change, lastLogin: r.last_login });
 export const mSickroom = (r: any) => ({ roomNo: r.room_no, beds: r.beds, startDate: r.start_date, endDate: r.end_date, note: r.note });

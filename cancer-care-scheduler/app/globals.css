@@ -581,3 +581,4 @@ button.btn-end,button.btn-restore{display:inline-flex;align-items:center;justify
 .mon .room.dragging{opacity:.45}
 .mon .room.dropover{outline:3px dashed var(--p1);outline-offset:3px}
 .svsum.big{font-size:18px;padding:2px 0 6px}
+.scopebox{display:grid;gap:6px;padding:10px 12px;border-radius:var(--r-m);background:var(--field)}

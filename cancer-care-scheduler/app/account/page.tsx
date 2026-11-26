@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 import { useStore } from "@/lib/store";
-import { ROLE_DESC, ROLE_LABEL } from "@/lib/perm";
+import { ROLE_DESC, roleLabel } from "@/lib/perm";
 import { api } from "@/lib/api";
 import { PageSkeleton } from "@/components/Ui";
 
@@ -19,8 +19,8 @@ export default function Account() {
   return (
     <div style={{ maxWidth: 480 }}>
       <h2>내 계정</h2>
-      <div className="card"><div><b>{me.name}</b> ({me.username})</div><div>{ROLE_LABEL[me.role]} — <span className="hint">{ROLE_DESC[me.role]}</span></div>
-        {me.role === "therapist" && <div className="hint">담당: {me.roomIds.map((id) => db.rooms.find((r) => r.id === id)?.name ?? id).join(", ")}</div>}</div>
+      <div className="card"><div><b>{me.name}</b> ({me.username})</div><div>{roleLabel(me)} — <span className="hint">{ROLE_DESC[me.role]}</span></div>
+        {me.role === "therapist" && <div className="hint">담당: {me.roomIds.map((id) => db.rooms.find((r) => r.id === id)?.name ?? id).join(", ") || "-"}{me.allRooms ? " · 관리 범위: 전체 치료실" : ""}</div>}</div>
       {me.mustChange && <p className="err">보안을 위해 처음 로그인 시 비밀번호를 변경해야 합니다.</p>}
       <form className="card" onSubmit={submit}><h3 style={{ margin: 0 }}>비밀번호 변경</h3>
         <label>현재 비밀번호<input type="password" value={cur} onChange={(e) => setCur(e.target.value)} autoComplete="current-password" required /></label>

@@ -1,13 +1,13 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useStore } from "@/lib/store";
-import { ROLE_LABEL, isAdmin, type Role } from "@/lib/perm";
+import { ROLE_LABEL, isAdmin, roleLabel, type Role } from "@/lib/perm";
 import { menuFor } from "@/lib/menu";
 import { api } from "@/lib/api";
 import { useToast } from "@/lib/toast";
 import { Icon } from "@/components/Icons";
 
-interface U { id: number; username: string; name: string; role: Role; roomIds: string[]; active: boolean; mustChange: boolean; lastLogin: string | null }
+interface U { id: number; username: string; name: string; role: Role; roomIds: string[]; allRooms?: boolean; active: boolean; mustChange: boolean; lastLogin: string | null }
 const fmt = (s: string | null) => (s ? new Date(s).toLocaleString("ko-KR", { timeZone: "Asia/Seoul", dateStyle: "short", timeStyle: "short" }) : "접속 이력 없음");
 const ROLES: Role[] = ["admin", "manager", "therapist", "viewer"];
 const MATRIX: [string, Partial<Record<Role, string>>][] = [
@@ -15,7 +15,7 @@ const MATRIX: [string, Partial<Record<Role, string>>][] = [
   ["계약금액 열람", { admin: "✓", manager: "✓" }],
   ["환자 등록·수정", { admin: "✓", manager: "✓" }],
   ["환자 삭제·데이터 가져오기·백업 복원", { admin: "✓" }],
-  ["스케줄 등록·수정·삭제", { admin: "✓", manager: "✓", therapist: "배정 치료실만" }],
+  ["스케줄 등록·수정·삭제", { admin: "✓", manager: "✓", therapist: "배정 치료실만 (총괄 담당자는 전체)" }],
   ["중복·정원 초과 예외 등록", { admin: "✓", manager: "✓" }],
   ["모니터링·월간·캘린더·기간별 리스트 열람", { admin: "✓", manager: "✓", therapist: "✓", viewer: "✓" }],
   ["병실관리 열람", { admin: "✓", manager: "✓", viewer: "✓" }],
@@ -33,7 +33,7 @@ export default function DevMon() {
     try { await api("/api/admin/viewas", "POST", { username: u.username, rw }); location.href = href; }
     catch (e) { toast((e as Error).message, "err"); setBusy(""); }
   };
-  const rooms = (u: U) => u.role === "therapist" ? (u.roomIds.map((id) => db.rooms.find((r) => r.id === id)?.name ?? id).join(", ") || "담당 치료실 없음") : "전체 치료실";
+  const rooms = (u: U) => u.role === "therapist" ? (u.allRooms ? `전체 치료실 관리 (담당 ${u.roomIds.map((id) => db.rooms.find((r) => r.id === id)?.name ?? id).join(", ") || "없음"})` : u.roomIds.map((id) => db.rooms.find((r) => r.id === id)?.name ?? id).join(", ") || "담당 치료실 없음") : "전체 치료실";
   return (
     <div className="devmon">
       <div className="toolbar"><h2>사용자 화면 점검</h2>
@@ -47,7 +47,7 @@ export default function DevMon() {
           const self = u.id === me?.id; const links = menuFor(u.role);
           return (
             <div key={u.id} className="ucard">
-              <div className="uhead"><b>{u.name}</b><small>{u.username}</small><span className="tag">{ROLE_LABEL[u.role]}</span><span className="tag">{rooms(u)}</span>
+              <div className="uhead"><b>{u.name}</b><small>{u.username}</small><span className="tag">{roleLabel(u)}</span><span className="tag">{rooms(u)}</span>
                 {!u.active && <span className="tag off">사용 중지</span>}{u.mustChange && <span className="tag warn">초기 비밀번호 미변경</span>}
                 <span className="grow" /><small>최근 접속 {fmt(u.lastLogin)}</small></div>
               {self ? <small>현재 로그인한 본인 계정입니다.</small> : u.role === "admin" ? <small>시스템관리자 계정은 전체 권한이라 점검 대상이 아닙니다.</small> : !u.active ? <small>사용 중지된 계정은 점검할 수 없습니다.</small> : (

@@ -11,13 +11,14 @@ export const PUT = route(async (req, ctx, me) => {
   const active = b.active === undefined ? u.active : b.active === true;
   if (id === me.id && (role !== "admin" || !active)) throw new HttpError(400, "본인 계정의 권한/사용 상태는 변경할 수 없습니다");
   const roomIds = role === "therapist" ? (Array.isArray(b.roomIds) ? b.roomIds.filter((x): x is string => typeof x === "string") : u.room_ids) : [];
-  need(role !== "therapist" || roomIds.length, "치료실 담당자는 담당 치료실을 선택해야 합니다");
-  await q("UPDATE users SET name=$2, role=$3, room_ids=$4, active=$5 WHERE id=$1", [id, str(b.name, 50) || u.name, role, roomIds, active]);
+  const allRooms = role === "therapist" && (b.allRooms === undefined ? u.all_rooms === true : b.allRooms === true);
+  need(role !== "therapist" || roomIds.length || allRooms, "치료실 담당자는 담당 치료실을 선택해야 합니다");
+  await q("UPDATE users SET name=$2, role=$3, room_ids=$4, active=$5, all_rooms=$6 WHERE id=$1", [id, str(b.name, 50) || u.name, role, roomIds, active, allRooms]);
   let forceLogout = !active || role !== u.role;
   if (typeof b.resetPassword === "string" && b.resetPassword) {
     await q("UPDATE users SET password_hash=$2, must_change=true WHERE id=$1", [id, hashPassword(checkPasswordPolicy(b.resetPassword))]);
     forceLogout = true;
   }
   if (forceLogout) await q("DELETE FROM sessions WHERE user_id=$1", [id]);
-  await audit(me.username, "user_update", `${u.username} role=${role} active=${active}${b.resetPassword ? " pw_reset" : ""}`);
+  await audit(me.username, "user_update", `${u.username} role=${role}${allRooms ? "(전체 치료실)" : ""} active=${active}${b.resetPassword ? " pw_reset" : ""}`);
 }, { roles: ["admin"] });

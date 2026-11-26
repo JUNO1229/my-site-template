@@ -7,7 +7,7 @@ import { Avatar } from "./Ui";
 import { useStore, useAppts } from "@/lib/store";
 import { useToast } from "@/lib/toast";
 import { useUi, useNow } from "@/lib/ui";
-import { ROLE_LABEL } from "@/lib/perm";
+import { roleLabel } from "@/lib/perm";
 import { api } from "@/lib/api";
 import { menuFor } from "@/lib/menu";
 import { findConflicts, toMin, todayStr } from "@/lib/util";
@@ -60,7 +60,7 @@ export default function Shell({ children }: { children: React.ReactNode }) {
         {canNew && <button className="cta side-cta" onClick={() => openAppt({ date: todayStr() })}><Icon name="plus" size={18} />스케줄 등록<kbd>N</kbd></button>}
         <nav>{menu.map(([h, t, ic]) => <Item key={h} h={h} t={t} ic={ic} />)}</nav>
         <div className="side-foot">
-          {me && <div className="usercard"><Avatar name={me.name} size={40} /><div><b>{me.name}</b><small>{ROLE_LABEL[me.role]}</small></div></div>}
+          {me && <div className="usercard"><Avatar name={me.name} size={40} /><div><b>{me.name}</b><small>{roleLabel(me)}</small></div></div>}
           <div className="side-actions">
             <button className="btn-soft" onClick={toggleTheme} aria-label="테마 전환"><Icon name={theme === "dark" ? "sun" : "moon"} size={18} />{theme === "dark" ? "라이트" : "다크"}</button>
             <button className="btn-soft" onClick={logout}><Icon name="logout" size={18} />로그아웃</button>
@@ -71,7 +71,7 @@ export default function Shell({ children }: { children: React.ReactNode }) {
       <div className="main-col">
         {me?.viewAs && (
           <div className="viewas-bar" role="status">
-            <Icon name="eye" size={18} /><span><b>{me.name}</b>({ROLE_LABEL[me.role]}{me.role === "therapist" && me.roomIds.length ? ` · ${me.roomIds.map((id) => db.rooms.find((r) => r.id === id)?.name ?? id).join(", ")}` : ""}) 화면으로 보는 중 — {me.viewAs.rw ? "저장 허용(실제 데이터가 바뀝니다)" : "읽기 전용"}</span>
+            <Icon name="eye" size={18} /><span><b>{me.name}</b>({roleLabel(me)}{me.role === "therapist" && me.roomIds.length ? ` · ${me.roomIds.map((id) => db.rooms.find((r) => r.id === id)?.name ?? id).join(", ")}` : ""}) 화면으로 보는 중 — {me.viewAs.rw ? "저장 허용(실제 데이터가 바뀝니다)" : "읽기 전용"}</span>
             <button onClick={toggleRw}>{me.viewAs.rw ? "읽기 전용으로" : "저장 허용"}</button>
             <button className="end" onClick={endView}>점검 종료</button>
           </div>)}
@@ -79,7 +79,7 @@ export default function Shell({ children }: { children: React.ReactNode }) {
           <button className="icon-btn menu-btn" aria-label="메뉴 열기" onClick={() => setDrawer(true)}><Icon name="menu" /></button>
           <Link href="/account" className="greet" aria-label="내 계정">
             {me && <Avatar name={me.name} size={40} />}
-            <div><b>안녕하세요, {me?.name ?? ""}님</b><small><span className="role">{me ? ROLE_LABEL[me.role] : ""} · </span><LiveClock /></small></div>
+            <div><b>안녕하세요, {me?.name ?? ""}님</b><small><span className="role">{me ? roleLabel(me) : ""} · </span><LiveClock /></small></div>
           </Link>
           <div className="popwrap" ref={bellRef} style={{ marginLeft: "auto" }}>
             <button className="icon-btn bellbtn" aria-label={`알림 ${alerts.total}건`} aria-expanded={bell} onClick={() => setBell((b) => !b)}>

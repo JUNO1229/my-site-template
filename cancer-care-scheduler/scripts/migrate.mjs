@@ -61,6 +61,7 @@ for (const st of [`CREATE TABLE IF NOT EXISTS patient_snapshots (
 
 await q("CREATE UNIQUE INDEX IF NOT EXISTS patients_name_ward_uq ON patients(name, ward)");
 await q("ALTER TABLE patients ADD COLUMN IF NOT EXISTS contract_amount INT");
+await q("ALTER TABLE users ADD COLUMN IF NOT EXISTS all_rooms BOOLEAN NOT NULL DEFAULT false");
 await q("ALTER TABLE patients ADD COLUMN IF NOT EXISTS status TEXT NOT NULL DEFAULT 'active'");
 await q("ALTER TABLE patients ADD COLUMN IF NOT EXISTS source TEXT NOT NULL DEFAULT 'registry'");
 await q("ALTER TABLE items ADD COLUMN IF NOT EXISTS capacity INT NOT NULL DEFAULT 1");
