@@ -596,3 +596,9 @@ button.btn-end,button.btn-restore{display:inline-flex;align-items:center;justify
 .modal.sheet .sheet-foot{padding:8px 18px 14px}.modal.sheet .sheet-foot .cta,.modal.sheet .sheet-foot button{height:40px;font-size:13.5px}
 .modal.sheet .hint,.modal.sheet .err{font-size:12.5px;margin:0}
 .modal.sheet .datefield{height:38px;padding:0 12px;font-size:13.5px}
+
+/* 여러 개 선택 상자 */
+.msel{position:relative}.msel-btn{display:flex;align-items:center;justify-content:space-between;gap:10px;height:44px;min-width:170px;max-width:260px;padding:0 14px;border:0;border-radius:var(--r-m);background:var(--surface);box-shadow:var(--sh-card);color:var(--text);font:inherit}
+.msel-btn span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.msel-btn.open{box-shadow:inset 0 0 0 1.5px var(--p1),var(--sh-card)}.msel-btn .ic{color:var(--text2);flex:none}
+.msel-pop{position:absolute;left:0;top:calc(100% + 6px);z-index:40;min-width:100%;padding:8px;border-radius:var(--r-l);background:var(--surface);box-shadow:0 16px 40px rgba(31,29,43,.22);display:flex;flex-direction:column;gap:2px;animation:pop .16s ease}
+.msel-pop label.chk{padding:8px 10px;border-radius:var(--r-m);white-space:nowrap;cursor:pointer;font-weight:500}.msel-pop label.chk:hover{background:var(--field)}.msel-pop label.all{border-bottom:1px solid rgba(0,0,0,.07);border-radius:var(--r-m) var(--r-m) 0 0;margin-bottom:2px}
