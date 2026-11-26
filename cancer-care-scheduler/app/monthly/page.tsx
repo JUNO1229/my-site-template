@@ -5,7 +5,7 @@ import { Icon } from "@/components/Icons";
 import CalendarPopup from "@/components/CalendarPopup";
 import { CountUp, PageSkeleton } from "@/components/Ui";
 import { useAppts, useStore } from "@/lib/store";
-import { useUi } from "@/lib/ui";
+import { useFitRows, useUi } from "@/lib/ui";
 import { addDays, dow, mondayOf, parse, pad, todayStr, toMin, ymd } from "@/lib/util";
 import type { Appt, Status } from "@/lib/types";
 
@@ -54,6 +54,7 @@ export default function Monthly() {
     }
     return { byDay, month, perRoom };
   }, [appts, rooms, roomOfItem, hidden, ym]); // eslint-disable-line
+  const calRef = useFitRows([ready, ym, weekend, appts.length, db.rooms.length]); // 달력을 화면 아래 끝까지 채운다
   if (!ready) return <PageSkeleton />;
 
   const days = Array.from({ length: nDays }, (_, i) => addDays(gridStart, i));
@@ -69,7 +70,7 @@ export default function Monthly() {
   return (
     <div className="mpage">
       <div className="toolbar">
-        <h2>월간 치료현황</h2>
+        <h2 title="날짜를 누르면 치료실별 상세 일정이 열립니다. 막대는 완료 비율, 진한 칸일수록 치료가 많은 날입니다. ←/→ 키로 달을 이동합니다.">월간 치료현황</h2>
         <div className="mnav">
           <button className="icon-btn" aria-label="이전 달" onClick={() => shift(-1)}><Icon name="left" /></button>
           <b className="mtitle">{y}년 {m}월</b>
@@ -86,6 +87,7 @@ export default function Monthly() {
         <button className="btn-soft no-print" onClick={() => window.print()}>인쇄</button>
       </div>
 
+      <div className="mstat">
       <div className="kpis">
         <div className="kpi"><b><CountUp value={monthLive} /></b>월 전체 치료</div>
         <div className="kpi s-완료"><b><CountUp value={month.done} /></b>완료</div>
@@ -97,8 +99,9 @@ export default function Monthly() {
         {rooms.map((r) => { const n = perRoom.get(r.id); const c = n ? n.res + n.done : 0; const off = hidden.has(r.id);
           return <button key={r.id} className={`chip rchip ${off ? "off" : "on"}`} aria-pressed={!off} onClick={() => toggleRoom(r.id)}><i className="rdot" style={{ background: r.color }} />{short(r.name)}<b>{c}</b></button>; })}
       </div>
+      </div>
 
-      <div className="mcal" style={{ ["--cols" as string]: cols }}>
+      <div className="mcal fit" ref={calRef} style={{ ["--cols" as string]: cols, ["--weeks" as string]: Math.ceil(shown.length / cols) }}>
         {shown.slice(0, cols).map((d) => <div key={d} className={`mdh ${dow(d) === "일" ? "sun" : dow(d) === "토" ? "sat" : ""}`}>{dow(d)}</div>)}
         {shown.map((d, i) => {
           const inMonth = d.startsWith(ym); const dm = byDay.get(d); const tot = dayTotal(d);
@@ -108,17 +111,16 @@ export default function Monthly() {
               style={{ ["--h" as string]: heat && inMonth ? (tot / maxTotal) * 0.24 : 0, animationDelay: `${Math.min(i, 20) * 18}ms` }}
               aria-label={`${md(d)} ${tot}건`} onClick={() => inMonth && setSel(d)} onKeyDown={(e) => { if (inMonth && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); setSel(d); } }}>
               <div className="mtop"><span className="mnum">{Number(d.slice(8))}</span>{inMonth && tot > 0 && <span className="mtot">{tot}건</span>}</div>
-              {rows.map((r) => { const a = dm!.get(r.id)!; const n = countOf(a, view); const live = a.res + a.done; const pct = live ? (a.done / live) * 100 : 0;
+              <div className="mrows">{rows.map((r) => { const a = dm!.get(r.id)!; const n = countOf(a, view); const live = a.res + a.done; const pct = live ? (a.done / live) * 100 : 0;
                 return (
                   <div key={r.id} className="mrow" title={`${r.name} ${n}건 (완료 ${a.done} / 예약 ${a.res} / 취소 ${a.canc})`}>
                     <i className="rdot" style={{ background: r.color }} /><span className="nm">{short(r.name)}</span><b>{n}</b>
                     {view === "all" && <span className="mbar"><i style={{ width: `${pct}%`, background: r.color }} /></span>}
-                  </div>); })}
+                  </div>); })}</div>
               {rows.length > 0 && <div className="mdots" aria-hidden="true">{rows.map((r) => <i key={r.id} className="rdot" style={{ background: r.color }} />)}</div>}
             </div>);
         })}
       </div>
-      <p className="hint no-print">날짜를 누르면 치료실별 상세 일정이 열립니다. 막대는 완료 비율, 진한 칸일수록 치료가 많은 날입니다. ←/→ 키로 달을 이동합니다.</p>
       {sel && <DayDrawer date={sel} appts={appts.filter((a) => a.date === sel)} hidden={hidden} onClose={() => setSel(null)} onGo={() => router.push(`/?date=${sel}`)} onNew={() => openAppt({ date: sel })} />}
     </div>
   );

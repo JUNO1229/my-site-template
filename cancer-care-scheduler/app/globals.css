@@ -633,3 +633,22 @@ button.btn-end,button.btn-restore{display:inline-flex;align-items:center;justify
 .roomweek .room.sel{box-shadow:0 0 0 2px var(--p1),var(--sh-card)}
 .roomweek .room header{padding:10px 12px 6px}.roomweek .room header b{font-size:14.5px}.roomweek .room header small{color:var(--p2);font-weight:600}
 .roomweek .dp{margin-bottom:12px}
+
+/* ===== 월간 치료현황: 한 화면에 들어오는 압축 레이아웃 ===== */
+.mpage .toolbar{margin:4px 0 10px}.mpage .toolbar h2{font-size:18px}
+.mstat{display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px;margin:0 0 10px}
+.mstat .kpis{margin:0;gap:6px}.mstat .kpi{padding:0 12px;height:30px;border-radius:999px;font-size:12px;align-items:center;gap:5px}.mstat .kpi b{font-size:14px}
+.mstat .mlegend{margin:0;gap:6px}.mstat .rchip{height:30px;padding:0 11px;font-size:12px;gap:6px}
+.mrows{display:flex;flex-direction:column;gap:3px;min-height:0}
+@media(min-width:961px){
+  main:has(.mpage){padding-bottom:14px}
+  .mcal.fit{grid-template-rows:auto repeat(var(--weeks,5),minmax(0,1fr));gap:6px}
+  .mcal.fit .mdh{padding:0 0 2px}
+  .mcal.fit .mday{min-height:0;overflow:hidden;padding:6px 9px;gap:4px;container-type:size}
+  .mcal.fit .mday:hover{transform:none}
+  .mcal.fit .mrows{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:10px;row-gap:3px;align-content:start}
+  .mcal.fit .mrow{font-size:11.5px;column-gap:4px;row-gap:1px}.mcal.fit .mnum{font-size:13.5px}.mcal.fit .mtot{font-size:10.5px;padding:1px 7px}
+  @container (max-height:104px){.mcal.fit .mbar{display:none}}
+  @container (max-height:78px){.mcal.fit .mrows{display:none}.mcal.fit .mdots{display:flex;flex-wrap:wrap;gap:4px}}
+  @container (max-width:150px){.mcal.fit .mrows{grid-template-columns:minmax(0,1fr)}}
+}
