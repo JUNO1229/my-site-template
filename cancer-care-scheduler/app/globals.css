@@ -677,3 +677,11 @@ button.btn-end,button.btn-restore{display:inline-flex;align-items:center;justify
 .listpage .listtbl td{padding-top:7px;padding-bottom:7px}
 @media(min-width:961px){main:has(.listpage){padding-bottom:14px}}
 @media(max-width:960px){.listpage .tblwrap.fixhead{max-height:calc(100dvh - 170px);min-height:320px}}
+
+/* 일정 카드 상세 정보창(마우스 올림) — 시스템 스타일 */
+.hovertip{position:fixed;z-index:900;min-width:220px;max-width:300px;padding:12px 14px;border-radius:var(--r-l);background:var(--surface);color:var(--text);box-shadow:0 16px 40px rgba(31,29,43,.22),0 0 0 1px rgba(142,107,191,.14);font-size:12.5px;pointer-events:none;animation:pop .14s ease}
+.hovertip .ht-head{display:flex;align-items:center;gap:8px;margin-bottom:8px;padding-bottom:8px;border-bottom:1px solid rgba(142,107,191,.16)}
+.hovertip .ht-head b{font-size:15px;font-weight:700}.hovertip .ht-head span{color:var(--text2);font-size:12px}.hovertip .ht-head .pill{margin-left:auto;font-style:normal}
+.hovertip dl{display:grid;grid-template-columns:auto 1fr;gap:5px 12px;margin:0}.hovertip dt{color:var(--text2);font-weight:500}.hovertip dd{margin:0;font-weight:600;font-variant-numeric:tabular-nums}
+.hovertip .ht-live{margin-left:8px;font-style:normal;font-size:11px;font-weight:700;padding:1px 8px;border-radius:999px;background:var(--grad-p);color:#fff}
+.hovertip .ht-warn{display:flex;align-items:flex-start;gap:6px;margin:8px 0 0;padding:7px 9px;border-radius:var(--r-m);background:rgba(238,110,143,.12);color:var(--aline);font-weight:600;line-height:1.4}
