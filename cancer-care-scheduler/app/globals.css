@@ -685,3 +685,4 @@ button.btn-end,button.btn-restore{display:inline-flex;align-items:center;justify
 .hovertip dl{display:grid;grid-template-columns:auto 1fr;gap:5px 12px;margin:0}.hovertip dt{color:var(--text2);font-weight:500}.hovertip dd{margin:0;font-weight:600;font-variant-numeric:tabular-nums}
 .hovertip .ht-live{margin-left:8px;font-style:normal;font-size:11px;font-weight:700;padding:1px 8px;border-radius:999px;background:var(--grad-p);color:#fff}
 .hovertip .ht-warn{display:flex;align-items:flex-start;gap:6px;margin:8px 0 0;padding:7px 9px;border-radius:var(--r-m);background:rgba(238,110,143,.12);color:var(--aline);font-weight:600;line-height:1.4}
+.hovertip.simple{min-width:0;max-width:320px;padding:8px 12px;font-weight:500;line-height:1.5;white-space:pre-line;border-radius:var(--r-m)}

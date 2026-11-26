@@ -12,6 +12,7 @@ import { api } from "@/lib/api";
 import { menuFor } from "@/lib/menu";
 import { findConflicts, toMin, todayStr } from "@/lib/util";
 import LiveClock from "./LiveClock";
+import TitleTips from "./TitleTips";
 
 export default function Shell({ children }: { children: React.ReactNode }) {
   const path = usePathname(); const router = useRouter();
@@ -54,6 +55,7 @@ export default function Shell({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="shell">
+      <TitleTips />
       <div className={`scrim ${drawer ? "show" : ""}`} onClick={() => setDrawer(false)} />
       <aside className={`sidebar ${drawer ? "open" : ""}`} aria-label="주 메뉴">
         <div className="brand"><span className="logo" aria-hidden="true"><Icon name="activity" size={20} /></span><div><b>ResHub-C<span className="ko">리즈허브-C</span></b><small>무등산생태요양병원</small></div></div>
