@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useAppts, useStore } from "@/lib/store";
-import { OPTIONS, OPTION_HINT, OPTION_LABEL, STATUSES } from "@/lib/types";
+import { OPTIONS, OPTION_LABEL, STATUSES } from "@/lib/types";
 import { addDays, csvEscape, label, pname, todayStr, toMin } from "@/lib/util";
 import { PageSkeleton } from "@/components/Ui";
 import DateField from "@/components/DateField";
@@ -64,7 +64,7 @@ export default function ListPage() {
         <DateField compact ariaLabel="시작일" value={from} onChange={(v) => v && setFrom(v)} /> ~ <DateField compact ariaLabel="종료일" value={to} onChange={(v) => v && setTo(v)} />
         <MultiSelect label="치료실 선택" all="전체 치료실" options={db.rooms.filter((r) => r.active).map((r) => ({ id: r.id, name: r.name }))} value={roomSel} onChange={setRoomSel} />
         <select value={st} onChange={(e) => setSt(e.target.value)}><option value="">전체 상태</option>{STATUSES.map((s) => <option key={s}>{s}</option>)}</select>
-        <MultiSelect label="옵션 선택" all="전체 옵션" options={OPTIONS.map((o) => ({ id: o || "J", name: OPTION_HINT[o] }))} short={OPTIONS.map((o) => OPTION_LABEL[o])} value={optSel} onChange={setOptSel} />
+        <MultiSelect label="옵션 선택" all="전체 옵션" options={OPTIONS.map((o) => ({ id: o || "J", name: OPTION_LABEL[o] }))} short={OPTIONS.map((o) => OPTION_LABEL[o])} value={optSel} onChange={setOptSel} />
         <input className="qinput" placeholder="환자·치료 검색" value={kw} onChange={(e) => setKw(e.target.value)} />
         <b>{rows.length}건</b><button className="btn-card" onClick={exportCsv}><Icon name="download" size={17} />CSV 내보내기</button></div>
       <div className="tblwrap fixhead"><table className="tbl compact listtbl"><colgroup><col style={{ width: "19%" }} /><col style={{ width: "11%" }} /><col style={{ width: "24%" }} /><col style={{ width: "24%" }} /><col style={{ width: "10%" }} /><col style={{ width: "12%" }} /></colgroup><thead><tr><th>치료일자</th><th>시간</th><th>환자(병동)</th><th>치료</th><th>옵션</th><th>상태</th></tr></thead>
