@@ -85,7 +85,7 @@ export default function Admin() {
             <label key={r.id} className="chk"><input type="checkbox" checked={edit.roomIds?.includes(r.id) ?? false} onChange={() => toggleRoom(r.id)} />{r.name}</label>))}</div>}
           {edit.role === "therapist" && <div className="scopebox"><div className="fieldlabel" style={{ margin: 0 }}>관리 범위</div>
             <label className="chk"><input type="radio" name="scope" checked={!edit.allRooms} onChange={() => setEdit({ ...edit, allRooms: false })} />담당 치료실만 — 위에서 선택한 치료실의 스케줄만 등록·수정</label>
-            <label className="chk"><input type="radio" name="scope" checked={!!edit.allRooms} onChange={() => setEdit({ ...edit, allRooms: true })} />전체 치료실 관리(치료실 총괄) — 모든 치료실의 스케줄을 등록·수정. 위 선택은 본인 담당 치료실로 표시</label>
+            <label className="chk"><input type="radio" name="scope" checked={!!edit.allRooms} onChange={() => setEdit({ ...edit, allRooms: true })} />전체 치료실 관리(치료실 총괄) — 모든 치료실의 스케줄을 등록·수정하고, 중복·정원 초과 시 예외 등록 가능. 위 선택은 본인 담당 치료실로 표시</label>
             <small className="hint">환자명부 수정·계약금액·병실관리 권한은 주어지지 않습니다(상담실 권한과 구분).</small></div>}
           {edit.id
             ? <><label>비밀번호 재설정(입력 시 임시 비밀번호로 변경, 다음 로그인 때 변경 요구)<input type="text" value={edit.resetPassword ?? ""} onChange={(e) => setEdit({ ...edit, resetPassword: e.target.value })} placeholder="비워두면 변경 없음" /></label>

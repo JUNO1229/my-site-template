@@ -19,7 +19,7 @@ const toMin = (t: string) => { const [h, m] = t.split(":").map(Number); return h
 const hm = (n: number) => `${String(Math.floor(n / 60)).padStart(2, "0")}:${String(n % 60).padStart(2, "0")}`;
 
 /** 서버 쪽 중복·정원 검사 — 같은 환자 시간 겹침, 치료항목 동시 수용 인원 초과.
- *  관리자·스케줄관리자는 force=true 로 예외 등록할 수 있다. (취소 건은 제외) */
+ *  관리자·스케줄관리자·치료실 총괄 담당자는 force=true 로 예외 등록할 수 있다. (취소 건은 제외) */
 export async function checkConflicts(v: { date: string; time: string; patientId: string; itemId: string; status: string }, selfId: string | undefined, me: Me, force: boolean) {
   if (v.status === "취소") return false;
   const item = (await q("SELECT name,duration,capacity FROM items WHERE id=$1", [v.itemId]))[0];
@@ -39,7 +39,7 @@ export async function checkConflicts(v: { date: string; time: string; patientId:
     if (n > item.capacity) { msgs.push(item.capacity > 1 ? `${item.name}의 ${hm(t)} 시간대 동시 수용 인원(${item.capacity}명)을 초과합니다` : `${item.name}의 ${hm(t)} 시간대에 이미 다른 환자가 예약되어 있습니다`); break; }
   }
   if (!msgs.length) return false;
-  const canForce = me.role === "admin" || me.role === "manager";
+  const canForce = me.role === "admin" || me.role === "manager" || (me.role === "therapist" && me.allRooms === true); // 치료실 총괄 담당자 포함
   if (force && canForce) return true; // 예외 등록 허용 — 호출한 쪽에서 기록
   throw new HttpError(409, msgs.join(" / ") + (canForce ? "" : ". 관리자에게 문의해 주세요"), canForce ? "conflict" : "conflict_locked");
 }
