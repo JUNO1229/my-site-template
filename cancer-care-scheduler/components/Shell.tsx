@@ -78,7 +78,6 @@ export default function Shell({ children }: { children: React.ReactNode }) {
         <header className="topbar">
           <button className="icon-btn menu-btn" aria-label="메뉴 열기" onClick={() => setDrawer(true)}><Icon name="menu" /></button>
           <Link href="/account" className="greet" aria-label="내 계정">
-            {me && <Avatar name={me.name} size={40} />}
             <div><b>안녕하세요, {me?.name ?? ""}님</b><small><span className="role">{me ? roleLabel(me) : ""} · </span><LiveClock /></small></div>
           </Link>
           <div className="popwrap" ref={bellRef} style={{ marginLeft: "auto" }}>
