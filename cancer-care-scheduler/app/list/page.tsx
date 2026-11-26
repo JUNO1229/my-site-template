@@ -7,6 +7,7 @@ import { PageSkeleton } from "@/components/Ui";
 import DateField from "@/components/DateField";
 import { Icon } from "@/components/Icons";
 import { useToast } from "@/lib/toast";
+import { useFitRows } from "@/lib/ui";
 
 /** 여러 개를 고를 수 있는 선택 상자 (체크박스 목록) */
 function MultiSelect({ label, all, options, value, onChange, short }: { label: string; all: string; options: { id: string; name: string }[]; value: string[]; onChange: (v: string[]) => void; short?: string[] }) {
@@ -45,6 +46,7 @@ export default function ListPage() {
     if (optSel.length && !optSel.includes(a.option === "J" || !a.option ? "J" : a.option)) return false; // 옵션 없음 = J
     return !kw || `${p?.name}${it?.name}`.includes(kw);
   }).sort((a, b) => a.date.localeCompare(b.date) || toMin(a.time) - toMin(b.time)), [appts, db, from, to, kw, roomSel, st, optSel]);
+  const tblRef = useFitRows([ready, rows.length, roomSel.length, optSel.length, st, kw]); // 표를 화면 아래 끝까지 채운다(행은 표 안에서 스크롤)
   if (!ready) return <PageSkeleton />;
   const exportCsv = () => {
     const head = ["치료일자", "시작시간", "환자(병동)", "치료실", "치료", "옵션", "상태", "비고"];
@@ -59,7 +61,7 @@ export default function ListPage() {
   };
   return (
     <>
-      <div className="fillpage">
+      <div className="listpage">
       <div className="toolbar"><h2>기간별 리스트</h2>
         <DateField compact ariaLabel="시작일" value={from} onChange={(v) => v && setFrom(v)} /> ~ <DateField compact ariaLabel="종료일" value={to} onChange={(v) => v && setTo(v)} />
         <MultiSelect label="치료실 선택" all="전체 치료실" options={db.rooms.filter((r) => r.active).map((r) => ({ id: r.id, name: r.name }))} value={roomSel} onChange={setRoomSel} />
@@ -67,7 +69,7 @@ export default function ListPage() {
         <MultiSelect label="옵션 선택" all="전체 옵션" options={OPTIONS.map((o) => ({ id: o || "J", name: OPTION_LABEL[o] }))} short={OPTIONS.map((o) => OPTION_LABEL[o])} value={optSel} onChange={setOptSel} />
         <input className="qinput" placeholder="환자·치료 검색" value={kw} onChange={(e) => setKw(e.target.value)} />
         <b>{rows.length}건</b><button className="btn-card" onClick={exportCsv}><Icon name="download" size={17} />CSV 내보내기</button></div>
-      <div className="tblwrap fixhead"><table className="tbl compact listtbl"><colgroup><col style={{ width: "19%" }} /><col style={{ width: "11%" }} /><col style={{ width: "24%" }} /><col style={{ width: "24%" }} /><col style={{ width: "10%" }} /><col style={{ width: "12%" }} /></colgroup><thead><tr><th>치료일자</th><th>시간</th><th>환자(병동)</th><th>치료</th><th>옵션</th><th>상태</th></tr></thead>
+      <div className="tblwrap fixhead" ref={tblRef}><table className="tbl compact listtbl"><colgroup><col style={{ width: "19%" }} /><col style={{ width: "11%" }} /><col style={{ width: "24%" }} /><col style={{ width: "24%" }} /><col style={{ width: "10%" }} /><col style={{ width: "12%" }} /></colgroup><thead><tr><th>치료일자</th><th>시간</th><th>환자(병동)</th><th>치료</th><th>옵션</th><th>상태</th></tr></thead>
         <tbody>{rows.map((a) => (<tr key={a.id}><td>{label(a.date)}</td><td>{a.time}</td><td>{pname(db.patients.find((p) => p.id === a.patientId))}</td>
           <td>{db.items.find((i) => i.id === a.itemId)?.name}</td><td>{a.option || "J"}</td><td><span className={`badge s-${a.status}`}>{a.status}</span></td></tr>))}</tbody></table></div>
       </div>

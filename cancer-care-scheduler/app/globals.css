@@ -670,3 +670,10 @@ button.btn-end,button.btn-restore{display:inline-flex;align-items:center;justify
   @container (min-height:150px){.cal.fit .ev{font-size:12.5px;padding:3px 8px}}
 }
 @media print{.cal.fit{height:auto!important}}
+
+/* ===== 기간별 리스트: 한 화면에 들어오는 레이아웃 ===== */
+.listpage .toolbar{margin:4px 0 10px;gap:8px 10px}.listpage .toolbar h2{font-size:18px}
+.listpage .toolbar .datefield.compact{min-width:150px;height:40px}.listpage .msel-btn{height:40px;min-width:140px}.listpage .toolbar select{height:40px}.listpage .toolbar .qinput{height:40px;min-width:150px;width:170px}.listpage .toolbar .btn-card{height:40px}
+.listpage .listtbl td{padding-top:7px;padding-bottom:7px}
+@media(min-width:961px){main:has(.listpage){padding-bottom:14px}}
+@media(max-width:960px){.listpage .tblwrap.fixhead{max-height:calc(100dvh - 170px);min-height:320px}}
