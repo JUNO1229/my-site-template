@@ -13,7 +13,7 @@ interface Log { ts: string; username: string | null; action: string; detail: str
 const ROLE_OPTS: { v: string; role: Role; all: boolean; label: string; desc: string }[] = [
   { v: "admin", role: "admin", all: false, label: ROLE_LABEL.admin, desc: ROLE_DESC.admin },
   { v: "manager", role: "manager", all: false, label: ROLE_LABEL.manager, desc: ROLE_DESC.manager },
-  { v: "lead", role: "therapist", all: true, label: "치료실 총괄 담당자", desc: "모든 치료실 스케줄 등록/수정 + 중복·정원 예외 등록 (환자명부 수정·계약금액·병실관리 제외)" },
+  { v: "lead", role: "therapist", all: true, label: "치료실 총괄 담당자", desc: "모든 치료실 스케줄 등록/수정 (환자명부 수정·계약금액·병실관리 제외)" },
   { v: "therapist", role: "therapist", all: false, label: ROLE_LABEL.therapist, desc: ROLE_DESC.therapist },
   { v: "viewer", role: "viewer", all: false, label: ROLE_LABEL.viewer, desc: ROLE_DESC.viewer },
 ];

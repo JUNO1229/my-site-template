@@ -16,7 +16,7 @@ const MATRIX: [string, Partial<Record<Role, string>>][] = [
   ["환자 등록·수정", { admin: "✓", manager: "✓" }],
   ["환자 삭제·데이터 가져오기·백업 복원", { admin: "✓" }],
   ["스케줄 등록·수정·삭제", { admin: "✓", manager: "✓", therapist: "배정 치료실만 (총괄 담당자는 전체)" }],
-  ["중복·정원 초과 예외 등록", { admin: "✓", manager: "✓", therapist: "총괄 담당자만" }],
+  ["겹쳐도 일단 등록(충돌 표시 후 나중 정리)", { admin: "✓", manager: "✓", therapist: "배정 치료실 (총괄은 전체)" }],
   ["모니터링·월간·캘린더·기간별 리스트 열람", { admin: "✓", manager: "✓", therapist: "✓", viewer: "✓" }],
   ["병실관리 열람", { admin: "✓", manager: "✓", viewer: "✓" }],
   ["병실 수정", { admin: "✓", manager: "✓" }],

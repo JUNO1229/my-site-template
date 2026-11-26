@@ -19,12 +19,13 @@ const toMin = (t: string) => { const [h, m] = t.split(":").map(Number); return h
 const hm = (n: number) => `${String(Math.floor(n / 60)).padStart(2, "0")}:${String(n % 60).padStart(2, "0")}`;
 
 /** 서버 쪽 중복·정원 검사 — 같은 환자 시간 겹침, 치료항목 동시 수용 인원 초과.
- *  관리자·스케줄관리자·치료실 총괄 담당자는 force=true 로 예외 등록할 수 있다. (취소 건은 제외) */
+ *  막지는 않는다: 그 치료실을 수정할 수 있는 사람은 경고를 확인한 뒤 force=true 로 겹친 채 등록할 수 있고(바쁠 때 먼저 입력 → 나중에 정리),
+ *  겹친 일정은 화면에 충돌(⚠)로 계속 표시된다. (취소 건은 검사에서 제외) */
 export async function checkConflicts(v: { date: string; time: string; patientId: string; itemId: string; status: string }, selfId: string | undefined, me: Me, force: boolean) {
   if (v.status === "취소") return false;
   const item = (await q("SELECT name,duration,capacity FROM items WHERE id=$1", [v.itemId]))[0];
   if (!item) return false;
-  const rows = await q(`SELECT a.patient_id,a.appt_time,a.item_id,i.duration,i.name AS item_name FROM appts a JOIN items i ON i.id=a.item_id
+  const rows = await q(`SELECT a.patient_id,a.appt_time,a.item_id,i.duration,i.name AS item_name,p.name AS pname FROM appts a JOIN items i ON i.id=a.item_id JOIN patients p ON p.id=a.patient_id
     WHERE a.appt_date=$1 AND a.status<>'취소' AND a.id<>$2 AND (a.item_id=$3 OR a.patient_id=$4)`, [v.date, selfId ?? "", v.itemId, v.patientId]);
   const s = toMin(v.time), e = s + item.duration, msgs: string[] = [];
   for (const r of rows) {
@@ -32,14 +33,15 @@ export async function checkConflicts(v: { date: string; time: string; patientId:
     const rs = toMin(r.appt_time), re = rs + r.duration;
     if (s < re && rs < e) msgs.push(`같은 환자의 ${hm(rs)}~${hm(re)} ${r.item_name} 일정과 시간이 겹칩니다`);
   }
-  const others = rows.filter((r) => r.item_id === v.itemId).map((r) => ({ s: toMin(r.appt_time), e: toMin(r.appt_time) + r.duration }));
+  const others = rows.filter((r) => r.item_id === v.itemId).map((r) => ({ s: toMin(r.appt_time), e: toMin(r.appt_time) + r.duration, name: r.pname as string }));
   const pts = [s, ...others.map((o) => o.s).filter((t) => t > s && t < e)];
   for (const t of pts) {
     const n = others.filter((o) => o.s <= t && t < o.e).length + 1;
-    if (n > item.capacity) { msgs.push(item.capacity > 1 ? `${item.name}의 ${hm(t)} 시간대 동시 수용 인원(${item.capacity}명)을 초과합니다` : `${item.name}의 ${hm(t)} 시간대에 이미 다른 환자가 예약되어 있습니다`); break; }
+    if (n > item.capacity) { const who = [...new Set(others.filter((o) => o.s <= t && t < o.e).map((o) => o.name))].slice(0, 4).join(", ");
+      msgs.push(item.capacity > 1 ? `${item.name}의 ${hm(t)} 시간대 동시 수용 인원(${item.capacity}명)을 초과합니다 (현재: ${who})` : `${item.name}의 ${hm(t)} 시간대에 이미 ${who} 님이 예약되어 있습니다`); break; }
   }
   if (!msgs.length) return false;
-  const canForce = me.role === "admin" || me.role === "manager" || (me.role === "therapist" && me.allRooms === true); // 치료실 총괄 담당자 포함
-  if (force && canForce) return true; // 예외 등록 허용 — 호출한 쪽에서 기록
-  throw new HttpError(409, msgs.join(" / ") + (canForce ? "" : ". 관리자에게 문의해 주세요"), canForce ? "conflict" : "conflict_locked");
+  void me; // 수정 권한은 호출 전(validAppt)에 이미 확인됨
+  if (force) return true; // 겹친 채 등록 — 호출한 쪽에서 접속기록에 남긴다
+  throw new HttpError(409, msgs.join(" / "), "conflict");
 }

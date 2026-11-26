@@ -46,7 +46,7 @@ export default function ApptModal({ draft, onClose }: { draft: Draft; onClose: (
         setAdded((a) => [...a, `${pname(patient!)} ${f.time}${item ? ` · ${item.name}` : ""}`]);
         toast(`${pname(patient!)}님 등록 — 다음 환자를 선택하세요`); setF((p) => ({ ...p, patientId: "", memo: "" })); setQ(""); setBusy(false);
         setTimeout(() => qRef.current?.focus(), 30);
-      } else { toast(f.id ? "스케줄을 수정했습니다" : "스케줄을 등록했습니다"); close(); }
+      } else { toast(force ? "겹친 상태로 저장했습니다 — 충돌(⚠) 표시를 보고 나중에 정리해 주세요" : f.id ? "스케줄을 수정했습니다" : "스케줄을 등록했습니다"); close(); }
     } catch (e) { setErr((e as Error).message); setCanForce((e as Error & { code?: string }).code === "conflict"); setLastKeep(keep); setBusy(false); }
   };
   const del = async () => { if (!f.id || !confirm("이 스케줄을 삭제할까요?")) return; try { await deleteAppt(f.id); toast("스케줄을 삭제했습니다"); close(); } catch (e) { setErr((e as Error).message); } };
@@ -84,7 +84,8 @@ export default function ApptModal({ draft, onClose }: { draft: Draft; onClose: (
           <label>비고<input value={f.memo} onChange={(e) => set("memo", e.target.value)} placeholder="필요한 메모를 입력하세요" /></label>
           {added.length > 0 && <p className="hint addedlist"><b>이번에 등록한 스케줄 {added.length}건</b><br />{added.join(" / ")}</p>}
           {err && <p className="err"><Icon name="alert" size={16} /> {err}</p>}
-          {canForce && <button type="button" className="btn-ghost danger" disabled={busy} onClick={() => confirm("중복·정원 초과를 확인했습니다. 예외로 등록할까요?") && submit(lastKeep, true)}>그래도 등록 (예외)</button>}
+          {canForce && <button type="button" className="btn-ghost danger" disabled={busy} onClick={() => submit(lastKeep, true)}>겹쳐도 일단 등록</button>}
+          {canForce && <small className="hint">겹친 일정은 충돌(⚠)로 표시됩니다. 등록 후 안 하시는 분의 일정을 취소·삭제해 정리해 주세요.</small>}
           {!writable && <p className="hint">조회 권한만 있어 수정할 수 없습니다.</p>}
         </div>
         <div className="sheet-foot">

@@ -18,7 +18,7 @@ export const PUT = route(async (req, ctx, me) => {
   const forced = moved ? await checkConflicts(v, id, me, b.force === true) : false;
   await q("UPDATE appts SET patient_id=$2,appt_date=$3,appt_time=$4,item_id=$5,opt=$6,status=$7,memo=$8,updated_at=now() WHERE id=$1",
     [id, v.patientId, v.date, v.time, v.itemId, v.opt, v.status, v.memo]);
-  await audit(me.username, "appt_update", `${id} ${v.date} ${v.time} ${v.status}${forced ? " (중복·정원 예외 등록)" : ""}`);
+  await audit(me.username, "appt_update", `${id} ${v.date} ${v.time} ${v.status}${forced ? " (겹친 채 등록)" : ""}`);
 }, { roles: ["admin", "manager", "therapist"] });
 export const DELETE = route(async (_r, ctx, me) => {
   const { id } = await ctx.params;
