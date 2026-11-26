@@ -67,7 +67,7 @@ export default function ListPage() {
         <select value={opt} aria-label="옵션 선택" onChange={(e) => setOpt(e.target.value)}><option value="*">전체 옵션</option>{OPTIONS.map((o) => <option key={o || "J"} value={o} title={OPTION_HINT[o]}>{OPTION_LABEL[o]}</option>)}</select>
         <input className="qinput" placeholder="환자·치료 검색" value={kw} onChange={(e) => setKw(e.target.value)} />
         <b>{rows.length}건</b><button className="btn-card" onClick={exportCsv}><Icon name="download" size={17} />CSV 내보내기</button></div>
-      <div className="tblwrap fixhead"><table className="tbl compact"><thead><tr><th>치료일자</th><th>시간</th><th>환자(병동)</th><th>치료</th><th>옵션</th><th>상태</th></tr></thead>
+      <div className="tblwrap fixhead"><table className="tbl compact listtbl"><colgroup><col style={{ width: "19%" }} /><col style={{ width: "11%" }} /><col style={{ width: "24%" }} /><col style={{ width: "24%" }} /><col style={{ width: "10%" }} /><col style={{ width: "12%" }} /></colgroup><thead><tr><th>치료일자</th><th>시간</th><th>환자(병동)</th><th>치료</th><th>옵션</th><th>상태</th></tr></thead>
         <tbody>{rows.map((a) => (<tr key={a.id}><td>{label(a.date)}</td><td>{a.time}</td><td>{pname(db.patients.find((p) => p.id === a.patientId))}</td>
           <td>{db.items.find((i) => i.id === a.itemId)?.name}</td><td>{a.option || "J"}</td><td><span className={`badge s-${a.status}`}>{a.status}</span></td></tr>))}</tbody></table></div>
       </div>
