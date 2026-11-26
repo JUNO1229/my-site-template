@@ -583,3 +583,16 @@ button.btn-end,button.btn-restore{display:inline-flex;align-items:center;justify
 .svsum.big{font-size:18px;padding:2px 0 6px}
 .scopebox{display:grid;gap:6px;padding:10px 12px;border-radius:var(--r-m);background:var(--field)}
 .acard.compact .ac-opt{width:auto;min-width:16px;padding:0 4px;border-radius:999px}
+/* 스케줄 등록창: 글자·간격 축소 */
+.modal.sheet{font-size:13.5px;width:min(480px,100%)}
+.modal.sheet .sheet-head{padding:14px 18px 2px}.modal.sheet .sheet-head h3{font-size:16px}.modal.sheet .sheet-head .icon-btn{width:34px;height:34px}
+.modal.sheet .sheet-body{padding:6px 18px 8px;gap:9px}
+.modal.sheet label{font-size:12.5px;gap:4px}.modal.sheet .fieldlabel{font-size:12.5px;margin-top:0}
+.modal.sheet input,.modal.sheet select{height:38px;font-size:13.5px;padding:0 12px}
+.modal.sheet .row{gap:10px}
+.modal.sheet .chips{gap:6px}.modal.sheet .chip{height:32px;padding:0 12px;font-size:13px}
+.modal.sheet .linkbtn{font-size:12.5px;padding:0}
+.modal.sheet .planhint{padding:7px 12px;font-size:12.5px;margin:-2px 0 0}
+.modal.sheet .sheet-foot{padding:8px 18px 14px}.modal.sheet .sheet-foot .cta,.modal.sheet .sheet-foot button{height:40px;font-size:13.5px}
+.modal.sheet .hint,.modal.sheet .err{font-size:12.5px;margin:0}
+.modal.sheet .datefield{height:38px;padding:0 12px;font-size:13.5px}
