@@ -13,7 +13,7 @@ export default function RoomPage() {
   const [roomId, setRoomId] = useState("");
   const [date, setDate] = useState(todayStr());
   const rooms = db.rooms.filter((r) => r.active);
-  const own = me?.role === "therapist" ? rooms.find((r) => me.roomIds.includes(r.id)) : undefined;
+  const own = me?.role === "therapist" ? (rooms.find((r) => r.id === me.roomIds[0]) ?? rooms.find((r) => me.roomIds.includes(r.id))) : undefined; // 담당 치료실이 여러 개면 첫 번째(본인 치료실)를 먼저 보여준다
   const room = rooms.find((r) => r.id === roomId) ?? own ?? rooms[0];
   const mon = mondayOf(date); const days = [0, 1, 2, 3, 4].map((i) => addDays(mon, i));
   const appts = useAppts(mon, addDays(mon, 4));

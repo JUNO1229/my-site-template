@@ -89,7 +89,7 @@ export default function Admin() {
             <label>이름<input value={edit.name ?? ""} onChange={(e) => setEdit({ ...edit, name: e.target.value })} /></label></div>
           <label>권한<select value={edit.role === "therapist" && edit.allRooms ? "lead" : edit.role} onChange={(e) => { const o = ROLE_OPTS.find((x) => x.v === e.target.value)!; setEdit({ ...edit, role: o.role, allRooms: o.all }); }}>{ROLE_OPTS.map((r) => <option key={r.v} value={r.v}>{r.label}</option>)}</select></label>
           <small className="hint" style={{ marginTop: -4 }}>{ROLE_OPTS.find((x) => x.v === (edit.role === "therapist" && edit.allRooms ? "lead" : edit.role))?.desc}</small>
-          {edit.role === "therapist" && <div className="fieldlabel" style={{ margin: "2px 0 0" }}>{edit.allRooms ? "본인 담당 치료실 (선택 사항 — 스케줄은 모든 치료실에서 등록·수정 가능)" : "담당 치료실 (선택한 치료실의 스케줄만 등록·수정)"}</div>}
+          {edit.role === "therapist" && <div className="fieldlabel" style={{ margin: "2px 0 0" }}>{edit.allRooms ? "본인 담당 치료실 (선택 사항 — 스케줄은 모든 치료실에서 등록·수정 가능)" : "담당 치료실 (선택한 치료실의 스케줄만 등록·수정 · 여러 개 선택 가능, 먼저 선택한 치료실이 기본 화면)"}</div>}
           {edit.role === "therapist" && <div className="chips">{db.rooms.map((r) => (
             <label key={r.id} className="chk"><input type="checkbox" checked={edit.roomIds?.includes(r.id) ?? false} onChange={() => toggleRoom(r.id)} />{r.name}</label>))}</div>}
           {edit.id
