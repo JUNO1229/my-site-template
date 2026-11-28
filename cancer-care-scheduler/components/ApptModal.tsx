@@ -5,13 +5,14 @@ import { useToast } from "@/lib/toast";
 import { OPTIONS, OPTION_LABEL, STATUSES, type Appt } from "@/lib/types";
 import { pname } from "@/lib/util";
 import { canEditRoom } from "@/lib/perm";
+import { useUi } from "@/lib/ui";
 import { Icon } from "./Icons";
 import { api } from "@/lib/api";
 import DateField from "./DateField";
 
 export type Draft = Partial<Appt> & { date: string };
 export default function ApptModal({ draft, onClose }: { draft: Draft; onClose: () => void }) {
-  const { db, me, saveAppt, deleteAppt, refresh } = useStore();
+  const { db, me, saveAppt, deleteAppt, refresh } = useStore(); const { openMove } = useUi();
   const [tmpOpen, setTmpOpen] = useState(false); const [tmpName, setTmpName] = useState(""); const [tmpBusy, setTmpBusy] = useState(false);
   const { toast } = useToast();
   const [closing, setClosing] = useState(false);
@@ -90,6 +91,7 @@ export default function ApptModal({ draft, onClose }: { draft: Draft; onClose: (
         </div>
         <div className="sheet-foot">
           {f.id && writable && <button className="btn-ghost danger" onClick={del}><Icon name="trash" size={18} />삭제</button>}
+          {f.id && writable && (draft.status === "예약" || (draft.status === "연기" && !/로 옮김/.test(draft.memo ?? ""))) && <button className="btn-ghost" onClick={() => { close(); setTimeout(() => openMove(draft as Appt), 200); }}>다른 날로 옮기기</button>}
           {writable && !f.id && <button className="btn-ghost" disabled={!valid || busy} onClick={() => submit(true)}>등록 후 계속 입력</button>}
           {writable && <button className="cta" disabled={!valid || busy} onClick={() => submit(false)}>{busy ? "저장 중…" : f.id ? "저장" : added.length ? "등록 후 닫기" : "등록"}</button>}
         </div>

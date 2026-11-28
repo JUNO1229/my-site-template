@@ -4,6 +4,7 @@ import { createPortal } from "react-dom";
 import { PopMenu } from "./Ui";
 import { Icon } from "./Icons";
 import { canEditRoom, type Me } from "@/lib/perm";
+import { useUi } from "@/lib/ui";
 import { toMin } from "@/lib/util";
 import { isOff, type Appt, type Item, type Patient, type Room, type Status } from "@/lib/types";
 
@@ -28,11 +29,12 @@ export default function ApptCard({ a, patient, item, room, conflict, today, nowM
   const s = toMin(a.time), e = s + (item?.duration ?? 50);
   const current = a.date === today && !isOff(a.status) && nowMin >= s && nowMin < e;
   const past = !current && (a.date < today || (a.date === today && nowMin >= e));
-  const can = canEditRoom(me, item?.roomId);
+  const can = canEditRoom(me, item?.roomId); const { openMove } = useUi();
   const menu = [
     ...(can && a.status !== "완료" ? [{ label: "완료 처리", onClick: () => onStatus(a, "완료") }] : []),
     ...(can && a.status !== "예약" ? [{ label: "예약으로 되돌리기", onClick: () => onStatus(a, "예약") }] : []),
     ...(can && a.status !== "연기" ? [{ label: "연기 처리", onClick: () => onStatus(a, "연기") }] : []),
+    ...(can && (a.status === "예약" || (a.status === "연기" && !/로 옮김/.test(a.memo))) ? [{ label: "연기 후 다른 날로 옮기기", onClick: () => openMove(a) }] : []),
     ...(can && a.status !== "취소" ? [{ label: "예약 취소", danger: true, onClick: () => onStatus(a, "취소") }] : []),
     { label: can ? "상세·수정" : "상세 보기", onClick: () => onOpen(a) },
   ];

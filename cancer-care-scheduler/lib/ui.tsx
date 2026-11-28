@@ -1,17 +1,18 @@
 "use client";
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import ApptModal, { type Draft } from "@/components/ApptModal";
+import MoveModal from "@/components/MoveModal";
 import { useStore } from "./store";
 import { useToast } from "./toast";
 import type { Appt, Status } from "./types";
 
 type Theme = "light" | "dark";
-interface Ctx { openAppt: (d: Draft) => void; theme: Theme; toggleTheme: () => void }
+interface Ctx { openAppt: (d: Draft) => void; openMove: (a: Appt) => void; theme: Theme; toggleTheme: () => void }
 const C = createContext<Ctx | null>(null);
 export const useUi = () => { const c = useContext(C); if (!c) throw new Error("ui"); return c; };
 
 export function UiProvider({ children }: { children: ReactNode }) {
-  const [draft, setDraft] = useState<Draft | null>(null);
+  const [draft, setDraft] = useState<Draft | null>(null); const [move, setMove] = useState<Appt | null>(null);
   const [theme, setTheme] = useState<Theme>("light");
   useEffect(() => {
     const saved = document.documentElement.dataset.theme as Theme | undefined;
@@ -22,8 +23,8 @@ export function UiProvider({ children }: { children: ReactNode }) {
     document.documentElement.dataset.theme = n; try { localStorage.setItem("ccs-theme", n); } catch { /* ignore */ }
     return n;
   }), []);
-  const v = useMemo<Ctx>(() => ({ openAppt: setDraft, theme, toggleTheme }), [theme, toggleTheme]);
-  return <C.Provider value={v}>{children}{draft && <ApptModal draft={draft} onClose={() => setDraft(null)} />}</C.Provider>;
+  const v = useMemo<Ctx>(() => ({ openAppt: setDraft, openMove: setMove, theme, toggleTheme }), [theme, toggleTheme]);
+  return <C.Provider value={v}>{children}{draft && <ApptModal draft={draft} onClose={() => setDraft(null)} />}{move && <MoveModal appt={move} onClose={() => setMove(null)} />}</C.Provider>;
 }
 
 /** 현재 시각 (기본 1분 간격 갱신) */
