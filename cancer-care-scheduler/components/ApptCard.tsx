@@ -48,11 +48,12 @@ export default function ApptCard({ a, patient, item, room, conflict, today, nowM
       onMouseEnter={tipOn} onMouseLeave={tipOff} onMouseDown={tipOff}
       aria-label={`${a.time} ${patient?.name ?? ""} ${item?.name ?? ""} ${a.status}`}>
       <span className="ac-t">{hm(s)}</span>
-      <span className="ac-n"><b>{patient?.name ?? "?"}</b>{patient?.ward && (patient.ward === "외" ? <small className="out"><span className="full">외래</span><span className="short">외</span></small> : <small>{patient.ward}병동</small>)}
-        {a.option && <em className="ac-opt">{a.option}</em>}{!hideItem && item?.name && <em className="ac-it">{item.name}</em>}</span>
-      {current && <i className="live-dot" />}
+      <div className="ac-body">
+        <span className="ac-n"><b>{patient?.name ?? "?"}</b>{patient?.ward && (patient.ward === "외" ? <small className="out"><span className="full">외래</span><span className="short">외</span></small> : <small>{patient.ward}병동</small>)}
+          {a.option && <em className="ac-opt">{a.option}</em>}{!hideItem && item?.name && <em className="ac-it">{item.name}</em>}</span>
+        <span className="ac-s"><em className={`pill st-${a.status}`}>{a.status === "완료" && <Icon name="check" size={11} />}{a.status}</em>{current && <em className="ac-live">진행 중</em>}</span>
+      </div>
       {conflict && <span className="warn-ic"><Icon name="alert" size={14} /></span>}
-      {a.status === "완료" && <span className="ac-done"><Icon name="check" size={14} /></span>}{a.status === "취소" && <span className="ac-cancel">취소</span>}{a.status === "연기" && <span className="ac-post">연기</span>}
       <span onMouseEnter={tipOff}><PopMenu items={menu} label="일정 메뉴" tone={current ? "on-grad" : ""} /></span>
       {tipEl && <HoverTip anchor={tipEl}>
         <div className="ht-head"><b>{patient?.name ?? "?"}</b>{patient?.ward && <span>{patient.ward === "외" ? "외래" : `${patient.ward}병동`}{patient.bed ? ` · ${patient.bed}${/^\d/.test(patient.bed) ? "호" : ""}` : ""}</span>}<em className={`pill st-${a.status}`}>{a.status}</em></div>

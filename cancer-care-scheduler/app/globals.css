@@ -692,3 +692,18 @@ button.btn-end,button.btn-restore{display:inline-flex;align-items:center;justify
 :root[data-theme=dark] .pill.st-연기,:root[data-theme=dark] .badge.s-연기{background:rgba(217,119,6,.22);color:#fcd34d}:root[data-theme=dark] .kpi.s-연기 b,:root[data-theme=dark] .mon .kc.s-연기 b{color:#fcd34d}
 .acard.s-연기{opacity:.6}.acard.compact .ac-post{flex:none;font-size:11px;font-weight:700;padding:0 6px;border-radius:999px;background:#fef3c7;color:#92400e}
 .ev.s-연기{background:#fef3c7;color:#92400e;text-decoration:line-through}
+
+/* 압축 일정 카드: 2줄(① 이름·병동·옵션 ② 치료상태) */
+.acard.compact .ac-body{flex:1;min-width:0;display:flex;flex-direction:column;justify-content:center;gap:1px}
+.acard.compact .ac-n{flex:none}
+.acard.compact .ac-s{display:flex;align-items:center;gap:5px;line-height:1}
+.acard.compact .ac-s .pill{font-style:normal;font-size:10.5px;font-weight:600;padding:1px 7px;border-radius:999px;display:inline-flex;align-items:center;gap:3px;line-height:1.35}
+.acard.compact .ac-live{font-style:normal;font-size:10.5px;font-weight:700;padding:1px 7px;border-radius:999px;background:rgba(255,255,255,.25);color:#fff}
+.acard.compact.current .ac-s .pill{background:rgba(255,255,255,.25);color:#fff}
+.acard.compact{min-height:42px}
+@container (max-width:200px){.acard.compact .ac-n small:not(.out){display:inline}}
+@container (max-width:165px){.acard.compact .ac-n small:not(.out){display:none}}
+@media(min-width:961px){
+  .mon .rooms.fit .acard.compact .ac-n b{font-size:clamp(13.5px,calc(var(--rowh,40px)*.28),18px)}
+  .mon .rooms.fit .acard.compact .ac-s .pill,.mon .rooms.fit .acard.compact .ac-live{font-size:clamp(10px,calc(var(--rowh,40px)*.2),12.5px)}
+}
