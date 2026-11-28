@@ -10,7 +10,7 @@ import { canEditRoom } from "@/lib/perm";
 import { api } from "@/lib/api";
 import { useToast } from "@/lib/toast";
 import { findConflicts, toMin, todayStr } from "@/lib/util";
-import type { Appt } from "@/lib/types";
+import { isOff, type Appt } from "@/lib/types";
 
 export default function Monitor() {
   const { db, ready, me, refresh } = useStore(); const { toast } = useToast(); const { openAppt } = useUi(); const setStatus = useStatusChange();
@@ -65,7 +65,7 @@ export default function Monitor() {
         <h2>치료실 통합모니터링</h2>
                 <div className="kchips" aria-label="일정 요약">
           <span className="kc">전체 <b><CountUp value={shown.length} /></b></span><span className="kc s-예약">예약 <b><CountUp value={count(shown, "예약")} /></b></span>
-          <span className="kc s-완료">치료완료 <b><CountUp value={count(shown, "완료")} /></b></span><span className="kc s-취소">예약취소 <b><CountUp value={count(shown, "취소")} /></b></span>
+          <span className="kc s-완료">치료완료 <b><CountUp value={count(shown, "완료")} /></b></span><span className="kc s-연기">연기 <b><CountUp value={count(shown, "연기")} /></b></span><span className="kc s-취소">예약취소 <b><CountUp value={count(shown, "취소")} /></b></span>
           <span className={`kc ${conflictCount ? "bad" : ""}`}>충돌 <b><CountUp value={conflictCount} /></b></span></div>{roomId && <button className="btn-soft" onClick={() => setRoomId("")}>전체 치료실 보기</button>}<span className="spacer" />
         <div className="seg" role="tablist"><button className={view === "cards" ? "on" : ""} onClick={() => setView("cards")} role="tab" aria-selected={view === "cards"}>치료실별</button>
           <button className={view === "timeline" ? "on" : ""} onClick={() => setView("timeline")} role="tab" aria-selected={view === "timeline"}>타임라인</button></div>
@@ -83,7 +83,7 @@ export default function Monitor() {
           {view === "cards" ? (
             <div className="rooms fit" ref={roomsRef} style={{ "--n": (roomId ? rooms.filter((r) => r.id === roomId) : rooms).length, "--cols": (roomId ? rooms.filter((r) => r.id === roomId) : rooms).map((r) => (sorted.some((a) => itemOf(a)?.roomId === r.id) ? "minmax(150px,1fr)" : "minmax(100px,.5fr)")).join(" ") } as React.CSSProperties}>
               {(roomId ? rooms.filter((r) => r.id === roomId) : rooms).map((r, ri) => {
-                const list = sorted.filter((a) => itemOf(a)?.roomId === r.id); const total = list.filter((a) => a.status !== "취소").length, done = count(list, "완료"), left = total - done, pct = total ? (done / total) * 100 : 0;
+                const list = sorted.filter((a) => itemOf(a)?.roomId === r.id); const total = list.filter((a) => !isOff(a.status)).length, done = count(list, "완료"), left = total - done, pct = total ? (done / total) * 100 : 0;
                 return (
                   <section key={r.id} className={`room merged ${dragId === r.id ? "dragging" : ""} ${overId === r.id && dragId !== r.id ? "dropover" : ""}`} style={{ animationDelay: `${ri * 60}ms` }}
                     onDragOver={(e) => { if (dragId) { e.preventDefault(); setOverId(r.id); } }} onDragLeave={() => setOverId((o) => (o === r.id ? "" : o))}

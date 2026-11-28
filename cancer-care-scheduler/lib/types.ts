@@ -1,6 +1,8 @@
 export type Ward = "1" | "3" | "5" | "외";
-export type Status = "예약" | "완료" | "취소";
-export const STATUSES: Status[] = ["예약", "완료", "취소"];
+export type Status = "예약" | "완료" | "연기" | "취소";
+export const STATUSES: Status[] = ["예약", "완료", "연기", "취소"];
+/** 그 시간에 치료하지 않는 상태(연기·취소) — 자리·정원·충돌·진행률 계산에서 제외한다 */
+export const isOff = (s: string) => s === "취소" || s === "연기";
 /** 치료옵션 — 화면에는 이니셜만 표시한다(J·K·C·S·기타). 저장 시 옵션 없음 = J */
 export const OPTIONS = ["", "K", "C", "S", "기타"] as const;
 export const OPTION_LABEL: Record<string, string> = { "": "J", K: "K", C: "C", S: "S", 기타: "기타" };

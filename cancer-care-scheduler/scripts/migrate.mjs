@@ -39,7 +39,7 @@ for (const st of [`CREATE TABLE IF NOT EXISTS patient_snapshots (
 `CREATE TABLE IF NOT EXISTS appts (
   id TEXT PRIMARY KEY, patient_id TEXT NOT NULL REFERENCES patients(id) ON DELETE CASCADE,
   appt_date TEXT NOT NULL, appt_time TEXT NOT NULL, item_id TEXT NOT NULL REFERENCES items(id),
-  opt TEXT NOT NULL DEFAULT '', status TEXT NOT NULL DEFAULT '예약' CHECK (status IN ('예약','완료','취소')),
+  opt TEXT NOT NULL DEFAULT '', status TEXT NOT NULL DEFAULT '예약' CHECK (status IN ('예약','완료','연기','취소')),
   memo TEXT NOT NULL DEFAULT '', created_by TEXT, updated_at TIMESTAMPTZ NOT NULL DEFAULT now())`,
 `CREATE INDEX IF NOT EXISTS appts_date_idx ON appts(appt_date)`,
 `CREATE INDEX IF NOT EXISTS appts_patient_idx ON appts(patient_id)`,
@@ -62,6 +62,8 @@ for (const st of [`CREATE TABLE IF NOT EXISTS patient_snapshots (
 await q("CREATE UNIQUE INDEX IF NOT EXISTS patients_name_ward_uq ON patients(name, ward)");
 await q("ALTER TABLE patients ADD COLUMN IF NOT EXISTS contract_amount INT");
 await q("ALTER TABLE users ADD COLUMN IF NOT EXISTS all_rooms BOOLEAN NOT NULL DEFAULT false");
+await q("ALTER TABLE appts DROP CONSTRAINT IF EXISTS appts_status_check");
+await q("ALTER TABLE appts ADD CONSTRAINT appts_status_check CHECK (status IN ('예약','완료','연기','취소'))");
 await q("ALTER TABLE patients ADD COLUMN IF NOT EXISTS status TEXT NOT NULL DEFAULT 'active'");
 await q("ALTER TABLE patients ADD COLUMN IF NOT EXISTS source TEXT NOT NULL DEFAULT 'registry'");
 await q("ALTER TABLE items ADD COLUMN IF NOT EXISTS capacity INT NOT NULL DEFAULT 1");

@@ -686,3 +686,9 @@ button.btn-end,button.btn-restore{display:inline-flex;align-items:center;justify
 .hovertip .ht-live{margin-left:8px;font-style:normal;font-size:11px;font-weight:700;padding:1px 8px;border-radius:999px;background:var(--grad-p);color:#fff}
 .hovertip .ht-warn{display:flex;align-items:flex-start;gap:6px;margin:8px 0 0;padding:7px 9px;border-radius:var(--r-m);background:rgba(238,110,143,.12);color:var(--aline);font-weight:600;line-height:1.4}
 .hovertip.simple{min-width:0;max-width:320px;padding:8px 12px;font-weight:500;line-height:1.5;white-space:pre-line;border-radius:var(--r-m)}
+
+/* 치료상태 "연기" */
+.pill.st-연기,.badge.s-연기{background:#fef3c7;color:#92400e}.kpi.s-연기 b,.mon .kc.s-연기 b{color:#b45309}
+:root[data-theme=dark] .pill.st-연기,:root[data-theme=dark] .badge.s-연기{background:rgba(217,119,6,.22);color:#fcd34d}:root[data-theme=dark] .kpi.s-연기 b,:root[data-theme=dark] .mon .kc.s-연기 b{color:#fcd34d}
+.acard.s-연기{opacity:.6}.acard.compact .ac-post{flex:none;font-size:11px;font-weight:700;padding:0 6px;border-radius:999px;background:#fef3c7;color:#92400e}
+.ev.s-연기{background:#fef3c7;color:#92400e;text-decoration:line-through}

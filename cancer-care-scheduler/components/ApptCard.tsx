@@ -5,7 +5,7 @@ import { PopMenu } from "./Ui";
 import { Icon } from "./Icons";
 import { canEditRoom, type Me } from "@/lib/perm";
 import { toMin } from "@/lib/util";
-import type { Appt, Item, Patient, Room, Status } from "@/lib/types";
+import { isOff, type Appt, type Item, type Patient, type Room, type Status } from "@/lib/types";
 
 /** 카드에 마우스를 올리면 뜨는 상세 정보창 (시스템 스타일) */
 function HoverTip({ anchor, children }: { anchor: HTMLElement; children: React.ReactNode }) {
@@ -26,12 +26,13 @@ interface Props {
 /** C09 일정 카드 — 진행 중은 그라데이션, 지난 일정은 50% 투명 */
 export default function ApptCard({ a, patient, item, room, conflict, today, nowMin, me, onOpen, onStatus, showRoom = true, delay = 0, compact = false, hideItem = false }: Props) {
   const s = toMin(a.time), e = s + (item?.duration ?? 50);
-  const current = a.date === today && a.status !== "취소" && nowMin >= s && nowMin < e;
+  const current = a.date === today && !isOff(a.status) && nowMin >= s && nowMin < e;
   const past = !current && (a.date < today || (a.date === today && nowMin >= e));
   const can = canEditRoom(me, item?.roomId);
   const menu = [
     ...(can && a.status !== "완료" ? [{ label: "완료 처리", onClick: () => onStatus(a, "완료") }] : []),
     ...(can && a.status !== "예약" ? [{ label: "예약으로 되돌리기", onClick: () => onStatus(a, "예약") }] : []),
+    ...(can && a.status !== "연기" ? [{ label: "연기 처리", onClick: () => onStatus(a, "연기") }] : []),
     ...(can && a.status !== "취소" ? [{ label: "예약 취소", danger: true, onClick: () => onStatus(a, "취소") }] : []),
     { label: can ? "상세·수정" : "상세 보기", onClick: () => onOpen(a) },
   ];
@@ -49,7 +50,7 @@ export default function ApptCard({ a, patient, item, room, conflict, today, nowM
         {a.option && <em className="ac-opt">{a.option}</em>}{!hideItem && item?.name && <em className="ac-it">{item.name}</em>}</span>
       {current && <i className="live-dot" />}
       {conflict && <span className="warn-ic"><Icon name="alert" size={14} /></span>}
-      {a.status === "완료" && <span className="ac-done"><Icon name="check" size={14} /></span>}{a.status === "취소" && <span className="ac-cancel">취소</span>}
+      {a.status === "완료" && <span className="ac-done"><Icon name="check" size={14} /></span>}{a.status === "취소" && <span className="ac-cancel">취소</span>}{a.status === "연기" && <span className="ac-post">연기</span>}
       <span onMouseEnter={tipOff}><PopMenu items={menu} label="일정 메뉴" tone={current ? "on-grad" : ""} /></span>
       {tipEl && <HoverTip anchor={tipEl}>
         <div className="ht-head"><b>{patient?.name ?? "?"}</b>{patient?.ward && <span>{patient.ward === "외" ? "외래" : `${patient.ward}병동`}{patient.bed ? ` · ${patient.bed}${/^\d/.test(patient.bed) ? "호" : ""}` : ""}</span>}<em className={`pill st-${a.status}`}>{a.status}</em></div>

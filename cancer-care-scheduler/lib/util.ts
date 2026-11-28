@@ -19,7 +19,7 @@ export const pname = (p?: Patient) => (p ? (p.source === "temp" ? `${p.name}[임
 /** 충돌 검사: 치료항목별 동시 수용 인원 초과, 같은 환자 시간 겹침 */
 export function findConflicts(appts: Appt[], items: Item[], date?: string): Map<string, string> {
   const out = new Map<string, string>();
-  const day = appts.filter((a) => (!date || a.date === date) && a.status !== "취소");
+  const day = appts.filter((a) => (!date || a.date === date) && a.status !== "취소" && a.status !== "연기");
   const it = (a: Appt) => items.find((i) => i.id === a.itemId);
   const dur = (a: Appt) => it(a)?.duration ?? 50;
   const overlap = (a: Appt, b: Appt) => toMin(a.time) < toMin(b.time) + dur(b) && toMin(b.time) < toMin(a.time) + dur(a);

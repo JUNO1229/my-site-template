@@ -58,6 +58,7 @@ export function mapTreatment(raw: string): string | null {
 export function mapStatus(raw: string): string {
   const t = squash(raw);
   if (t.includes("취소")) return "취소";
+  if (t.includes("연기")) return "연기";
   if (t.includes("완료")) return "완료";
   return "예약";
 }

@@ -34,7 +34,7 @@ export default function PatientDrawer({ p, canSeeAmount, canEdit, onClose, onEdi
   const roomOf = (id: string) => db.rooms.find((r) => r.id === itemOf(id)?.roomId);
   const sorted = useMemo(() => [...appts].sort((a, b) => a.date.localeCompare(b.date) || toMin(a.time) - toMin(b.time)), [appts]);
   const upcoming = sorted.filter((a) => a.status === "예약" && a.date >= today).slice(0, 5);
-  const recent = [...sorted].filter((a) => a.date <= today && a.status !== "취소").reverse().slice(0, 6);
+  const recent = [...sorted].filter((a) => a.date <= today && a.status !== "취소" && a.status !== "연기").reverse().slice(0, 6);
   const cnt = (s: string) => appts.filter((a) => a.status === s).length;
   const ended = p.status === "discharged";
   const canNew = !!me && me.role !== "viewer" && !ended;
@@ -70,7 +70,7 @@ export default function PatientDrawer({ p, canSeeAmount, canEdit, onClose, onEdi
           <div className="dsec"><h4>치료정보</h4><p className="dtext">{p.plan || "등록된 치료정보가 없습니다"}</p></div>
           <div className="dsec"><h4>참고사항</h4><p className="dtext">{p.notes || "등록된 참고사항이 없습니다"}</p></div>
           <div className="dsec"><h4>치료 현황 <small>최근 6개월 ~ 향후 3개월</small></h4>
-            <div className="kpis"><div className="kpi s-예약"><b>{cnt("예약")}</b>예약</div><div className="kpi s-완료"><b>{cnt("완료")}</b>완료</div><div className="kpi s-취소"><b>{cnt("취소")}</b>취소</div></div></div>
+            <div className="kpis"><div className="kpi s-예약"><b>{cnt("예약")}</b>예약</div><div className="kpi s-완료"><b>{cnt("완료")}</b>완료</div><div className="kpi s-연기"><b>{cnt("연기")}</b>연기</div><div className="kpi s-취소"><b>{cnt("취소")}</b>취소</div></div></div>
           <div className="dsec"><h4>다음 치료 일정</h4>{upcoming.length ? <div className="hlist">{upcoming.map((a) => <Row key={a.id} a={a} />)}</div> : <p className="hint">예정된 치료가 없습니다</p>}</div>
           <div className="dsec"><h4>최근 치료 이력</h4>{recent.length ? <div className="hlist">{recent.map((a) => <Row key={a.id} a={a} />)}</div> : <p className="hint">최근 치료 이력이 없습니다</p>}</div>
         </div>

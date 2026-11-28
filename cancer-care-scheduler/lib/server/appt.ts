@@ -1,6 +1,6 @@
 import { HttpError } from "./auth";
 import { q } from "./db";
-import { isDate, isTime, need, OPTS, STATUS, str } from "./validate";
+import { isDate, isOff, isTime, need, OPTS, STATUS, str } from "./validate";
 import { canEditRoom, type Me } from "../perm";
 
 export async function validAppt(b: Record<string, unknown>, me: Me) {
@@ -22,11 +22,11 @@ const hm = (n: number) => `${String(Math.floor(n / 60)).padStart(2, "0")}:${Stri
  *  같은 치료실 안의 겹침은 막지 않는다: 그 치료실을 수정할 수 있는 사람은 경고를 확인한 뒤 force=true 로 겹친 채 등록할 수 있고(바쁠 때 먼저 입력 → 나중에 정리),
  *  겹친 일정은 화면에 충돌(⚠)로 계속 표시된다. 단, 같은 환자가 다른 치료실과 겹치는 경우는 관리자·상담실·총괄만 겹쳐 등록할 수 있다. (취소 건은 검사에서 제외) */
 export async function checkConflicts(v: { date: string; time: string; patientId: string; itemId: string; status: string }, selfId: string | undefined, me: Me, force: boolean) {
-  if (v.status === "취소") return false;
+  if (isOff(v.status)) return false;
   const item = (await q("SELECT name,duration,capacity,room_id FROM items WHERE id=$1", [v.itemId]))[0];
   if (!item) return false;
   const rows = await q(`SELECT a.patient_id,a.appt_time,a.item_id,i.duration,i.name AS item_name,i.room_id,r.name AS room_name,p.name AS pname FROM appts a JOIN items i ON i.id=a.item_id JOIN patients p ON p.id=a.patient_id JOIN rooms r ON r.id=i.room_id
-    WHERE a.appt_date=$1 AND a.status<>'취소' AND a.id<>$2 AND (a.item_id=$3 OR a.patient_id=$4)`, [v.date, selfId ?? "", v.itemId, v.patientId]);
+    WHERE a.appt_date=$1 AND a.status NOT IN ('취소','연기') AND a.id<>$2 AND (a.item_id=$3 OR a.patient_id=$4)`, [v.date, selfId ?? "", v.itemId, v.patientId]);
   const s = toMin(v.time), e = s + item.duration, msgs: string[] = [], hard: string[] = [];
   for (const r of rows) {
     if (r.patient_id !== v.patientId) continue;

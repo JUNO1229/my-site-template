@@ -6,6 +6,7 @@ import { PageSkeleton } from "@/components/Ui";
 import { useAppts, useStore } from "@/lib/store";
 import { useFitRows, useNow, useStatusChange, useUi } from "@/lib/ui";
 import { canEditRoom } from "@/lib/perm";
+import { isOff } from "@/lib/types";
 import { addDays, findConflicts, label, mondayOf, todayStr, toMin } from "@/lib/util";
 
 export default function RoomPage() {
@@ -33,7 +34,7 @@ export default function RoomPage() {
           const list = appts.filter((a) => a.date === d && lanes.some((l) => l.id === a.itemId)).sort((a, b) => toMin(a.time) - toMin(b.time));
           return (
             <section key={d} className={`room ${d === date ? "sel" : ""}`} style={{ animationDelay: `${di * 60}ms` }}>
-              <header><div><b className="dh-compact">{Number(d.slice(5, 7))}월 {Number(d.slice(8))}일 ({label(d).slice(-2, -1)})</b>{d === today && <small>오늘</small>}</div><span className="mini">{list.filter((a) => a.status === "완료").length}/{list.filter((a) => a.status !== "취소").length}</span></header>
+              <header><div><b className="dh-compact">{Number(d.slice(5, 7))}월 {Number(d.slice(8))}일 ({label(d).slice(-2, -1)})</b>{d === today && <small>오늘</small>}</div><span className="mini">{list.filter((a) => a.status === "완료").length}/{list.filter((a) => !isOff(a.status)).length}</span></header>
               <div className="list" style={{ "--rows": Math.max(10, list.length) } as React.CSSProperties}>
                 {list.length ? list.map((a, i) => (
                   <ApptCard key={a.id} a={a} patient={db.patients.find((p) => p.id === a.patientId)} item={db.items.find((x) => x.id === a.itemId)} room={room} conflict={conflicts.get(a.id)}

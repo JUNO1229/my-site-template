@@ -10,11 +10,11 @@ import { addDays, dow, mondayOf, parse, pad, todayStr, toMin, ymd } from "@/lib/
 import type { Appt, Status } from "@/lib/types";
 
 type View = "all" | Status;
-interface Agg { res: number; done: number; canc: number }
+interface Agg { res: number; done: number; canc: number; post: number }
 const short = (n: string) => n.replace(/치료실$/, "");
 const md = (d: string) => `${Number(d.slice(5, 7))}월 ${Number(d.slice(8))}일(${dow(d)})`;
-const add = (a: Agg | undefined, s: Status): Agg => { const x = a ?? { res: 0, done: 0, canc: 0 }; if (s === "예약") x.res++; else if (s === "완료") x.done++; else x.canc++; return x; };
-const countOf = (a: Agg | undefined, v: View) => (!a ? 0 : v === "all" ? a.res + a.done : v === "예약" ? a.res : v === "완료" ? a.done : a.canc);
+const add = (a: Agg | undefined, s: Status): Agg => { const x = a ?? { res: 0, done: 0, canc: 0, post: 0 }; if (s === "예약") x.res++; else if (s === "완료") x.done++; else if (s === "연기") x.post++; else x.canc++; return x; };
+const countOf = (a: Agg | undefined, v: View) => (!a ? 0 : v === "all" ? a.res + a.done : v === "예약" ? a.res : v === "완료" ? a.done : v === "연기" ? a.post : a.canc);
 
 export default function Monthly() {
   const { db, ready } = useStore(); const { openAppt } = useUi(); const router = useRouter();
@@ -45,7 +45,7 @@ export default function Monthly() {
   const roomOfItem = useMemo(() => new Map(db.items.map((i) => [i.id, i.roomId])), [db.items]);
   const { byDay, month, perRoom } = useMemo(() => {
     const ok = new Set(rooms.map((r) => r.id)); const byDay = new Map<string, Map<string, Agg>>();
-    const month: Agg = { res: 0, done: 0, canc: 0 }; const perRoom = new Map<string, Agg>();
+    const month: Agg = { res: 0, done: 0, canc: 0, post: 0 }; const perRoom = new Map<string, Agg>();
     for (const a of appts) {
       const rid = roomOfItem.get(a.itemId); if (!rid || !ok.has(rid)) continue;
       if (a.date.startsWith(ym)) { add(month, a.status); perRoom.set(rid, add(perRoom.get(rid), a.status)); }
@@ -80,7 +80,7 @@ export default function Monthly() {
           {pickOpen && <CalendarPopup anchor={picker.current} mode="month" value={ym} onPick={(v) => { setYm(v); setSel(null); }} onClose={() => setPickOpen(false)} />}
         </div>
         <span className="spacer" />
-        <div className="seg" role="tablist">{([["all", "전체"], ["예약", "예약"], ["완료", "완료"], ["취소", "취소"]] as const).map(([k, t]) =>
+        <div className="seg" role="tablist">{([["all", "전체"], ["예약", "예약"], ["완료", "완료"], ["연기", "연기"], ["취소", "취소"]] as const).map(([k, t]) =>
           <button key={k} className={view === k ? "on" : ""} role="tab" aria-selected={view === k} onClick={() => setView(k)}>{t}</button>)}</div>
         <label className="chk"><input type="checkbox" checked={showWeekend} onChange={(e) => setWeekend(e.target.checked)} />주말 표시</label>
         <label className="chk"><input type="checkbox" checked={heat} onChange={(e) => setHeat(e.target.checked)} />혼잡도</label>
@@ -92,6 +92,7 @@ export default function Monthly() {
         <div className="kpi"><b><CountUp value={monthLive} /></b>월 전체 치료</div>
         <div className="kpi s-완료"><b><CountUp value={month.done} /></b>완료</div>
         <div className="kpi s-예약"><b><CountUp value={month.res} /></b>예약</div>
+        <div className="kpi s-연기"><b><CountUp value={month.post} /></b>연기</div>
         <div className="kpi s-취소"><b><CountUp value={month.canc} /></b>취소</div>
         <div className="kpi"><b><CountUp value={workDays ? Math.round(monthLive / workDays) : 0} /></b>일 평균</div>
       </div>
@@ -113,7 +114,7 @@ export default function Monthly() {
               <div className="mtop"><span className="mnum">{Number(d.slice(8))}</span>{inMonth && tot > 0 && <span className="mtot">{tot}건</span>}</div>
               <div className="mrows">{rows.map((r) => { const a = dm!.get(r.id)!; const n = countOf(a, view); const live = a.res + a.done; const pct = live ? (a.done / live) * 100 : 0;
                 return (
-                  <div key={r.id} className="mrow" title={`${r.name} ${n}건 (완료 ${a.done} / 예약 ${a.res} / 취소 ${a.canc})`}>
+                  <div key={r.id} className="mrow" title={`${r.name} ${n}건 (완료 ${a.done} / 예약 ${a.res} / 연기 ${a.post} / 취소 ${a.canc})`}>
                     <i className="rdot" style={{ background: r.color }} /><span className="nm">{short(r.name)}</span><b>{n}</b>
                     {view === "all" && <span className="mbar"><i style={{ width: `${pct}%`, background: r.color }} /></span>}
                   </div>); })}</div>
@@ -140,12 +141,12 @@ function DayDrawer({ date, appts, hidden, onClose, onGo, onNew }: { date: string
     <div className={`overlay drawer-wrap ${closing ? "out" : ""}`} onClick={close}>
       <aside className="drawer" role="dialog" aria-modal="true" aria-label={`${md(date)} 치료 현황`} onClick={(e) => e.stopPropagation()}>
         <div className="drawer-head"><div className="grow"><h3>{md(date)}</h3>
-          <div className="kpis" style={{ margin: 0 }}><div className="kpi s-예약"><b>{cnt("예약")}</b>예약</div><div className="kpi s-완료"><b>{cnt("완료")}</b>완료</div><div className="kpi s-취소"><b>{cnt("취소")}</b>취소</div></div></div>
+          <div className="kpis" style={{ margin: 0 }}><div className="kpi s-예약"><b>{cnt("예약")}</b>예약</div><div className="kpi s-완료"><b>{cnt("완료")}</b>완료</div><div className="kpi s-연기"><b>{cnt("연기")}</b>연기</div><div className="kpi s-취소"><b>{cnt("취소")}</b>취소</div></div></div>
           <button className="icon-btn" aria-label="닫기" onClick={close}><Icon name="x" /></button></div>
         <div className="drawer-body">
           {rooms.map((r) => {
             const list = sorted.filter((a) => itemOf(a.itemId)?.roomId === r.id); if (!list.length) return null;
-            const live = list.filter((a) => a.status !== "취소"); const done = list.filter((a) => a.status === "완료").length;
+            const live = list.filter((a) => a.status !== "취소" && a.status !== "연기"); const done = list.filter((a) => a.status === "완료").length;
             return (
               <div className="dsec" key={r.id}>
                 <h4><i className="rdot" style={{ background: r.color }} />{r.name}<small>{r.therapist} · 완료 {done}/{live.length}</small></h4>
