@@ -707,3 +707,21 @@ button.btn-end,button.btn-restore{display:inline-flex;align-items:center;justify
   .mon .rooms.fit .acard.compact .ac-n b{font-size:clamp(13.5px,calc(var(--rowh,40px)*.28),18px)}
   .mon .rooms.fit .acard.compact .ac-s .pill,.mon .rooms.fit .acard.compact .ac-live{font-size:clamp(10px,calc(var(--rowh,40px)*.2),12.5px)}
 }
+
+/* 치료상태는 ⋮ 메뉴 바로 왼쪽에 */
+.acard.compact .ac-s{flex:none}
+@container (max-width:200px){.acard.compact .ac-n small:not(.out){display:none}.acard.compact .ac-live{display:none}.acard.compact .ac-s .pill{padding:1px 5px}}
+@media(min-width:961px){.mon .rooms.fit .acard.compact .ac-n b{font-size:clamp(14px,calc(var(--rowh,40px)*.32),18px)}}
+
+/* 이름을 우선 보이게: 이름은 줄어들지 않고, 뒤쪽(병동)부터 잘린다. 좁은 칸에서는 상태를 한 글자 배지로 */
+.acard.compact .ac-n b{flex:none;overflow:visible;text-overflow:clip}
+.acard.compact .ac-n small{flex:0 1 auto;overflow:hidden;white-space:nowrap}
+.acard.compact .ac-s .pill .short{display:none}
+@container (max-width:178px){
+  .acard.compact .ac-s .pill .full{display:none}.acard.compact .ac-s .pill .short{display:inline}
+  .acard.compact .ac-s .pill{width:18px;height:18px;padding:0;justify-content:center;font-size:10.5px}
+  .acard.compact{gap:4px;padding-left:6px}.acard.compact .ac-t{min-width:0}
+  .acard.compact .icon-btn{width:18px}
+}
+@media(min-width:961px){.mon .rooms.fit .acard.compact .ac-n b{font-size:clamp(14px,calc(var(--rowh,40px)*.3),16px)}}
+@container (max-width:178px){.mon .rooms.fit .acard.compact .ac-n b,.acard.compact .ac-n b{font-size:13px}.mon .rooms.fit .acard.compact .ac-t,.acard.compact .ac-t{font-size:11.5px}.acard.compact .warn-ic svg{width:12px;height:12px}}
