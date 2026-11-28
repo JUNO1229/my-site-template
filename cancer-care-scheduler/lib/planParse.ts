@@ -154,7 +154,7 @@ export function parsePlan(input: string): PlanResult {
       items.push(parseOne(s.code, seg));
     });
     const tail = part.slice(st[st.length - 1].i);
-    if (shared) questions.push(`'${tail}': 파동·역박동 각각 월 2회 서비스로 보면 되나요?`);
+    if (shared) questions.push(`'${tail}': 파동·역박동 각각 월 2회, 옵션 S로 보면 되나요?`);
   }
   for (const it of items) questions.push(...it.q);
   // 메모성 텍스트
